@@ -8,10 +8,10 @@ Arquitectura:
 - **data_samples**: datasets anonimizados para desarrollo.
 
 Integraciones disponibles:
+
 - Azure SQL / Cosmos / Storage
 - Supabase
 - Vercel
 - OpenAI / Gemini / Claude
 - SonarCloud
 - GitHub Actions
-
