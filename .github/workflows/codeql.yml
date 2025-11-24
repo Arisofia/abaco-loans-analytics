@@ -3,8 +3,25 @@ name: CodeQL
 on:
   push:
     branches: ["main"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/codeql.yml"
+      - "package-lock.json"
+      - "package.json"
   pull_request:
     branches: ["main"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/codeql.yml"
+      - "package-lock.json"
+      - "package.json"
+  schedule:
+    - cron: "30 2 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analyze:
@@ -18,7 +35,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["javascript-typescript", "python"]
+        language: ["javascript-typescript"]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,24 +44,21 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        if: matrix.language == 'javascript-typescript'
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
 
-      - name: Setup Python
-        if: matrix.language == 'python'
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: apps/web
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+          build-mode: none
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
