@@ -46,8 +46,9 @@ class DataIngestionEngine:
                 continue
             normalized[col] = normalized[col].str.strip()
 
+        numeric_pattern = re.compile(r"^-?\d+(\.\d+)?$")
         for col in normalized.columns:
-            if normalized[col].dtype == object and normalized[col].str.match(r"^-?\\d+(\.\\d+)?$").any():
+            if normalized[col].dtype == object and normalized[col].str.match(numeric_pattern).any():
                 normalized[col] = self.convert_numeric_tolerant(normalized[col])
 
         valid, missing = self.validate_required_columns(normalized, source_name)
@@ -68,10 +69,10 @@ class DataIngestionEngine:
 
     def detect_source_type(self, filename: str) -> Optional[str]:
         filename_lower = filename.lower()
-        if filename_lower.endswith((".csv", ".xlsx")):
-            return "financial"
         if "invoice" in filename_lower:
             return "invoices"
+        if filename_lower.endswith((".csv", ".xlsx")):
+            return "financial"
         return None
 
     def get_table_name(self, source_type: str) -> str:

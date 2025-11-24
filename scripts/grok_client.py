@@ -51,14 +51,19 @@ class GrokClient:
         }
 
         attempt = 0
+        last_error: Optional[Exception] = None
         while attempt <= self.max_retries:
-            response = requests.post(self.api_url, headers=headers, json=payload, timeout=30)
-            if response.ok:
-                data = response.json()
-                choices = data.get("choices", [])
-                if choices:
-                    return choices[0].get("message", {}).get("content", "")
-                raise GrokClientError("Grok API returned an empty response")
+            try:
+                response = requests.post(self.api_url, headers=headers, json=payload, timeout=30)
+            except requests.RequestException as exc:  # network or timeout errors
+                last_error = exc
+                response = None
+            else:
+                if response.ok:
+                    data = response.json()
+                    if choices := data.get("choices", []):
+                        return choices[0].get("message", {}).get("content", "")
+                    raise GrokClientError("Grok API returned an empty response")
 
             attempt += 1
             if attempt > self.max_retries:
@@ -66,6 +71,10 @@ class GrokClient:
             sleep_for = self.backoff_seconds * attempt
             time.sleep(sleep_for)
 
-        raise GrokClientError(
-            f"Grok API request failed after {self.max_retries} retries: {response.text}"
-        )
+        error_message = "Grok API request failed after retries"
+        if response is not None:
+            error_message = f"{error_message}: {response.text}"
+        elif last_error:
+            error_message = f"{error_message}: {last_error}"
+
+        raise GrokClientError(error_message)

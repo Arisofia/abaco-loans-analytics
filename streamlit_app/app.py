@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from streamlit_app.config import theme
-from streamlit_app.utils.business_rules import MYPEBusinessRules
+from streamlit_app.utils.business_rules import IndustryType, MYPEBusinessRules
 from streamlit_app.utils.feature_engineering import FeatureEngineer
 from streamlit_app.utils.ingestion import DataIngestionEngine
 
@@ -64,7 +64,12 @@ def render_dashboard() -> None:
     st.subheader("Customer Table")
     st.dataframe(df)
 
+    try:
+        selected_industry = IndustryType[filters["industry"]]
+    except (KeyError, ValueError):
+        selected_industry = MYPEBusinessRules.default_industry()
+
     st.caption(
-        f"Benchmarks for {filters['industry']}: GDP contribution "
-        f"{MYPEBusinessRules.INDUSTRY_GDP_CONTRIBUTION[MYPEBusinessRules.default_industry()].value:.1%}"
+        f"Benchmarks for {selected_industry.name}: GDP contribution "
+        f"{MYPEBusinessRules.INDUSTRY_GDP_CONTRIBUTION[selected_industry]:.1%}"
     )

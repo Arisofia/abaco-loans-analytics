@@ -81,6 +81,25 @@ class MYPEBusinessRules:
         return bool(reasons), reasons
 
     @classmethod
+    def calculate_risk_level(cls, pod: float) -> RiskLevel:
+        """Derive risk level from probability of default using clear thresholds.
+
+        The previous implementation relied on sequential ``if`` statements that
+        could overwrite a ``HIGH`` classification with ``CRITICAL`` even when the
+        intent was to return the first matching bucket. This method uses an
+        explicit ``if``/``elif`` ladder to ensure a single risk bucket is
+        selected based on POD.
+        """
+
+        if pod >= 0.75:
+            return RiskLevel.CRITICAL
+        if pod >= 0.5:
+            return RiskLevel.HIGH
+        if pod >= 0.25:
+            return RiskLevel.MEDIUM
+        return RiskLevel.LOW
+
+    @classmethod
     def evaluate_facility_approval(
         cls, facility_amount: float, customer_metrics: Dict, collateral_value: float = 0.0
     ) -> ApprovalDecision:
@@ -88,14 +107,13 @@ class MYPEBusinessRules:
         dpd = customer_metrics.get("dpd", 0)
         pod = min(1.0, (dpd / cls.NPL_DAYS_THRESHOLD) * 0.8 + customer_metrics.get("npl_ratio", 0.02))
 
+        risk_level = cls.calculate_risk_level(pod)
         if dpd >= cls.NPL_DAYS_THRESHOLD:
             risk_level = RiskLevel.CRITICAL
         elif is_high_risk:
-            risk_level = RiskLevel.HIGH
+            risk_level = max(risk_level, RiskLevel.HIGH, key=lambda level: list(RiskLevel).index(level))
         elif customer_metrics.get("utilization", 0) > 0.75:
-            risk_level = RiskLevel.MEDIUM
-        else:
-            risk_level = RiskLevel.LOW
+            risk_level = max(risk_level, RiskLevel.MEDIUM, key=lambda level: list(RiskLevel).index(level))
 
         industry = customer_metrics.get("industry", cls.default_industry())
         adjustment = cls.calculate_industry_adjustment(industry)

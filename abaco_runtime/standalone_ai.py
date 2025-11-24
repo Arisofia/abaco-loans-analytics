@@ -46,23 +46,28 @@ class StandaloneAIEngine:
 
     def _initialize_ai_client(self) -> Optional[GrokClient]:
         api_key = os.getenv("GROK_API_KEY")
-        if not api_key:
-            return None
-        return GrokClient(api_key=api_key)
+        return None if not api_key else GrokClient(api_key=api_key)
 
     def _extract_agent_type(self, agent_id: str) -> str:
         return agent_id.split(":", maxsplit=1)[0].lower()
 
+    def _truncate_content(self, content: str, max_chars: int = 4000) -> str:
+        if len(content) <= max_chars:
+            return content
+        return f"{content[:max_chars]}...[truncated]"
+
     def _construct_prompt(self, personality: Dict[str, str], context: Dict, data: Dict) -> str:
+        data_payload = self._truncate_content(json.dumps(data, ensure_ascii=False))
         lines: List[str] = [
             f"Tone: {personality.get('tone')}",
             f"Style: {personality.get('style')}",
             f"Context: {context.get('summary', '')}",
-            f"Data Points: {json.dumps(data, ensure_ascii=False)}",
+            f"Data Points: {data_payload}",
         ]
         knowledge = context.get("knowledge_id")
         if knowledge and knowledge in self.knowledge_base:
-            lines.append(f"Knowledge Base: {json.dumps(self.knowledge_base[knowledge])}")
+            kb_payload = self._truncate_content(json.dumps(self.knowledge_base[knowledge], ensure_ascii=False))
+            lines.append(f"Knowledge Base: {kb_payload}")
         return "\n".join(lines)
 
     def generate_response(self, agent_id: str, context: Dict, data: Dict) -> str:
