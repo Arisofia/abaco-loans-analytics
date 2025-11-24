@@ -1,65 +1,379 @@
-import Image from 'next/image'
+'use client'
+
+import { useMemo, useState } from 'react'
 import styles from './page.module.css'
 
+type KeyValue = { id: number; key: string; value: string }
+type BodyMode = 'json' | 'form-data' | 'x-www-form-urlencoded'
+type AuthMode = 'none' | 'apiKey'
+
+const methodOptions = ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'] as const
+
+const buildKeyValueMap = (items: KeyValue[]) =>
+  items
+    .filter(({ key, value }) => key.trim() || value.trim())
+    .reduce<Record<string, string>>((acc, { key, value }) => {
+      acc[key.trim()] = value.trim()
+      return acc
+    }, {})
+
 export default function Home() {
+  const [method, setMethod] = useState<(typeof methodOptions)[number]>('POST')
+  const [apiUrl, setApiUrl] = useState('https://api.example.com/v1/loans')
+  const [params, setParams] = useState<KeyValue[]>([{ id: 1, key: 'tenantId', value: 'abaco' }])
+  const [headers, setHeaders] = useState<KeyValue[]>([{
+    id: 1,
+    key: 'Content-Type',
+    value: 'application/json',
+  }])
+  const [bodyMode, setBodyMode] = useState<BodyMode>('json')
+  const [jsonBody, setJsonBody] = useState(
+    JSON.stringify({
+      applicant: 'Adriana Navarrete',
+      amount: 75000,
+      currency: 'USD',
+      tenorMonths: 36,
+    }, null, 2)
+  )
+  const [formBody, setFormBody] = useState<KeyValue[]>([{ id: 1, key: 'amount', value: '75000' }])
+  const [authMode, setAuthMode] = useState<AuthMode>('none')
+  const [apiKeyName, setApiKeyName] = useState('x-api-key')
+  const [apiKeyValue, setApiKeyValue] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [result, setResult] = useState<string>('Ready to orchestrate Keploy and accelerate QA coverage.')
+
+  const requestBody = useMemo(() => {
+    if (bodyMode === 'json') return jsonBody
+    return JSON.stringify(buildKeyValueMap(formBody), null, 2)
+  }, [bodyMode, formBody, jsonBody])
+
+  const handleKeyValueChange = (
+    list: KeyValue[],
+    setList: (next: KeyValue[]) => void,
+    id: number,
+    field: 'key' | 'value',
+    value: string
+  ) => {
+    setList(list.map((item) => (item.id === id ? { ...item, [field]: value } : item)))
+  }
+
+  const addRow = (list: KeyValue[], setList: (next: KeyValue[]) => void) => {
+    const nextId = Math.max(0, ...list.map(({ id }) => id)) + 1
+    setList([...list, { id: nextId, key: '', value: '' }])
+  }
+
+  const cleanKeyValue = (values: KeyValue[]) => buildKeyValueMap(values)
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setStatus('loading')
+    setResult('Connecting to Keploy...')
+
+    let parsedBody: unknown = undefined
+    try {
+      if (bodyMode === 'json') {
+        parsedBody = jsonBody.trim() ? JSON.parse(jsonBody) : {}
+      } else if (bodyMode === 'form-data' || bodyMode === 'x-www-form-urlencoded') {
+        parsedBody = cleanKeyValue(bodyMode === 'form-data' ? formBody : formBody)
+      }
+    } catch {
+      setStatus('error')
+      setResult('Body must be valid JSON to reach Keploy securely.')
+      return
+    }
+
+    const sanitizedHeaders = cleanKeyValue(headers)
+    const requestHeaders = {
+      ...sanitizedHeaders,
+      ...(authMode === 'apiKey' && apiKeyName.trim()
+        ? { [apiKeyName.trim()]: apiKeyValue.trim() }
+        : {}),
+    }
+
+    const payload = {
+      method,
+      url: apiUrl,
+      params: cleanKeyValue(params),
+      headers: requestHeaders,
+      body: parsedBody,
+      bodyType: bodyMode,
+      auth: authMode === 'apiKey'
+        ? { type: 'apiKey', key: apiKeyName, value: apiKeyValue }
+        : { type: 'none' },
+    }
+
+    try {
+      const response = await fetch('https://app.keploy.io/api-testing/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const contentType = response.headers.get('content-type') || ''
+      const text = contentType.includes('application/json') ? JSON.stringify(await response.json(), null, 2) : await response.text()
+
+      if (!response.ok) {
+        setStatus('error')
+        setResult(`Keploy responded with ${response.status}: ${text}`)
+        return
+      }
+
+      setStatus('success')
+      setResult(text || 'Keploy returned an empty response. Validate your request details and retry.')
+    } catch {
+      setStatus('error')
+      setResult('Unable to reach Keploy. Check connectivity or proxy settings and try again.')
+    }
+  }
+
   return (
     <div className={styles.page}>
+      <div className={styles.gridOverlay} />
       <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{' '}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{' '}
-            or the{' '}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{' '}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        <section className={styles.hero}>
+          <div>
+            <p className={styles.badge}>Fintech-grade QA · Keploy x ABACO</p>
+            <h1>Generate API Test Scenarios at warp speed.</h1>
+            <p className={styles.lead}>
+              Plug your endpoint, enrich headers and auth, and let Keploy craft deterministic scenarios for every critical workflow.
+              Built for growth teams who need bulletproof reliability and audit-ready evidence.
+            </p>
+            <div className={styles.pillRow}>
+              <span className={styles.pill}>Zero-trust ready</span>
+              <span className={styles.pill}>Deterministic mocks</span>
+              <span className={styles.pill}>Traceable KPIs</span>
+            </div>
+          </div>
+          <div className={styles.scorecard}>
+            <div>
+              <p className={styles.scoreLabel}>Coverage velocity</p>
+              <p className={styles.scoreValue}>11x</p>
+              <p className={styles.scoreHint}>vs. manual test authoring</p>
+            </div>
+            <div className={styles.divider} />
+            <div>
+              <p className={styles.scoreLabel}>Rollback risk</p>
+              <p className={styles.scoreValue}>↓72%</p>
+              <p className={styles.scoreHint}>with auto-generated mocks</p>
+            </div>
+            <div className={styles.divider} />
+            <div>
+              <p className={styles.scoreLabel}>Time-to-signal</p>
+              <p className={styles.scoreValue}>Minutes</p>
+              <p className={styles.scoreHint}>instrument once, reuse everywhere</p>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.eyebrow}>Configure API Request</p>
+              <h2>Orchestrate Keploy in one secure request.</h2>
+              <p className={styles.panelCopy}>
+                We parse the endpoint instantly and prepare a replay-ready payload. Toggle method, headers, params, and body type to
+                adapt to fintech-grade APIs without losing observability.
+              </p>
+            </div>
+            <a className={styles.link} href="https://keploy.io" target="_blank" rel="noopener noreferrer">
+              keploy.io
+            </a>
+          </div>
+
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.row}>
+              <label className={styles.field}>Method</label>
+              <div className={styles.methods}>
+                {methodOptions.map((option) => (
+                  <button
+                    type="button"
+                    key={option}
+                    className={`${styles.methodButton} ${method === option ? styles.methodActive : ''}`}
+                    onClick={() => setMethod(option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.row}>
+              <label className={styles.field}>API URL</label>
+              <input
+                type="url"
+                className={styles.input}
+                required
+                value={apiUrl}
+                onChange={(event) => setApiUrl(event.target.value)}
+                placeholder="https://app.keploy.io/api-testing/generate"
+              />
+            </div>
+
+            <div className={styles.grid}> 
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <p className={styles.eyebrow}>Params</p>
+                  <button type="button" className={styles.addButton} onClick={() => addRow(params, setParams)}>
+                    + Add
+                  </button>
+                </div>
+                {params.map((item) => (
+                  <div className={styles.kvRow} key={item.id}>
+                    <input
+                      className={styles.input}
+                      value={item.key}
+                      onChange={(event) => handleKeyValueChange(params, setParams, item.id, 'key', event.target.value)}
+                      placeholder="Key"
+                    />
+                    <input
+                      className={styles.input}
+                      value={item.value}
+                      onChange={(event) => handleKeyValueChange(params, setParams, item.id, 'value', event.target.value)}
+                      placeholder="Value"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <p className={styles.eyebrow}>Headers</p>
+                  <button type="button" className={styles.addButton} onClick={() => addRow(headers, setHeaders)}>
+                    + Add
+                  </button>
+                </div>
+                {headers.map((item) => (
+                  <div className={styles.kvRow} key={item.id}>
+                    <input
+                      className={styles.input}
+                      value={item.key}
+                      onChange={(event) => handleKeyValueChange(headers, setHeaders, item.id, 'key', event.target.value)}
+                      placeholder="Key"
+                    />
+                    <input
+                      className={styles.input}
+                      value={item.value}
+                      onChange={(event) => handleKeyValueChange(headers, setHeaders, item.id, 'value', event.target.value)}
+                      placeholder="Value"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.grid}> 
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <p className={styles.eyebrow}>Body</p>
+                  <div className={styles.tags}>
+                    {(['json', 'form-data', 'x-www-form-urlencoded'] as BodyMode[]).map((mode) => (
+                      <button
+                        type="button"
+                        key={mode}
+                        className={`${styles.tag} ${bodyMode === mode ? styles.tagActive : ''}`}
+                        onClick={() => setBodyMode(mode)}
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {bodyMode === 'json' && (
+                  <textarea
+                    className={styles.textarea}
+                    value={jsonBody}
+                    onChange={(event) => setJsonBody(event.target.value)}
+                    placeholder='{"amount":75000}'
+                    rows={10}
+                  />
+                )}
+                {bodyMode !== 'json' && (
+                  <div className={styles.kvCol}>
+                    {formBody.map((item) => (
+                      <div className={styles.kvRow} key={item.id}>
+                        <input
+                          className={styles.input}
+                          value={item.key}
+                          onChange={(event) => handleKeyValueChange(formBody, setFormBody, item.id, 'key', event.target.value)}
+                          placeholder="Key"
+                        />
+                        <input
+                          className={styles.input}
+                          value={item.value}
+                          onChange={(event) => handleKeyValueChange(formBody, setFormBody, item.id, 'value', event.target.value)}
+                          placeholder="Value"
+                        />
+                      </div>
+                    ))}
+                    <button type="button" className={styles.addButton} onClick={() => addRow(formBody, setFormBody)}>
+                      + Add field
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <p className={styles.eyebrow}>Auth</p>
+                  <div className={styles.tags}>
+                    {(['none', 'apiKey'] as AuthMode[]).map((mode) => (
+                      <button
+                        type="button"
+                        key={mode}
+                        className={`${styles.tag} ${authMode === mode ? styles.tagActive : ''}`}
+                        onClick={() => setAuthMode(mode)}
+                      >
+                        {mode === 'none' ? 'None' : 'API Key'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {authMode === 'apiKey' && (
+                  <div className={styles.kvCol}>
+                    <input
+                      className={styles.input}
+                      value={apiKeyName}
+                      onChange={(event) => setApiKeyName(event.target.value)}
+                      placeholder="Header name"
+                    />
+                    <input
+                      className={styles.input}
+                      value={apiKeyValue}
+                      onChange={(event) => setApiKeyValue(event.target.value)}
+                      placeholder="Header value"
+                    />
+                  </div>
+                )}
+                <p className={styles.helper}>Keploy supports key-based auth for internal and partner APIs. Secrets stay client-side.</p>
+              </div>
+            </div>
+
+            <div className={styles.actions}>
+              <div>
+                <p className={styles.eyebrow}>Preview payload</p>
+                <pre className={styles.preview}>{requestBody}</pre>
+              </div>
+              <button className={styles.cta} type="submit" disabled={status === 'loading'}>
+                {status === 'loading' ? 'Generating with Keploy...' : 'Generate API Test Scenarios'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section className={styles.results}>
+          <div>
+            <p className={styles.eyebrow}>Response & Observability</p>
+            <h3>Trace every scenario with audit-ready context.</h3>
+            <p className={styles.panelCopy}>
+              Keploy returns deterministic captures you can replay across staging, UAT, or production-simulated environments.
+              Export them into CI pipelines, GitHub workflows, or SonarCloud quality gates to protect revenue-critical journeys.
+            </p>
+          </div>
+          <div className={`${styles.card} ${styles.responseCard}`}>
+            <p className={styles.responseLabel}>Live status: {status.toUpperCase()}</p>
+            <pre className={styles.response}>{result}</pre>
+          </div>
+        </section>
       </main>
     </div>
   )
