@@ -19,10 +19,13 @@ jobs:
           # Necessary for SonarCloud to analyze history
           fetch-depth: 0
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
