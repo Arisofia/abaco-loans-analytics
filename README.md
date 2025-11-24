@@ -15,3 +15,4 @@ Integraciones disponibles:
 - OpenAI / Gemini / Claude
 - SonarCloud
 - GitHub Actions
+- Figma / Notion / Slack (ver [guía de integraciones](docs/integrations.md))
