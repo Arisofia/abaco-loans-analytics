@@ -22,7 +22,8 @@
   body {
     color: var(--foreground);
     background: var(--background);
-    font-family: inherit;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

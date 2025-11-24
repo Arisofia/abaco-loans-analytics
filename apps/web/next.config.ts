@@ -5,10 +5,7 @@ const nextConfig: NextConfig = {
   typescript: {
     tsconfigPath: './tsconfig.json',
   },
-  turbopack: {
-    root: './apps/web',
-  },
-  headers: async () => [
+  headers: () => [
     {
       source: '/:path*',
       headers: [
@@ -27,8 +24,8 @@ const nextConfig: NextConfig = {
       ],
     },
   ],
-  redirects: async () => [],
-  rewrites: async () => ({
+  redirects: () => [],
+  rewrites: () => ({
     beforeFiles: [],
     afterFiles: [],
     fallback: [],
