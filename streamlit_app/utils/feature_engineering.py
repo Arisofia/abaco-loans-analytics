@@ -31,10 +31,14 @@ class FeatureEngineer:
     @classmethod
     def calculate_segmentation(cls, customer_metrics: Dict) -> str:
         revenue = customer_metrics.get("revenue", 0)
-        for segment, threshold in cls.SEGMENTATION_THRESHOLDS.items():
-            if revenue >= threshold:
-                return segment
-        return "starter"
+        return next(
+            (
+                segment
+                for segment, threshold in cls.SEGMENTATION_THRESHOLDS.items()
+                if revenue >= threshold
+            ),
+            "starter",
+        )
 
     @classmethod
     def bucket_dpd(cls, dpd_value: float) -> str:
@@ -48,9 +52,7 @@ class FeatureEngineer:
 
     @staticmethod
     def calculate_utilization(balance: float, limit: float) -> float:
-        if limit == 0:
-            return 0.0
-        return balance / limit
+        return 0.0 if limit == 0 else balance / limit
 
     @staticmethod
     def calculate_weighted_apr(facilities: List[Dict]) -> float:
