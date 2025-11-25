@@ -9,6 +9,40 @@ type AuthMode = 'none' | 'apiKey'
 
 const methodOptions = ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'] as const
 
+type KeyValueListProps = {
+  items: KeyValue[]
+  onChange: (id: number, field: 'key' | 'value', value: string) => void
+  onAdd?: () => void
+  addLabel?: string
+  placeholders?: { key?: string; value?: string }
+}
+
+const KeyValueList = ({ items, onChange, onAdd, addLabel = '+ Add', placeholders }: KeyValueListProps) => (
+  <>
+    {items.map((item) => (
+      <div className={styles.kvRow} key={item.id}>
+        <input
+          className={styles.input}
+          value={item.key}
+          onChange={(event) => onChange(item.id, 'key', event.target.value)}
+          placeholder={placeholders?.key ?? 'Key'}
+        />
+        <input
+          className={styles.input}
+          value={item.value}
+          onChange={(event) => onChange(item.id, 'value', event.target.value)}
+          placeholder={placeholders?.value ?? 'Value'}
+        />
+      </div>
+    ))}
+    {onAdd ? (
+      <button type="button" className={styles.addButton} onClick={onAdd}>
+        {addLabel}
+      </button>
+    ) : null}
+  </>
+)
+
 const buildKeyValueMap = (items: KeyValue[]) =>
   items
     .map(({ key, value }) => ({ key: key.trim(), value: value.trim() }))
@@ -42,6 +76,30 @@ export default function Home() {
   const [apiKeyValue, setApiKeyValue] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<string>('Ready to orchestrate Keploy and accelerate QA coverage.')
+
+  const createKeyValueChangeHandler = useCallback(
+    (setList: (next: KeyValue[] | ((prev: KeyValue[]) => KeyValue[])) => void) =>
+      (id: number, field: 'key' | 'value', value: string) =>
+        setList((prev) => prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))),
+    []
+  )
+
+  const createAddRowHandler = useCallback(
+    (setList: (next: KeyValue[] | ((prev: KeyValue[]) => KeyValue[])) => void) => () =>
+      setList((prev) => {
+        const nextId = Math.max(0, ...prev.map(({ id }) => id)) + 1
+        return [...prev, { id: nextId, key: '', value: '' }]
+      }),
+    []
+  )
+
+  const onParamsChange = useMemo(() => createKeyValueChangeHandler(setParams), [createKeyValueChangeHandler])
+  const onHeadersChange = useMemo(() => createKeyValueChangeHandler(setHeaders), [createKeyValueChangeHandler])
+  const onFormBodyChange = useMemo(() => createKeyValueChangeHandler(setFormBody), [createKeyValueChangeHandler])
+
+  const addParamRow = useMemo(() => createAddRowHandler(setParams), [createAddRowHandler])
+  const addHeaderRow = useMemo(() => createAddRowHandler(setHeaders), [createAddRowHandler])
+  const addFormRow = useMemo(() => createAddRowHandler(setFormBody), [createAddRowHandler])
 
   const cleanKeyValue = useCallback((values: KeyValue[]) => buildKeyValueMap(values), [])
 
@@ -91,21 +149,6 @@ export default function Home() {
     : payloadPreview.payload
       ? JSON.stringify(payloadPreview.payload, null, 2)
       : ''
-
-  const handleKeyValueChange = (
-    list: KeyValue[],
-    setList: (next: KeyValue[]) => void,
-    id: number,
-    field: 'key' | 'value',
-    value: string
-  ) => {
-    setList(list.map((item) => (item.id === id ? { ...item, [field]: value } : item)))
-  }
-
-  const addRow = (list: KeyValue[], setList: (next: KeyValue[]) => void) => {
-    const nextId = Math.max(0, ...list.map(({ id }) => id)) + 1
-    setList([...list, { id: nextId, key: '', value: '' }])
-  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -267,51 +310,21 @@ export default function Home() {
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
                   <p className={styles.eyebrow}>Params</p>
-                  <button type="button" className={styles.addButton} onClick={() => addRow(params, setParams)}>
+                  <button type="button" className={styles.addButton} onClick={addParamRow}>
                     + Add
                   </button>
                 </div>
-                {params.map((item) => (
-                  <div className={styles.kvRow} key={item.id}>
-                    <input
-                      className={styles.input}
-                      value={item.key}
-                      onChange={(event) => handleKeyValueChange(params, setParams, item.id, 'key', event.target.value)}
-                      placeholder="Key"
-                    />
-                    <input
-                      className={styles.input}
-                      value={item.value}
-                      onChange={(event) => handleKeyValueChange(params, setParams, item.id, 'value', event.target.value)}
-                      placeholder="Value"
-                    />
-                  </div>
-                ))}
+                <KeyValueList items={params} onChange={onParamsChange} />
               </div>
 
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
                   <p className={styles.eyebrow}>Headers</p>
-                  <button type="button" className={styles.addButton} onClick={() => addRow(headers, setHeaders)}>
+                  <button type="button" className={styles.addButton} onClick={addHeaderRow}>
                     + Add
                   </button>
                 </div>
-                {headers.map((item) => (
-                  <div className={styles.kvRow} key={item.id}>
-                    <input
-                      className={styles.input}
-                      value={item.key}
-                      onChange={(event) => handleKeyValueChange(headers, setHeaders, item.id, 'key', event.target.value)}
-                      placeholder="Key"
-                    />
-                    <input
-                      className={styles.input}
-                      value={item.value}
-                      onChange={(event) => handleKeyValueChange(headers, setHeaders, item.id, 'value', event.target.value)}
-                      placeholder="Value"
-                    />
-                  </div>
-                ))}
+                <KeyValueList items={headers} onChange={onHeadersChange} />
               </div>
             </div>
 
@@ -344,25 +357,13 @@ export default function Home() {
                 )}
                 {bodyMode !== 'json' && (
                   <div className={styles.kvCol}>
-                    {formBody.map((item) => (
-                      <div className={styles.kvRow} key={item.id}>
-                        <input
-                          className={styles.input}
-                          value={item.key}
-                          onChange={(event) => handleKeyValueChange(formBody, setFormBody, item.id, 'key', event.target.value)}
-                          placeholder="Key"
-                        />
-                        <input
-                          className={styles.input}
-                          value={item.value}
-                          onChange={(event) => handleKeyValueChange(formBody, setFormBody, item.id, 'value', event.target.value)}
-                          placeholder="Value"
-                        />
-                      </div>
-                    ))}
-                    <button type="button" className={styles.addButton} onClick={() => addRow(formBody, setFormBody)}>
-                      + Add field
-                    </button>
+                    <KeyValueList
+                      items={formBody}
+                      onChange={onFormBodyChange}
+                      onAdd={addFormRow}
+                      addLabel="+ Add field"
+                      placeholders={{ key: 'Key', value: 'Value' }}
+                    />
                   </div>
                 )}
               </div>
