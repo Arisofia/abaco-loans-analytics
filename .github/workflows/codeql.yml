@@ -5,16 +5,28 @@ on:
     branches: ["main"]
     paths:
       - "apps/web/**"
+      - "**/*.py"
+      - "requirements*.txt"
       - ".github/workflows/codeql.yml"
       - "package-lock.json"
       - "package.json"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
   pull_request:
     branches: ["main"]
     paths:
       - "apps/web/**"
+      - "**/*.py"
+      - "requirements*.txt"
       - ".github/workflows/codeql.yml"
       - "package-lock.json"
       - "package.json"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
   schedule:
     - cron: "30 2 * * 1"
   workflow_dispatch:
@@ -35,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["javascript-typescript"]
+        language: ["javascript", "python"]
 
     steps:
       - name: Checkout repository
@@ -44,6 +56,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
+        if: matrix.language == 'javascript'
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -51,8 +64,15 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
 
       - name: Install frontend dependencies
+        if: matrix.language == 'javascript'
         run: npm ci
         working-directory: apps/web
+
+      - name: Setup Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
