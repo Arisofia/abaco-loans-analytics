@@ -1,1 +1,5 @@
 gemini-cli/
+.DS_Store
+.venv/
+.vscode/
+apps/.DS_Store
