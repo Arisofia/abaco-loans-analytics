@@ -9,6 +9,16 @@ type BodyMode = 'json' | 'form-data' | 'x-www-form-urlencoded'
 type AuthMode = 'none' | 'apiKey'
 
 const methodOptions = ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'] as const
+type KeployAuth = { type: 'none' } | { type: 'apiKey'; key: string; value: string }
+type KeployPayload = {
+  method: (typeof methodOptions)[number]
+  url: string
+  params: Record<string, string>
+  headers: Record<string, string>
+  body: unknown
+  bodyType: BodyMode
+  auth: KeployAuth
+}
 
 const buildKeyValueMap = (items: KeyValue[]) =>
   items
@@ -129,7 +139,7 @@ export default function Home() {
         : {}),
     }
 
-    const payload = {
+    const payload: KeployPayload = {
       method,
       url: apiUrl,
       params: cleanKeyValue(params),
