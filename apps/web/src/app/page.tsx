@@ -117,7 +117,8 @@ export default function Home() {
         </div>
       </header>
 
-      <section className={styles.metrics}>
+      <section className={styles.metrics} aria-label="Portfolio performance metrics">
+        <h2 className={styles.srOnly}>Portfolio performance metrics</h2>
         {metrics.map((metric) => (
           <article key={metric.title} className={styles.card}>
             <div className={styles.cardHeader}>
@@ -140,23 +141,27 @@ export default function Home() {
             <span className={styles.pillNeutral}>SLA monitored</span>
           </header>
           <div className={styles.stageList}>
-            {stages.map((stage) => (
-              <div key={stage.name} className={styles.stageRow}>
-                <div>
-                  <p className={styles.stageName}>{stage.name}</p>
-                  <p className={styles.helper}>{stage.volume} customers</p>
-                </div>
-                <div className={styles.stageMeta}>
-                  <div className={styles.stageBar}>
-                    <span style={{ width: `${stage.conversion}%` }} />
+            {stages.map((stage) => {
+              const conversionWidth = Math.min(100, Math.max(0, stage.conversion))
+
+              return (
+                <div key={stage.name} className={styles.stageRow}>
+                  <div>
+                    <p className={styles.stageName}>{stage.name}</p>
+                    <p className={styles.helper}>{stage.volume} customers</p>
                   </div>
-                  <div className={styles.stageNumbers}>
-                    <span>{stage.conversion}%</span>
-                    <span className={styles.delta}>{stage.lift}</span>
+                  <div className={styles.stageMeta}>
+                    <div className={styles.stageBar}>
+                      <span style={{ width: `${conversionWidth}%` }} />
+                    </div>
+                    <div className={styles.stageNumbers}>
+                      <span>{stage.conversion}%</span>
+                      <span className={styles.delta}>{stage.lift}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </article>
 
