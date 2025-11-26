@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import styles from './page.module.css';
-import { metrics, products, controls, steps } from './data';
+import Link from 'next/link'
+import { controls, metrics, products, steps } from './data'
+import styles from './page.module.css'
 
 export default function Home() {
   return (

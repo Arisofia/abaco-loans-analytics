@@ -1,10 +1,26 @@
-export const metrics = [
+export type Metric = {
+  label: string
+  value: string
+}
+
+export type Product = {
+  title: string
+  detail: string
+}
+
+export type Step = {
+  label: string
+  title: string
+  copy: string
+}
+
+export const metrics: Metric[] = [
   { label: 'Approval uplift with governed risk', value: '+18%' },
   { label: 'Reduction in manual reviews', value: '42%' },
   { label: 'Portfolio coverage with audit trails', value: '100%' },
-];
+]
 
-export const products = [
+export const products: Product[] = [
   {
     title: 'Portfolio Intelligence',
     detail:
@@ -20,15 +36,15 @@ export const products = [
     detail:
       'Pre-approved journeys, partner-ready APIs, and data rooms that accelerate funding decisions.',
   },
-];
+]
 
-export const controls = [
+export const controls: string[] = [
   'Segregated roles, approvals, and immutable audit logs for every change.',
   'Real-time monitoring of SLAs, risk thresholds, and operational KPIs.',
   'Encryption by default with least-privilege access across environments.',
-];
+]
 
-export const steps = [
+export const steps: Step[] = [
   {
     label: '01',
     title: 'Unify data signals',
@@ -44,4 +60,4 @@ export const steps = [
     title: 'Measure & learn',
     copy: 'Track outcomes against revenue and risk KPIs, iterating with governed experiment loops.',
   },
-];
+]
