@@ -4,3 +4,4 @@ gemini-cli/
 .vscode/
 apps/.DS_Store
 node_modules/
+.next/
