@@ -14,13 +14,13 @@ export type Step = {
   copy: string
 }
 
-export const metrics: Metric[] = [
+export const metrics = [
   { label: 'Approval uplift with governed risk', value: '+18%' },
   { label: 'Reduction in manual reviews', value: '42%' },
   { label: 'Portfolio coverage with audit trails', value: '100%' },
-]
+] as const satisfies readonly Metric[]
 
-export const products: Product[] = [
+export const products = [
   {
     title: 'Portfolio Intelligence',
     detail:
@@ -36,15 +36,15 @@ export const products: Product[] = [
     detail:
       'Pre-approved journeys, partner-ready APIs, and data rooms that accelerate funding decisions.',
   },
-]
+] as const satisfies readonly Product[]
 
-export const controls: string[] = [
+export const controls = [
   'Segregated roles, approvals, and immutable audit logs for every change.',
   'Real-time monitoring of SLAs, risk thresholds, and operational KPIs.',
   'Encryption by default with least-privilege access across environments.',
-]
+] as const satisfies readonly string[]
 
-export const steps: Step[] = [
+export const steps = [
   {
     label: '01',
     title: 'Unify data signals',
@@ -60,4 +60,4 @@ export const steps: Step[] = [
     title: 'Measure & learn',
     copy: 'Track outcomes against revenue and risk KPIs, iterating with governed experiment loops.',
   },
-]
+] as const satisfies readonly Step[]
