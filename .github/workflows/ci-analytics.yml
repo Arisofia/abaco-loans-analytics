@@ -19,7 +19,5 @@ jobs:
           pip install -r requirements.txt
       - name: Validate
         run: |
-          python - <<'PY'
-import pandas as pd
-print("Environment ready. Pandas version:", pd.__version__)
-PY
+          cd apps/analytics
+          python -c "import pandas as pd; print('Environment ready. Pandas version:', pd.__version__)"
