@@ -1,13 +1,13 @@
 # ABACO — Loan Analytics Platform
 
-Arquitectura:
+Architecture:
 
-- **apps/web**: Next.js dashboard corporativo.
-- **apps/analytics**: pipelines de Python para riesgo, scoring y KPIs.
-- **infra/azure**: scripts de despliegue Azure.
-- **data_samples**: datasets anonimizados para desarrollo.
+- **apps/web**: Corporate Next.js dashboard.
+- **apps/analytics**: Python pipelines for risk, scoring, and KPIs.
+- **infra/azure**: Azure deployment scripts.
+- **data_samples**: Anonymized datasets for development.
 
-Integraciones disponibles:
+Available integrations:
 
 - Azure SQL / Cosmos / Storage
 - Supabase
@@ -15,4 +15,4 @@ Integraciones disponibles:
 - OpenAI / Gemini / Claude
 - SonarCloud
 - GitHub Actions
-- Figma / Notion / Slack (ver [guía de integraciones](docs/integrations.md))
+- Figma / Notion / Slack (see [integrations guide](docs/integrations.md))
