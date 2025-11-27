@@ -12,6 +12,17 @@
   --surface-interactive: rgba(255, 255, 255, 0.05);
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-interactive: rgba(255, 255, 255, 0.16);
+  --color-accent-blue-faint: rgba(37, 99, 235, 0.12);
+  --color-accent-green-faint: rgba(34, 197, 94, 0.14);
+  --surface-interactive-strong: rgba(255, 255, 255, 0.35);
+  --surface-interactive-ghost: rgba(255, 255, 255, 0.15);
+  --surface-subtle-bright: rgba(255, 255, 255, 0.18);
+  --surface-subtle-shadow: rgba(0, 0, 0, 0.18);
+  --color-text-primary-soft: rgba(243, 246, 251, 0.85);
+  --color-text-primary-muted: rgba(243, 246, 251, 0.78);
+  --border-interactive-soft: rgba(255, 255, 255, 0.55);
+  --border-interactive-bright: rgba(255, 255, 255, 0.8);
+  --border-subtle-soft: rgba(255, 255, 255, 0.25);
 }
 
 .page {
@@ -21,8 +32,8 @@
   gap: 96px;
   padding: 72px 24px 96px;
   background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--color-accent-blue), transparent 88%), transparent 30%),
-    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--color-accent-green), transparent 86%), transparent 28%), var(--color-bg);
+    radial-gradient(circle at 20% 20%, var(--color-accent-blue-faint), transparent 30%),
+    radial-gradient(circle at 80% 0%, var(--color-accent-green-faint), transparent 28%), var(--color-bg);
   color: var(--color-text-primary);
 }
 
@@ -40,7 +51,7 @@
   padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid var(--border-interactive);
-  background: color-mix(in srgb, var(--surface-interactive), #000 40%);
+  background: var(--surface-interactive-strong);
   font-size: 13px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -54,7 +65,7 @@
 
 .hero p {
   max-width: 780px;
-  color: color-mix(in srgb, var(--color-text-primary), transparent 15%);
+  color: var(--color-text-primary-soft);
   font-size: 18px;
   line-height: 1.7;
 }
@@ -97,8 +108,8 @@
 }
 
 .secondaryButton:hover {
-  border-color: color-mix(in srgb, var(--border-interactive), #fff 50%);
-  background: color-mix(in srgb, var(--surface-interactive), #fff 30%);
+  border-color: var(--border-interactive-soft);
+  background: var(--surface-interactive-strong);
 }
 
 .metrics {
@@ -168,7 +179,7 @@
 }
 
 .card {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--surface-subtle), #fff 20%), color-mix(in srgb, var(--surface-subtle), #000 20%));
+  background: linear-gradient(160deg, var(--surface-subtle-bright), var(--surface-subtle-shadow));
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 20px;
@@ -207,7 +218,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: color-mix(in srgb, var(--color-text-primary), transparent 20%);
+  color: var(--color-text-primary-soft);
 }
 
 .checkBullet {
@@ -221,9 +232,9 @@
 
 .auditBox {
   background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--color-accent-green), transparent 84%), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.14), transparent 40%),
     var(--surface-interactive);
-  border: 1px solid color-mix(in srgb, var(--border-subtle), #fff 20%);
+  border: 1px solid var(--border-subtle-soft);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -239,7 +250,7 @@
 
 .auditBox ul {
   padding-left: 18px;
-  color: color-mix(in srgb, var(--color-text-primary), transparent 25%);
+  color: var(--color-text-primary-muted);
   line-height: 1.6;
 }
 
@@ -250,13 +261,13 @@
 .primaryGhost {
   align-self: flex-start;
   color: var(--color-text-primary);
-  border-color: color-mix(in srgb, var(--border-interactive), #fff 50%);
+  border-color: var(--border-interactive-soft);
   background: transparent;
 }
 
 .primaryGhost:hover {
-  border-color: color-mix(in srgb, var(--border-interactive), #fff 100%);
-  background: color-mix(in srgb, var(--surface-interactive), #fff 10%);
+  border-color: var(--border-interactive-bright);
+  background: var(--surface-interactive-ghost);
 }
 
 .timeline {
