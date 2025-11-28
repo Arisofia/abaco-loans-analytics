@@ -185,7 +185,8 @@ def should_ingest(signature: str | None) -> bool:
     return signature is not None and signature != st.session_state.get("last_upload_signature")
 
 
-def ingest(current_upload, signature: str | None):
+def ingest(current_upload):
+    signature = get_upload_signature(current_upload)
     if hasattr(current_upload, "seek"):
         current_upload.seek(0)
     raw = parse_uploaded_file(current_upload)
@@ -202,11 +203,11 @@ def ingest(current_upload, signature: str | None):
 
 current_signature = get_upload_signature(uploaded)
 if should_ingest(current_signature):
-    ingest(uploaded, current_signature)
+    ingest(uploaded)
 
 if st.sidebar.button("Refresh ingestion", use_container_width=True):
     if should_ingest(current_signature):
-        ingest(uploaded, current_signature)
+        ingest(uploaded)
         st.sidebar.success("Ingestion refreshed.")
     else:
         st.sidebar.warning("Upload a new file before refreshing.")
