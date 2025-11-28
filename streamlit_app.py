@@ -148,6 +148,21 @@ st.sidebar.header("Streamlit Ingestion")
 uploaded = st.sidebar.file_uploader("Upload the core loan dataset (CSV)", type=["csv"], accept_multiple_files=False)
 validation_toggle = st.sidebar.checkbox("Validate upload schema", value=True)
 st.sidebar.caption("Use this area to trigger ingestion, refresh safely, and capture metadata.")
+if validation_toggle and uploaded is not None:
+    required = [
+        'loan_amount',
+        'appraised_value',
+        'borrower_income',
+        'monthly_debt',
+        'loan_status',
+        'interest_rate',
+        'principal_balance',
+    ]
+    columns = normalize_columns(parse_uploaded_file(uploaded)).columns
+    missing = [col for col in required if col not in columns]
+    if missing:
+        st.sidebar.error(f"Missing required columns: {', '.join(sorted(set(missing)))}")
+
 if "loan_data" not in st.session_state:
     st.session_state["loan_data"] = pd.DataFrame()
 if "ingestion_state" not in st.session_state:
@@ -281,6 +296,7 @@ summary = (
 st.markdown(summary)
 
 st.markdown("## Export & Figma Preparation")
+st.markdown('Prepare flattened fact tables for the Figma storyboard: https://www.figma.com/make/nuVKwuPuLS7VmLFvqzOX1G/Create-Dark-Editable-Slides?node-id=0-1&t=8coqxRUeoQvNvavm-1')
 fact_table = loan_df[
     [
         "loan_amount",
