@@ -163,16 +163,24 @@ if validation_toggle and uploaded is not None:
     if missing:
         st.sidebar.error(f"Missing required columns: {', '.join(sorted(set(missing)))}")
 
+def get_upload_signature(uploaded_file) -> str | None:
+    if uploaded_file is None:
+        return None
+    return f"{uploaded_file.name}:{uploaded_file.size}"
+
+
 if "loan_data" not in st.session_state:
     st.session_state["loan_data"] = pd.DataFrame()
 if "ingestion_state" not in st.session_state:
     st.session_state["ingestion_state"] = {}
 if "last_upload" not in st.session_state:
     st.session_state["last_upload"] = None
+if "last_upload_signature" not in st.session_state:
+    st.session_state["last_upload_signature"] = None
 
 
-def ingest():
-    raw = parse_uploaded_file(uploaded)
+def ingest(current_upload, signature: str | None):
+    raw = parse_uploaded_file(current_upload)
     normalized = normalize_columns(raw)
     numeric_columns = normalized.select_dtypes(include=["object"]).columns
     numeric_payload = normalized.copy()
@@ -181,14 +189,16 @@ def ingest():
     st.session_state["loan_data"] = numeric_payload
     st.session_state["ingestion_state"] = define_ingestion_state(numeric_payload)
     st.session_state["last_upload"] = pd.Timestamp.now()
+    st.session_state["last_upload_signature"] = signature
 
 
-if uploaded is not None:
-    ingest()
+current_signature = get_upload_signature(uploaded)
+if uploaded is not None and current_signature != st.session_state.get("last_upload_signature"):
+    ingest(uploaded, current_signature)
 
 if st.sidebar.button("Refresh ingestion", use_container_width=True):
-    if uploaded is not None and pd.Timestamp.now() != st.session_state.get("last_upload"):
-        ingest()
+    if uploaded is not None and current_signature != st.session_state.get("last_upload_signature"):
+        ingest(uploaded, current_signature)
         st.sidebar.success("Ingestion refreshed.")
     else:
         st.sidebar.warning("Upload a new file before refreshing.")
