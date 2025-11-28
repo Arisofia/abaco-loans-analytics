@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+from numbers import Number
 from typing import Any, Dict, Optional
 
 from azure.identity import DefaultAzureCredential
@@ -19,6 +20,9 @@ class AzureBlobKPIExporter:
         credential: Optional[Any] = None,
         blob_service_client: Optional[BlobServiceClient] = None,
     ):
+        if not container_name or not str(container_name).strip():
+            raise ValueError("A non-empty container_name is required.")
+
         if blob_service_client is not None:
             self.blob_service_client = blob_service_client
         else:
@@ -30,11 +34,19 @@ class AzureBlobKPIExporter:
                 self.blob_service_client = BlobServiceClient(
                     account_url=account_url, credential=credential or DefaultAzureCredential()
                 )
-        self.container_name = container_name
+        self.container_name = str(container_name).strip()
 
     def upload_metrics(self, metrics: Dict[str, float], blob_name: Optional[str] = None) -> str:
-        if not metrics:
-            raise ValueError("Metrics payload cannot be empty.")
+        if not isinstance(metrics, dict) or not metrics:
+            raise ValueError("Metrics payload must be a non-empty dictionary.")
+
+        normalized_metrics: Dict[str, float] = {}
+        for key, value in metrics.items():
+            if not isinstance(key, str) or not key.strip():
+                raise ValueError("Metric keys must be non-empty strings.")
+            if not isinstance(value, Number) or isinstance(value, bool):
+                raise ValueError("Metric values must be numeric.")
+            normalized_metrics[key] = float(value)
 
         container_client = self.blob_service_client.get_container_client(self.container_name)
         try:
@@ -46,7 +58,7 @@ class AzureBlobKPIExporter:
         blob_path = blob_name or f"kpi-dashboard-{timestamp.strftime('%Y%m%dT%H%M%SZ')}.json"
         payload = {
             "generated_at": timestamp.isoformat(),
-            "metrics": metrics,
+            "metrics": normalized_metrics,
         }
 
         container_client.upload_blob(

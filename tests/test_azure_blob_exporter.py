@@ -36,6 +36,19 @@ def test_upload_metrics_requires_payload():
         exporter.upload_metrics({})
 
 
+def test_upload_metrics_rejects_non_numeric_payloads():
+    exporter = AzureBlobKPIExporter(
+        container_name="kpis", blob_service_client=Mock()
+    )
+    with pytest.raises(ValueError):
+        exporter.upload_metrics({"portfolio": "high"})
+
+
+def test_exporter_requires_valid_container_name():
+    with pytest.raises(ValueError):
+        AzureBlobKPIExporter(container_name="  ", blob_service_client=Mock())
+
+
 def test_engine_exports_to_blob(monkeypatch):
     data = {
         "loan_amount": [100000, 200000],
