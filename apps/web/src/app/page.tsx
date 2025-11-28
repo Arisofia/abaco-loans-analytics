@@ -1,18 +1,16 @@
 import Link from 'next/link'
 import styles from './page.module.css'
 import { supabase } from '../lib/supabaseClient'
+import type { LandingPageData, Metric, Product, Step } from '../types/landingPage'
 
-// Define types for our data
-interface Metric { value: string; label: string; }
-interface Product { title: string; detail: string; }
-interface Step { label: string; title: string; copy: string; }
+async function getData(): Promise<LandingPageData> {
+  const { data, error } = await supabase.from('landing_page_data').select('*').single()
 
-async function getData() {
-  const { data, error } = await supabase.from('landing_page_data').select().single()
-  if (error) {
+  if (error || !data) {
     console.error('Error fetching landing page data:', error)
     return { metrics: [], products: [], controls: [], steps: [] }
   }
+
   return data
 }
 
