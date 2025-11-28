@@ -6,8 +6,13 @@ import type { LandingPageData, Metric, Product, Step } from '../types/landingPag
 async function getData(): Promise<LandingPageData> {
   const { data, error } = await supabase.from('landing_page_data').select('*').single()
 
-  if (error || !data) {
+  if (error) {
     console.error('Error fetching landing page data:', error)
+    return { metrics: [], products: [], controls: [], steps: [] }
+  }
+
+  if (!data) {
+    console.error('Landing page data is missing from Supabase response')
     return { metrics: [], products: [], controls: [], steps: [] }
   }
 
