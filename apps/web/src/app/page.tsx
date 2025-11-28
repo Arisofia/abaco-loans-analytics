@@ -1,24 +1,8 @@
 import Link from 'next/link'
+import { controls, metrics, products, steps } from './data'
 import styles from './page.module.css'
-import { supabase } from '../lib/supabaseClient'
 
-// Define types for our data
-interface Metric { value: string; label: string; }
-interface Product { title: string; detail: string; }
-interface Step { label: string; title: string; copy: string; }
-
-async function getData() {
-  const { data, error } = await supabase.from('landing_page_data').select().single()
-  if (error) {
-    console.error('Error fetching landing page data:', error)
-    return { metrics: [], products: [], controls: [], steps: [] }
-  }
-  return data
-}
-
-export default async function Home() {
-  const { metrics, products, controls, steps } = await getData()
-
+export default function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.hero}>
@@ -37,7 +21,7 @@ export default async function Home() {
           </Link>
         </div>
         <div className={styles.metrics}>
-          {metrics?.map((metric: Metric) => (
+          {metrics.map((metric) => (
             <div key={metric.label} className={styles.metricCard}>
               <span className={styles.metricValue}>{metric.value}</span>
               <span className={styles.metricLabel}>{metric.label}</span>
@@ -56,7 +40,7 @@ export default async function Home() {
           </p>
         </div>
         <div className={styles.cardGrid}>
-          {products?.map((product: Product) => (
+          {products.map((product) => (
             <div key={product.title} className={styles.card}>
               <h3>{product.title}</h3>
               <p>{product.detail}</p>
@@ -76,7 +60,7 @@ export default async function Home() {
         </div>
         <div className={styles.compliance}>
           <div className={styles.complianceList}>
-            {controls?.map((item: string) => (
+            {controls.map((item) => (
               <div key={item} className={styles.checkItem}>
                 <span className={styles.checkBullet} aria-hidden="true" />
                 <span>{item}</span>
@@ -107,7 +91,7 @@ export default async function Home() {
           </p>
         </div>
         <div className={styles.timeline}>
-          {steps?.map((step: Step) => (
+          {steps.map((step) => (
             <div key={step.label} className={styles.timelineStep}>
               <span className={styles.stepBadge}>{step.label}</span>
               <div>
