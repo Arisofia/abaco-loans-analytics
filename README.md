@@ -15,6 +15,10 @@ Integraciones disponibles:
 - OpenAI / Gemini / Claude
 - SonarCloud
 - GitHub Actions
+- Fitten Code AI
+- Copilot/agents (slide payload + PR summaries)
+
+Consulta `docs/Integrations-and-Agents.md` para conectar cada integración (Azure, Supabase, Vercel, IA) y activar los disparadores de agentes (Copilot, Fitten, SonarCloud, GitHub Actions). Incluye la lista de secretos necesarios, comandos de smoke test y el ciclo rápido de validación.
 
 ## ContosoTeamStats
 
