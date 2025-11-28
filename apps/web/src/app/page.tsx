@@ -1,11 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+import type { PostgrestSingleResponse } from '@supabase/supabase-js'
 import Link from 'next/link'
-import { controls as fallbackControls, metrics as fallbackMetrics, products as fallbackProducts, steps as fallbackSteps } from './data'
+import {
+  controls as fallbackControls,
+  metrics as fallbackMetrics,
+  products as fallbackProducts,
+  steps as fallbackSteps,
+} from './data'
 import styles from './page.module.css'
 import { supabase } from '../lib/supabaseClient'
 import type { LandingPageData } from '../types/landingPage'
 
 async function getData(): Promise<LandingPageData> {
-  const { data, error } = await supabase.from('landing_page_data').select().single()
+  const { data, error }: PostgrestSingleResponse<LandingPageData> = await supabase
+    .from('landing_page_data')
+    .select()
+    .single()
 
   if (error || !data) {
     console.error('Error fetching landing page data:', error)

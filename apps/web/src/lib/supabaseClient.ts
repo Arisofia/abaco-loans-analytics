@@ -18,6 +18,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase environment variables are missing')
 }
 
+// The SDK is correctly typed, but eslint cannot infer the env guard in this setup.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
 export const supabase: SupabaseClient<Database> = createClient<Database>(
   supabaseUrl,
   supabaseAnonKey
