@@ -20,6 +20,8 @@ Integraciones disponibles:
 
 This repository contains ContosoTeamStats, a .NET 6 Web API for managing sports teams that ships with Docker, Azure deployment scripts, SendGrid/Twilio integrations, and SQL Server migrations. Follow docs/ContosoTeamStats-setup.md for local setup, secrets, database provisioning, and container validation.
 
+Validation signal: refreshed on the validation/contoso-team-stats branch to trigger CI verification for the current release cycle.
+
 ## Fitten Code AI 编程助手
 
 Para integrar Fitten Code AI en este monorepo (local y GitHub), consulta `docs/Fitten-Code-AI-Manual.md`, que cubre la introducción al producto, instalación, integración, preguntas frecuentes y pruebas de inferencia local.
