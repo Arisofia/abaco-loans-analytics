@@ -9,6 +9,7 @@ import {
 import styles from './page.module.css'
 import { supabase } from '../lib/supabaseClient'
 import type { LandingPageData } from '../types/landingPage'
+import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard'
 
 async function getData(): Promise<LandingPageData> {
   if (!supabase) {
@@ -139,6 +140,10 @@ export default async function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className={styles.section} id="analytics">
+        <AnalyticsDashboard />
       </section>
     </div>
   )
