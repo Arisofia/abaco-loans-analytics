@@ -38,7 +38,7 @@
   - Q3-2026 Acceleration: +$3,084K; embedded channels 50–60% of originations; 300+ active customers; rotation stable.
   - Q4-2026 Consolidation: +$1,916K; shift to profitability, margin optimization, Series B readiness.
 - **Customers:** Target 500 active SMEs (56 → 500 = 8.9x). Acquisition 35–40/month baseline rising to 50–60/month H1-2026; churn down to 15%; 5–10 reactivations/month.
-- **Revenue/EBITDA (2026 ramp):** $2–3MM annual revenue equivalent with $50–100K EBITDA by Q4-2026; state-stable potential $270–390MM with 27%+ margins.
+- **Revenue/EBITDA (2026 ramp):** $2–3MM annual revenue equivalent with $50–100K EBITDA by Q4-2026; steady-state potential $270–390MM with 27%+ margins.
 - **Defaults:** Maintain <1.5% per cohort (covenant ≤4%).
 - **Rotation:** Sustain ≥4.5x (currently 5.5x).
 
