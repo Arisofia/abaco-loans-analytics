@@ -21,7 +21,7 @@ Esta métrica mide el volumen total procesado por clientes que repiten, reflejan
 ## 2. Contexto y tesis estratégicas
 
 1. **Mercado objetivo:** PYME formales que utilizan sus cuentas por cobrar para liquidez. La adopción de facturación electrónica facilita originación y monitoreo.
-2. **Ventaja competitiva:** Motor de riesgo centrado en pagador y pricing segmentado por CategoríaLíneaCredito (A–H).
+2. **Ventaja competitiva:** Motor de riesgo centrado en pagador y pricing segmentado por categoría de la línea de crédito (A–H).
 3. **Cambio estratégico:** Pasar de medir solo originación a medir uso recurrente de la plataforma y calidad de cartera.
 4. **Brecha previa:** El seguimiento se centraba en facturas originadas/mes; no capturaba recurrencia, expansión ni cashflow real.
 
