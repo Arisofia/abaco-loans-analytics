@@ -1,5 +1,12 @@
 gemini-cli/
 .DS_Store
+.env*
+.next/
+.turbo/
 .venv/
 .vscode/
+node_modules/
+coverage/
+dist/
+artifacts/
 apps/.DS_Store
