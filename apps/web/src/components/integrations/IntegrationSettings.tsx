@@ -168,7 +168,7 @@ export function IntegrationSettings() {
   }
 
   const disconnectPlatform = async (platform: Platform) => {
-    const tokenId = tokenState[platform].tokenId
+    const {tokenId} = tokenState[platform]
     setPlatformState(platform, { status: 'syncing', message: 'Disconnecting...' })
     try {
       await callEdgeFunction('/disconnect', { tokenId, platform })
