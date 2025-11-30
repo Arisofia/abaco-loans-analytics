@@ -61,11 +61,13 @@ Use this checklist to connect the project’s external services and to start the
 
 ## 8. Copilot and agent triggers
 - Invite teammates via GitHub Copilot for Business and confirm acceptance.
+- Add the `@copilot` account to the GitHub Enterprise org so enterprise prompts and inline guidance stay enabled for this repo.
 - Run `scripts/export_copilot_slide_payload.py` after analytics updates so presentation agents receive refreshed content:
   ```bash
   python scripts/export_copilot_slide_payload.py
   ```
 - When opening PRs, ask Copilot (or another agent) to summarize CI results, SonarCloud issues, and Fitten findings using the payload above plus workflow logs.
+- Assign `@codex` to the commit/PR so the automation that posts summaries and links has a consistent owner.
 - Maintain an `Enterprise-README.md` snippet (or PR description) that links to the latest Copilot prompt, workflow runs, and preview URLs.
 
 ## 9. Quick validation loop
