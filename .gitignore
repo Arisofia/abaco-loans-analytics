@@ -1,1 +1,11 @@
-*.vsix\n.gradle/
+# VS Code
+.vscode/
+*.vsix
+
+# Gradle
+.gradle/
+build/
+
+# Node
+node_modules/
+.next/
