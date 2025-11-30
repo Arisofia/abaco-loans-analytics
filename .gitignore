@@ -6,6 +6,8 @@ build/
 node_modules/
 .next/
 
+<<<<<<< ours
+<<<<<<< ours
 # Python
 .venv/
 venv/
@@ -20,3 +22,14 @@ __pycache__/
 # OS specific
 .DS_Store
 Thumbs.db
+=======
+# Gradle build artifacts
+.gradle/
+build/
+
+=======
+>>>>>>> theirs
+# Local development tools and artifacts
+nvm/
+abaco-loans-analytics/
+>>>>>>> theirs
