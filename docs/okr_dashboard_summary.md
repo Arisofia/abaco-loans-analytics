@@ -2,6 +2,13 @@
 
 This document summarizes the provided OKRs, risk guardrails, and near-term actions for the Abaco platform. It keeps the original content but structures it for quick reference.
 
+## Data Model & Measurement Rules
+- **Unit of analysis:** Each row in the core tables represents a **credit line/loan**; aggregations roll up to **client_id**.
+- **Concentration:** Enforced **by client_id** (not payer). Top-10 clients by outstanding balance must remain **<30%**; single-obligor per client **<4%**.
+- **Segmentation:** Balance buckets or quantiles are computed per loan/credit line, then summarized to client.
+- **Customer type:** New, Recurrent, and Recovered are tagged at the **client_id** level and applied consistently to all their lines.
+- **Risk grouping:** Delinquency, utilization, and covenant checks start at the **loan/credit line** level and then aggregate to client.
+
 ## OKR 1 — Growth (CGO)
 - **Primary metric:** 500 active SMEs by Q4-26 (from 56; 8.9×). Monthly tracking with weekly acquisition targets.
 - **Top-10 concentration:** <30% by client (currently 19.87%, maintain). Weekly monitoring; daily alerts if above threshold.
