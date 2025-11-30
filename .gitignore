@@ -7,6 +7,10 @@ node_modules/
 .next/
 .next/
 
+# Gradle build artifacts
+.gradle/
+build/
+
 # Local development tools and artifacts
 nvm/
 abaco-loans-analytics/
