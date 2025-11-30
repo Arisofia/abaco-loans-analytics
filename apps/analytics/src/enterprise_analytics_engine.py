@@ -1,6 +1,15 @@
 import pandas as pd
-import numpy as np
 from typing import Dict
+
+from metrics_utils import (
+    debt_to_income_ratio,
+    loan_to_value,
+    portfolio_delinquency_rate,
+    portfolio_kpis,
+    validate_kpi_columns,
+    weighted_portfolio_yield,
+)
+
 
 class LoanAnalyticsEngine:
     """
@@ -26,44 +35,23 @@ class LoanAnalyticsEngine:
 
     def _validate_columns(self):
         """Ensures the DataFrame contains the necessary columns for KPI computation."""
-        required_cols = [
-            'loan_amount', 'appraised_value', 'borrower_income', 'monthly_debt',
-            'loan_status', 'interest_rate', 'principal_balance'
-        ]
-        missing_cols = [col for col in required_cols if col not in self.loan_data.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required columns in loan_data: {', '.join(missing_cols)}")
+        validate_kpi_columns(self.loan_data)
 
     def compute_loan_to_value(self) -> pd.Series:
         """Computes the Loan-to-Value (LTV) ratio for each loan."""
-        return (self.loan_data['loan_amount'] / self.loan_data['appraised_value']) * 100
+        return loan_to_value(self.loan_data['loan_amount'], self.loan_data['appraised_value'])
 
     def compute_debt_to_income(self) -> pd.Series:
         """Computes the Debt-to-Income (DTI) ratio for each borrower."""
-        # Assuming borrower_income is annual, convert to monthly
-        monthly_income = self.loan_data['borrower_income'] / 12
-        # Avoid division by zero
-        return np.where(
-            monthly_income > 0,
-            (self.loan_data['monthly_debt'] / monthly_income) * 100,
-            np.nan
-        )
+        return debt_to_income_ratio(self.loan_data['monthly_debt'], self.loan_data['borrower_income'])
 
     def compute_delinquency_rate(self) -> float:
         """Computes the overall portfolio delinquency rate."""
-        delinquent_statuses = ['30-59 days past due', '60-89 days past due', '90+ days past due']
-        delinquent_count = self.loan_data['loan_status'].isin(delinquent_statuses).sum()
-        total_loans = len(self.loan_data)
-        return (delinquent_count / total_loans) * 100 if total_loans > 0 else 0.0
+        return portfolio_delinquency_rate(self.loan_data['loan_status'])
 
     def compute_portfolio_yield(self) -> float:
         """Computes the weighted average portfolio yield."""
-        total_principal = self.loan_data['principal_balance'].sum()
-        if total_principal == 0:
-            return 0.0
-
-        weighted_interest = (self.loan_data['interest_rate'] * self.loan_data['principal_balance']).sum()
-        return (weighted_interest / total_principal) * 100
+        return weighted_portfolio_yield(self.loan_data['interest_rate'], self.loan_data['principal_balance'])
 
     def run_full_analysis(self) -> Dict[str, float]:
         """
@@ -72,12 +60,8 @@ class LoanAnalyticsEngine:
         self.loan_data['ltv_ratio'] = self.compute_loan_to_value()
         self.loan_data['dti_ratio'] = self.compute_debt_to_income()
 
-        return {
-            "portfolio_delinquency_rate_percent": self.compute_delinquency_rate(),
-            "portfolio_yield_percent": self.compute_portfolio_yield(),
-            "average_ltv_ratio_percent": self.loan_data['ltv_ratio'].mean(),
-            "average_dti_ratio_percent": self.loan_data['dti_ratio'].mean(),
-        }
+        return portfolio_kpis(self.loan_data)
+
 
 if __name__ == '__main__':
     # Example usage demonstrating the engine's capabilities
