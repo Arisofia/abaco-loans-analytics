@@ -10,3 +10,6 @@ node_modules/
 # Local development tools and artifacts
 nvm/
 abaco-loans-analytics/
+.gradle/
+build/
+**/build/
