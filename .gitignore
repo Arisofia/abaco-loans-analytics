@@ -1,11 +1,22 @@
-# VS Code
-.vscode/
-*.vsix
-
 # Gradle
 .gradle/
 build/
 
-# Node
+# Node / JavaScript
 node_modules/
 .next/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDE / Editor specific
+.vscode/
+*.vsix
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
