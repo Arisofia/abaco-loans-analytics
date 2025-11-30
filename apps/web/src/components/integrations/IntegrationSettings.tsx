@@ -105,7 +105,7 @@ export function IntegrationSettings() {
         const nextState: Record<Platform, TokenState> = { ...initialState }
         json.forEach((entry) => {
           if (isStatusRow(entry)) {
-            const platform = entry.platform
+            const {platform} = entry
             if (PLATFORMS.includes(platform)) {
               nextState[platform] = {
                 status: entry.status || 'connected',
