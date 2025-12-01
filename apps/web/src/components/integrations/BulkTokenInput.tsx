@@ -91,7 +91,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
 
   const handleProcess = async () => {
     const list = parsedItems
-    setItems(list.map((item) => ({ ...item, status: 'pending', attempts: 0 })))
+    setItems(list.map((item) => ({ ...item, status: 'pending' as ItemStatus, attempts: 0 })))
     setProcessing(true)
     setSummary('')
 
@@ -113,10 +113,16 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
     if (!failures.length) return
     setProcessing(true)
     setSummary('')
-    const refreshed = failures.map((item) => ({ ...item, status: 'pending', attempts: 0 }))
+    const refreshed = failures.map((item) => ({
+      ...item,
+      status: 'pending' as ItemStatus,
+      attempts: 0,
+    }))
     setItems((current) =>
       current.map((existing) =>
-        existing.status === 'error' ? { ...existing, status: 'pending', attempts: 0 } : existing
+        existing.status === 'error'
+          ? { ...existing, status: 'pending' as ItemStatus, attempts: 0 }
+          : existing
       )
     )
     const results = await processItems(refreshed)
@@ -212,7 +218,7 @@ function parseInput(input: string): BulkTokenItem[] {
       platform: parts[0] as Platform,
       token: parts[1] ?? '',
       accountId: parts[2],
-      status: 'pending',
+      status: 'pending' as ItemStatus,
       attempts: 0,
     }))
     .filter((item) => PLATFORMS.includes(item.platform))
