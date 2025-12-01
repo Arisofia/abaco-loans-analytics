@@ -1,5 +1,6 @@
 import type { PostgrestSingleResponse } from '@supabase/supabase-js'
 import Link from 'next/link'
+import { z } from 'zod'
 import {
   controls as fallbackControls,
   metrics as fallbackMetrics,
@@ -11,14 +12,48 @@ import { supabase } from '../lib/supabaseClient'
 import type { LandingPageData } from '../types/landingPage'
 import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard'
 
+const landingPageSchema = z.object({
+  metrics: z.array(
+    z.object({
+      label: z.string().min(1),
+      value: z.string().min(1),
+    })
+  ),
+  products: z.array(
+    z.object({
+      title: z.string().min(1),
+      detail: z.string().min(1),
+    })
+  ),
+  controls: z.array(z.string().min(1)),
+  steps: z.array(
+    z.object({
+      label: z.string().min(1),
+      title: z.string().min(1),
+      copy: z.string().min(1),
+    })
+  ),
+})
+
+const fallbackData: LandingPageData = {
+  metrics: fallbackMetrics,
+  products: fallbackProducts,
+  controls: fallbackControls,
+  steps: fallbackSteps,
+}
+
+function cloneFallback(): LandingPageData {
+  return {
+    metrics: fallbackData.metrics.map((item) => ({ ...item })),
+    products: fallbackData.products.map((item) => ({ ...item })),
+    controls: [...fallbackData.controls],
+    steps: fallbackData.steps.map((item) => ({ ...item })),
+  }
+}
+
 async function getData(): Promise<LandingPageData> {
   if (!supabase) {
-    return {
-      metrics: [...fallbackMetrics],
-      products: [...fallbackProducts],
-      controls: [...fallbackControls],
-      steps: [...fallbackSteps],
-    }
+    return cloneFallback()
   }
 
   const { data, error }: PostgrestSingleResponse<LandingPageData> = await supabase
@@ -28,15 +63,16 @@ async function getData(): Promise<LandingPageData> {
 
   if (error || !data) {
     console.error('Error fetching landing page data:', error)
-    return {
-      metrics: [...fallbackMetrics],
-      products: [...fallbackProducts],
-      controls: [...fallbackControls],
-      steps: [...fallbackSteps],
-    }
+    return cloneFallback()
   }
 
-  return data
+  const parsed = landingPageSchema.safeParse(data)
+  if (!parsed.success) {
+    console.error('Invalid landing page payload received:', parsed.error.flatten())
+    return cloneFallback()
+  }
+
+  return parsed.data
 }
 
 export default async function Home() {
