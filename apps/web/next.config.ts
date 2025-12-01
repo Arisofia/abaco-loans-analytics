@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   typescript: {
     tsconfigPath: './tsconfig.json',
   },
+  turbopack: {
+    root: __dirname,
+  },
   headers: () => [
     {
       source: '/:path*',

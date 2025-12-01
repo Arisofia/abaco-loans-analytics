@@ -6,6 +6,7 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   sonarcloud:
@@ -27,6 +28,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
       - name: Install dependencies
         run: |
           cd apps/web
@@ -34,3 +41,6 @@ jobs:
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: >
+            -Dsonar.verbose=true

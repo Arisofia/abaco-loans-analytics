@@ -1,8 +1,32 @@
-gemini-cli/
-.DS_Store
-.venv/
-.vscode/
-apps/.DS_Store
+# Gradle
+.gradle/
+build/
+
+# Node / JavaScript
 node_modules/
 .next/
-.next/
+.turbo/
+dist/
+coverage/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDE / Editor
+.vscode/
+.idea/
+*.vsix
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project-specific artifacts
+apps/.DS_Store
+nvm/
+abaco-loans-analytics/
+data_samples/
+gemini-cli/
