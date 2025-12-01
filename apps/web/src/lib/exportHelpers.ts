@@ -46,10 +46,12 @@ export function processedAnalyticsToCSV(analytics: ProcessedAnalytics): string {
 export function processedAnalyticsToJSON(analytics: ProcessedAnalytics): string {
   return JSON.stringify(
     {
+      generatedAt: new Date().toISOString(),
       kpis: analytics.kpis,
       treemap: analytics.treemap,
       rollRates: analytics.rollRates,
       growthProjection: analytics.growthProjection,
+      loans: analytics.loans,
     },
     null,
     2
@@ -57,6 +59,8 @@ export function processedAnalyticsToJSON(analytics: ProcessedAnalytics): string 
 }
 
 export function processedAnalyticsToMarkdown(analytics: ProcessedAnalytics): string {
+  const generatedAt = new Date().toISOString()
+
   const kpiRows = [
     ['Delinquency rate', `${analytics.kpis.delinquencyRate}%`],
     ['Portfolio yield', `${analytics.kpis.portfolioYield}%`],
@@ -97,6 +101,7 @@ export function processedAnalyticsToMarkdown(analytics: ProcessedAnalytics): str
 
   return [
     '# ABACO portfolio analytics export',
+    `Generated at: ${generatedAt}`,
     '',
     '## KPI summary',
     '| KPI | Value |',

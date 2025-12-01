@@ -14,12 +14,18 @@ type Props = {
 
 function download(name: string, data: string, mime: string) {
   const blob = new Blob([data], { type: mime })
+  const objectUrl = URL.createObjectURL(blob)
   const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
+  link.href = objectUrl
   link.download = name
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(link.href)
+  document.body.appendChild(link)
+
+  try {
+    link.click()
+  } finally {
+    link.remove()
+    URL.revokeObjectURL(objectUrl)
+  }
 }
 
 export function ExportControls({ analytics }: Props) {
