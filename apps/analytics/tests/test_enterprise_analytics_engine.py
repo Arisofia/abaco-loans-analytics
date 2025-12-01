@@ -68,8 +68,31 @@ def test_run_full_analysis_includes_quality(sample_portfolio):
         "average_dti_ratio_percent",
         "data_quality_score",
         "average_null_ratio_percent",
+        "invalid_numeric_ratio_percent",
     }
 
     assert expected_keys.issubset(summary.keys())
     assert summary["portfolio_delinquency_rate_percent"] > 0
     assert summary["data_quality_score"] <= 100
+
+
+def test_coerces_invalid_numeric_values_and_reports_quality(sample_portfolio):
+    noisy_portfolio = sample_portfolio.copy()
+    noisy_portfolio["loan_amount"] = noisy_portfolio["loan_amount"].astype(object)
+    noisy_portfolio.loc[0, "loan_amount"] = "not-a-number"
+
+    engine = LoanAnalyticsEngine(noisy_portfolio)
+    quality = engine.data_quality_profile()
+    ltv = engine.compute_loan_to_value()
+
+    assert quality["invalid_numeric_ratio"] > 0
+    assert np.isnan(ltv.iloc[0])
+
+
+def test_source_dataframe_remains_unchanged_after_analysis(sample_portfolio):
+    original = sample_portfolio.copy()
+    engine = LoanAnalyticsEngine(sample_portfolio)
+
+    engine.run_full_analysis()
+
+    pd.testing.assert_frame_equal(sample_portfolio, original)
