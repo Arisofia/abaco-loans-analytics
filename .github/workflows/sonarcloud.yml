@@ -40,9 +40,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Install dependencies
+      - name: Install web dependencies
+        working-directory: apps/web
         run: |
-          cd apps/web
           npm ci
           npm run lint -- --version >/dev/null
 
@@ -54,18 +54,17 @@ jobs:
 
       - name: Java coverage (Jacoco)
         if: ${{ hashFiles('gradlew') != '' }}
-        run: |
-          ./gradlew jacocoTestReport
+        run: ./gradlew jacocoTestReport
 
       - name: Skip Java coverage (no gradle wrapper present)
         if: ${{ hashFiles('gradlew') == '' }}
         run: echo "Skipping Jacoco: gradlew not present in repository"
 
       - name: Web coverage placeholder
+        working-directory: apps/web
         run: |
-          cd apps/web
           mkdir -p coverage
-          echo "TN:\nSF:placeholder.js\nDA:1,0\nend_of_record" > coverage/lcov.info
+          echo -e "TN:\nSF:placeholder.js\nDA:1,0\nend_of_record" > coverage/lcov.info
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
@@ -73,3 +72,6 @@ jobs:
           args: >
             -Dsonar.verbose=true
             -Dsonar.python.coverage.reportPaths=coverage-python.xml
+            -Dsonar.javascript.lcov.reportPaths=apps/web/coverage/lcov.info
+            -Dsonar.java.coveragePlugin=jacoco
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
