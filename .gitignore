@@ -1,12 +1,44 @@
-gemini-cli/
-.DS_Store
-.venv/
-.vscode/
-apps/.DS_Store
+# Gradle
+.gradle/
+build/
+
+# Node / JavaScript
 node_modules/
 .next/
+<<<<<<< Updated upstream
 .next/
 
 # Local development tools and artifacts
 nvm/
 abaco-loans-analytics/
+=======
+
+<<<<<<< ours
+<<<<<<< ours
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDE / Editor specific
+.vscode/
+*.vsix
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
+=======
+# Gradle build artifacts
+.gradle/
+build/
+
+=======
+>>>>>>> theirs
+# Local development tools and artifacts
+nvm/
+abaco-loans-analytics/
+>>>>>>> theirs
+>>>>>>> Stashed changes
+.gradle/
