@@ -24,6 +24,8 @@ type ParsedInput = {
   items: BulkTokenItem[]
   invalidLines: number
   duplicateLines: number
+  emptyTokenLines: number
+  totalLines: number
 }
 
 const defaultRow = 'platform,token,accountId(optional)'
@@ -37,6 +39,8 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   const parsedInput = useMemo(() => parseInput(rawInput), [rawInput])
   const invalidLabel = parsedInput.invalidLines === 1 ? 'invalid line' : 'invalid lines'
   const duplicateLabel = parsedInput.duplicateLines === 1 ? 'duplicate' : 'duplicates'
+  const emptyTokenLabel = parsedInput.emptyTokenLines === 1 ? 'missing token' : 'missing tokens'
+  const hasInput = parsedInput.totalLines > 0
 
   const updateItem = useCallback((index: number, changes: Partial<BulkTokenItem>) => {
     setItems((current) =>
@@ -156,8 +160,18 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
               disabled={processing}
             />
             <p className={styles.metaSummary} aria-live="polite">
-              Parsed {parsedInput.items.length} tokens. Filtered out {parsedInput.invalidLines}{' '}
-              {invalidLabel} and {parsedInput.duplicateLines} {duplicateLabel}.
+              {hasInput ? (
+                <>
+                  Validated {parsedInput.items.length} of {parsedInput.totalLines} lines. Filtered
+                  out {parsedInput.invalidLines} {invalidLabel}
+                  {parsedInput.emptyTokenLines > 0
+                    ? ` (${parsedInput.emptyTokenLines} ${emptyTokenLabel})`
+                    : ''}{' '}
+                  and {parsedInput.duplicateLines} {duplicateLabel}.
+                </>
+              ) : (
+                'Paste tokens above to validate format and platforms.'
+              )}
             </p>
           </div>
           <div className={styles.progressList} aria-live="polite">
@@ -223,6 +237,7 @@ function parseInput(input: string): ParsedInput {
   const items: BulkTokenItem[] = []
   let invalidLines = 0
   let duplicateLines = 0
+  let emptyTokenLines = 0
 
   rows.forEach((line) => {
     const parts = line.split(',').map((segment) => segment.trim())
@@ -232,8 +247,14 @@ function parseInput(input: string): ParsedInput {
     }
 
     const platform = parts[0] as Platform
-    const token = parts[1] ?? ''
+    const token = parts[1]?.trim() ?? ''
     const accountId = parts[2]
+
+    if (!token) {
+      emptyTokenLines += 1
+      invalidLines += 1
+      return
+    }
 
     if (!PLATFORMS.includes(platform)) {
       invalidLines += 1
@@ -256,7 +277,7 @@ function parseInput(input: string): ParsedInput {
     })
   })
 
-  return { items, invalidLines, duplicateLines }
+  return { items, invalidLines, duplicateLines, emptyTokenLines, totalLines: rows.length }
 }
 
 function waitForDelay(attempt: number) {
