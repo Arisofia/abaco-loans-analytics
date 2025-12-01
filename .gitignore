@@ -5,7 +5,6 @@ gemini-cli/
 apps/.DS_Store
 node_modules/
 .next/
-.next/
 
 # Local development tools and artifacts
 nvm/
@@ -13,4 +12,6 @@ abaco-loans-analytics/
 
 # Gradle build outputs and caches
 build/
+**/build/
 .gradle/
+**/.gradle/
