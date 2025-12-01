@@ -25,4 +25,5 @@ Thumbs.db
 nvm/
 abaco-loans-analytics/
 
+# Logs
 duplicates.log
