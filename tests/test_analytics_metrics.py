@@ -58,7 +58,8 @@ def test_standardize_numeric_handles_symbols():
 def test_standardize_numeric_passes_through_numeric_series():
     series = pd.Series([1, 2.5, -3])
     cleaned = standardize_numeric(series)
-    assert cleaned.tolist() == [1, 2.5, -3]
+    assert cleaned.tolist() == [1.0, 2.5, -3.0]
+    assert cleaned.dtype == series.dtype
 
 
 def test_standardize_numeric_handles_negative_symbols_and_commas():
