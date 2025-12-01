@@ -159,7 +159,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
               placeholder={defaultRow}
               disabled={processing}
             />
-            <p className={styles.metaSummary} aria-live="polite">
+            <p className={styles.metaSummary} aria-live="off">
               {hasInput ? (
                 <>
                   Validated {parsedInput.items.length} of {parsedInput.totalLines} lines. Filtered
