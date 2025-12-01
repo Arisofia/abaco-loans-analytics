@@ -3,9 +3,12 @@ gemini-cli/
 .venv/
 .vscode/
 apps/.DS_Store
+
+# Node/Next.js artifacts
 node_modules/
 .next/
-.next/
+
+# Gradle artifacts for the Spring Boot services
 .gradle/
 build/
 

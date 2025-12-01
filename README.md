@@ -22,7 +22,7 @@ Consulta `docs/integration-readiness.md` para verificar el estado de cada integr
 
 This repository contains ContosoTeamStats, a .NET 6 Web API for managing sports teams that ships with Docker, Azure deployment scripts, SendGrid/Twilio integrations, and SQL Server migrations. Follow docs/ContosoTeamStats-setup.md for local setup, secrets, database provisioning, and container validation.
 
-See docs/Analytics-Vision.md for the analytics vision, Streamlit blueprint, and the agent-ready narrative that keeps every KPI, scenario, and AI prompt aligned with our fintech-grade delivery. Pair it with docs/KPI-Operating-Model.md to follow the ContosoTeamStats-branded playbook for operating KPIs and governance across engineering, analytics, and coaching stakeholders.
+See docs/Analytics-Vision.md for the analytics vision, Streamlit blueprint, and the agent-ready narrative that keeps every KPI, scenario, and AI prompt aligned with our fintech-grade delivery. Use docs/KPI-Operating-Model.md for the ContosoTeamStats-branded operating model so contributors can see exactly how KPI cadence, governance, and responsibilities map to this repository.
 
 ## Copilot Enterprise workflow
 
