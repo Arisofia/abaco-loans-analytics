@@ -53,14 +53,12 @@ jobs:
           pytest --cov=. --cov-report=xml:../coverage-python.xml
 
       - name: Java coverage (Jacoco)
-        if: ${{ hashFiles('gradlew') != '' }}
         run: |
-          ./gradlew jacocoTestReport
-
-      - name: Skip Java coverage (no gradle wrapper present)
-        if: ${{ hashFiles('gradlew') == '' }}
-        run: |
-          echo "Skipping Jacoco: gradlew not present in repository"
+          if [ -x ./gradlew ]; then
+            ./gradlew jacocoTestReport
+          else
+            echo "Skipping Jacoco: gradlew not present in repository"
+          fi
 
       - name: Web coverage placeholder
         run: |
