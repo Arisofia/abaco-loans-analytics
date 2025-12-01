@@ -82,13 +82,20 @@ export function AnalyticsDashboard() {
     },
   ]
 
+  const isStatusRecord = (value: unknown): value is Record<string, 'ok' | 'error'> => {
+    if (!value || typeof value !== 'object') return false
+    return Object.values(value).every((entry) => entry === 'ok' || entry === 'error')
+  }
+
   useEffect(() => {
     async function fetchStatuses() {
       try {
         const res = await fetch('/api/drilldowns/status')
         if (!res.ok) throw new Error('status fetch failed')
-        const json: Record<string, 'ok' | 'error'> = await res.json()
-        setDrilldownStatuses((prev) => ({ ...prev, ...json }))
+        const payload: unknown = await res.json()
+        if (isStatusRecord(payload)) {
+          setDrilldownStatuses((prev) => ({ ...prev, ...payload }))
+        }
       } catch {
         // keep existing/unknown on failure
       }
