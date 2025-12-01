@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import styles from './analytics.module.css'
 import type { LoanRow } from '@/types/analytics'
 import { processLoanRows } from '@/lib/analyticsProcessor'
@@ -10,6 +10,7 @@ import { TreemapVisualization } from './TreemapVisualization'
 import { GrowthPathChart } from './GrowthPathChart'
 import { RollRateMatrix } from './RollRateMatrix'
 import { ExportControls } from './ExportControls'
+import { ensureLoanIds, type IdentifiedLoanRow } from '@/lib/loanData'
 
 const DEFAULT_SAMPLE: LoanRow[] = [
   {
@@ -35,13 +36,20 @@ const DEFAULT_SAMPLE: LoanRow[] = [
 ]
 
 export function AnalyticsDashboard() {
-  const [loanData, setLoanData] = useState<LoanRow[]>(DEFAULT_SAMPLE)
+  const [loanData, setLoanData] = useState<IdentifiedLoanRow[]>(() => ensureLoanIds(DEFAULT_SAMPLE))
+
+  const handleUpload = useCallback(
+    (rows: LoanRow[]) => {
+      setLoanData(ensureLoanIds(rows))
+    },
+    []
+  )
 
   const analytics = useMemo(() => processLoanRows(loanData), [loanData])
 
   return (
     <div className={styles.container}>
-      <LoanUploader onData={setLoanData} />
+      <LoanUploader onData={handleUpload} />
       <PortfolioHealthKPIs kpis={analytics.kpis} />
       <TreemapVisualization entries={analytics.treemap} />
       <GrowthPathChart projection={analytics.growthProjection} />
