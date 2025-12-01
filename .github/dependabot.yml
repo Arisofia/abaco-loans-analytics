@@ -1,6 +1,8 @@
 version: 2
+
 updates:
-  - package-ecosystem: "npm"
+  - &default_settings
+    package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -14,28 +16,9 @@ updates:
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
+  - <<: *default_settings
+    package-ecosystem: "pip"
     open-pull-requests-limit: 10
-    assignees:
-      - "codex"
-    reviewers:
-      - "sonarqube"
-      - "coderabbit"
-      - "sourcery"
-    groups:
-      minor-and-patch:
-        update-types: ["minor", "patch"]
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
+  - <<: *default_settings
+    package-ecosystem: "github-actions"
     open-pull-requests-limit: 5
-    assignees:
-      - "codex"
-    reviewers:
-      - "sonarqube"
-      - "coderabbit"
-      - "sourcery"
