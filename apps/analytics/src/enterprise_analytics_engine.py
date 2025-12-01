@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 from typing import Dict
 
 class LoanAnalyticsEngine:
@@ -35,19 +35,20 @@ class LoanAnalyticsEngine:
             raise ValueError(f"Missing required columns in loan_data: {', '.join(missing_cols)}")
 
     def compute_loan_to_value(self) -> pd.Series:
-        """Computes the Loan-to-Value (LTV) ratio for each loan."""
-        return (self.loan_data['loan_amount'] / self.loan_data['appraised_value']) * 100
+        """Computes the Loan-to-Value (LTV) ratio for each loan while avoiding division by zero."""
+        appraised_value = self.loan_data['appraised_value'].replace(0, np.nan)
+        ltv = (self.loan_data['loan_amount'] / appraised_value) * 100
+        return ltv.replace([np.inf, -np.inf], np.nan)
 
     def compute_debt_to_income(self) -> pd.Series:
         """Computes the Debt-to-Income (DTI) ratio for each borrower."""
-        # Assuming borrower_income is annual, convert to monthly
         monthly_income = self.loan_data['borrower_income'] / 12
-        # Avoid division by zero
-        return np.where(
+        dti = np.where(
             monthly_income > 0,
             (self.loan_data['monthly_debt'] / monthly_income) * 100,
             np.nan
         )
+        return pd.Series(dti, index=self.loan_data.index)
 
     def compute_delinquency_rate(self) -> float:
         """Computes the overall portfolio delinquency rate."""
@@ -65,6 +66,53 @@ class LoanAnalyticsEngine:
         weighted_interest = (self.loan_data['interest_rate'] * self.loan_data['principal_balance']).sum()
         return (weighted_interest / total_principal) * 100
 
+    def data_quality_profile(self) -> Dict[str, float]:
+        """
+        Generates a lightweight data quality profile to keep KPI calculations auditable and traceable.
+
+        Returns:
+            Dict[str, float]: Percentages for completeness and duplicate risk, plus the volume inspected.
+        """
+        null_ratio = float(self.loan_data.isna().mean().mean())
+        duplicate_ratio = float(self.loan_data.duplicated().mean())
+        return {
+            "row_count": float(len(self.loan_data)),
+            "average_null_ratio": round(null_ratio * 100, 2),
+            "duplicate_ratio": round(duplicate_ratio * 100, 2),
+            "data_quality_score": round(max(0.0, 100 - (null_ratio * 100) - (duplicate_ratio * 50)), 2)
+        }
+
+    def risk_alerts(self, ltv_threshold: float = 90.0, dti_threshold: float = 40.0) -> pd.DataFrame:
+        """
+        Flags high-risk loans for downstream dashboards and operational alerts.
+
+        Args:
+            ltv_threshold (float): LTV threshold for alerting.
+            dti_threshold (float): DTI threshold for alerting.
+
+        Returns:
+            pd.DataFrame: Subset of loans exceeding thresholds with calculated risk scores.
+        """
+        ltv = self.compute_loan_to_value()
+        dti = self.compute_debt_to_income()
+        alerts = self.loan_data.copy()
+        alerts['ltv_ratio'] = ltv
+        alerts['dti_ratio'] = dti
+        alerts = alerts[(alerts['ltv_ratio'] > ltv_threshold) | (alerts['dti_ratio'] > dti_threshold)]
+        if alerts.empty:
+            return alerts
+
+        alerts['risk_score'] = (
+            alerts[['ltv_ratio', 'dti_ratio']]
+            .fillna(0)
+            .assign(
+                ltv_component=lambda d: np.clip((d['ltv_ratio'] - ltv_threshold) / 20, 0, 1),
+                dti_component=lambda d: np.clip((d['dti_ratio'] - dti_threshold) / 30, 0, 1),
+            )
+            .pipe(lambda d: (d['ltv_component'] + d['dti_component']) / 2)
+        )
+        return alerts[['ltv_ratio', 'dti_ratio', 'risk_score']]
+
     def run_full_analysis(self) -> Dict[str, float]:
         """
         Runs a comprehensive analysis and returns a dictionary of portfolio-level KPIs.
@@ -72,11 +120,15 @@ class LoanAnalyticsEngine:
         self.loan_data['ltv_ratio'] = self.compute_loan_to_value()
         self.loan_data['dti_ratio'] = self.compute_debt_to_income()
 
+        quality = self.data_quality_profile()
+
         return {
             "portfolio_delinquency_rate_percent": self.compute_delinquency_rate(),
             "portfolio_yield_percent": self.compute_portfolio_yield(),
             "average_ltv_ratio_percent": self.loan_data['ltv_ratio'].mean(),
             "average_dti_ratio_percent": self.loan_data['dti_ratio'].mean(),
+            "data_quality_score": quality["data_quality_score"],
+            "average_null_ratio_percent": quality["average_null_ratio"],
         }
 
 if __name__ == '__main__':
