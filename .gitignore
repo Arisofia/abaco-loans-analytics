@@ -1,14 +1,19 @@
-gemini-cli/
+# macOS & local tooling
 .DS_Store
-.venv/
 .vscode/
-apps/.DS_Store
+.venv/
+nvm/
+
+# Node/Next.js
 node_modules/
 .next/
-.next/
 
-# Local development tools and artifacts
-nvm/
+# Local demos and generated artifacts
 abaco-loans-analytics/
+gemini-cli/
+
+# Gradle caches and build outputs
 .gradle/
+**/.gradle/
 build/
+**/build/
