@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import styles from './analytics.module.css'
 import type { LoanRow } from '@/types/analytics'
 import { processLoanRows } from '@/lib/analyticsProcessor'
@@ -37,6 +37,12 @@ const DEFAULT_SAMPLE: LoanRow[] = [
 
 export function AnalyticsDashboard() {
   const [loanData, setLoanData] = useState<LoanRow[]>(DEFAULT_SAMPLE)
+  const [drilldownStatuses, setDrilldownStatuses] = useState<Record<string, 'ok' | 'error' | 'unknown'>>({
+    '/delinquency': 'unknown',
+    '/roll-rate': 'unknown',
+    '/collections': 'unknown',
+    '/ingestion-errors': 'unknown',
+  })
 
   const analytics = useMemo(() => processLoanRows(loanData), [loanData])
   const docBase = 'https://github.com/Abaco-Technol/abaco-loans-analytics/blob/main'
@@ -72,6 +78,20 @@ export function AnalyticsDashboard() {
       description: 'Containment, backfill, validation, and alert closure.',
     },
   ]
+
+  useEffect(() => {
+    async function fetchStatuses() {
+      try {
+        const res = await fetch('/api/drilldowns/status')
+        if (!res.ok) throw new Error('status fetch failed')
+        const json: Record<string, 'ok' | 'error'> = await res.json()
+        setDrilldownStatuses((prev) => ({ ...prev, ...json }))
+      } catch {
+        // keep existing/unknown on failure
+      }
+    }
+    void fetchStatuses()
+  }, [])
 
   return (
     <div className={styles.container}>
@@ -123,7 +143,10 @@ export function AnalyticsDashboard() {
             { label: 'Roll-rate cell loans', path: '/roll-rate' },
             { label: 'Collections queue', path: '/collections' },
             { label: 'Ingestion errors', path: '/ingestion-errors' },
-          ].map((item) => (
+          ].map((item) => {
+            const status = drilldownStatuses[item.path] ?? 'unknown'
+            const statusText = status === 'ok' ? 'Ready' : status === 'error' ? 'Error' : 'Unknown'
+            return (
             <Link
               key={item.path}
               href={`${drilldownBase}${item.path}`}
@@ -133,8 +156,9 @@ export function AnalyticsDashboard() {
             >
               <span className={styles.linkTitle}>{item.label}</span>
               <span className={styles.linkDescription}>Opens drill-down table for this chart.</span>
+              <span className={styles.pill}>{statusText}</span>
             </Link>
-          ))}
+          )})}
         </div>
       </section>
       <PortfolioHealthKPIs kpis={analytics.kpis} />
