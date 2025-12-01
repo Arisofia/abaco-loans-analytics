@@ -1,23 +1,35 @@
-# Gradle
+# Gradle and Java build artifacts
 .gradle/
 build/
+out/
+*.class
+*.jar
+*.war
+*.ear
 
 # Node / JavaScript
 node_modules/
+.pnpm-store/
 .next/
 .turbo/
 dist/
 coverage/
+*.log
+npm-debug.log*
+yarn-error.log*
 
 # Python
 .venv/
 venv/
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
 
 # IDE / Editor
 .vscode/
 .idea/
+*.iml
 *.vsix
 
 # OS files
@@ -26,8 +38,7 @@ Thumbs.db
 
 # Project-specific artifacts
 apps/.DS_Store
-nvm/
-abaco-loans-analytics/
 data_samples/
 gemini-cli/
+nvm/
 gradle.properties
