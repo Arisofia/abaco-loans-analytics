@@ -8,6 +8,38 @@ import {
 
 const currencyRegex = /[^\d.-]/g
 
+function splitCsvLine(line: string): string[] {
+  const values: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i]
+
+    if (char === '"') {
+      const nextChar = line[i + 1]
+      if (inQuotes && nextChar === '"') {
+        current += '"'
+        i += 1
+        continue
+      }
+      inQuotes = !inQuotes
+      continue
+    }
+
+    if (char === ',' && !inQuotes) {
+      values.push(current.trim())
+      current = ''
+      continue
+    }
+
+    current += char
+  }
+
+  values.push(current.trim())
+  return values
+}
+
 function toNumber(value: string | number): number {
   if (typeof value === 'number') {
     return value
@@ -17,29 +49,49 @@ function toNumber(value: string | number): number {
 }
 
 export function parseLoanCsv(content: string): LoanRow[] {
-  const rows = content
-    .trim()
+  const lines = content
     .split(/\r?\n/)
-    .map((line) => line.split(','))
-    .filter((parts) => parts.length >= 7)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
 
-  const header = rows.shift()
-  if (!header) return []
+  if (lines.length === 0) return []
 
-  const keys = header.map((col) => col.trim().toLowerCase())
+  const header = splitCsvLine(lines[0]).map((col) => col.toLowerCase())
+  const rows = lines.slice(1).map((line) => splitCsvLine(line))
+
+  const requiredColumns = new Set([
+    'loan_amount',
+    'appraised_value',
+    'borrower_income',
+    'monthly_debt',
+    'loan_status',
+    'interest_rate',
+    'principal_balance',
+    'dpd_status',
+  ])
+
+  const headerMap = header.reduce<Record<string, number>>((acc, key, index) => {
+    acc[key] = index
+    return acc
+  }, {})
+
+  const hasAllColumns = [...requiredColumns].every((key) => headerMap[key] !== undefined)
+  if (!hasAllColumns) return []
+
   return rows.map((parts) => {
-    const record = parts.reduce<Record<string, string>>((acc, value, index) => {
-      acc[keys[index] ?? `col_${index}`] = value.trim()
+    const record = header.reduce<Record<string, string>>((acc, key, index) => {
+      acc[key] = parts[index]?.trim() ?? ''
       return acc
     }, {})
+
     return {
-      loan_amount: toNumber(record.loan_amount ?? '0'),
-      appraised_value: toNumber(record.appraised_value ?? '0'),
-      borrower_income: toNumber(record.borrower_income ?? '0'),
-      monthly_debt: toNumber(record.monthly_debt ?? '0'),
+      loan_amount: toNumber(record.loan_amount),
+      appraised_value: toNumber(record.appraised_value),
+      borrower_income: toNumber(record.borrower_income),
+      monthly_debt: toNumber(record.monthly_debt),
       loan_status: record.loan_status || 'unknown',
-      interest_rate: toNumber(record.interest_rate ?? '0'),
-      principal_balance: toNumber(record.principal_balance ?? '0'),
+      interest_rate: toNumber(record.interest_rate),
+      principal_balance: toNumber(record.principal_balance),
       dpd_status: record.dpd_status || '',
     }
   })
