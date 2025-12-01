@@ -24,6 +24,18 @@ This repository contains ContosoTeamStats, a .NET 6 Web API for managing sports 
 
 See docs/Analytics-Vision.md for the analytics vision, Streamlit blueprint, and the agent-ready narrative that keeps every KPI, scenario, and AI prompt aligned with our fintech-grade delivery.
 
+## KPI catalog and runbooks
+
+Consulta `docs/analytics/KPIs.md` para la taxonomía de KPIs, propietarios, orígenes de datos, umbrales y enlaces a dashboards, tablas de drill-down y runbooks (`docs/analytics/runbooks`). Usa `docs/analytics/dashboards.md` para la guía de visualizaciones y alertas.
+
+### Variables de entorno (alertas y drill-down)
+
+- `NEXT_PUBLIC_ALERT_SLACK_WEBHOOK`: webhook de Slack para alertas (red/amber).
+- `NEXT_PUBLIC_ALERT_EMAIL`: correo de alertas si Slack no está disponible.
+- `NEXT_PUBLIC_DRILLDOWN_BASE_URL`: base URL para tablas de drill-down (cola de cobranzas, cohortes de mora, errores de ingesta).
+
+Configura estas variables en tu despliegue (Vercel/Azure) y en `.env.local` durante desarrollo.
+
 ## Copilot Enterprise workflow
 
 Use `docs/Copilot-Team-Workflow.md` when inviting your team to Copilot, documenting the validation and security workflows, and keeping the Azure, GitHub Actions, and KPI checklist aligned with your 30-day Enterprise trial (App Service F1, ACR Basic, and free Azure security tiers). The doc includes prompts you can reuse whenever Copilot is guiding changes.
