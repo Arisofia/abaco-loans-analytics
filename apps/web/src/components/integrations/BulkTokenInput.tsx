@@ -20,6 +20,12 @@ type BulkTokenInputProps = {
 
 type ItemStatus = TokenStatus | 'pending' | 'success' | 'retrying'
 
+type ParsedInput = {
+  items: BulkTokenItem[]
+  invalidLines: number
+  duplicateLines: number
+}
+
 const defaultRow = 'platform,token,accountId(optional)'
 
 export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputProps) {
@@ -28,7 +34,9 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   const [processing, setProcessing] = useState(false)
   const [summary, setSummary] = useState<string>('')
 
-  const parsedItems = useMemo(() => parseInput(rawInput), [rawInput])
+  const parsedInput = useMemo(() => parseInput(rawInput), [rawInput])
+  const invalidLabel = parsedInput.invalidLines === 1 ? 'invalid line' : 'invalid lines'
+  const duplicateLabel = parsedInput.duplicateLines === 1 ? 'duplicate' : 'duplicates'
 
   const updateItem = useCallback((index: number, changes: Partial<BulkTokenItem>) => {
     setItems((current) =>
@@ -90,7 +98,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   }
 
   const handleProcess = async () => {
-    const list = parsedItems
+    const list = parsedInput.items
     setItems(list.map((item) => ({ ...item, status: 'pending', attempts: 0 })))
     setProcessing(true)
     setSummary('')
@@ -130,7 +138,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   if (!open) return null
 
   return (
-    <div className={styles.backdrop} role="dialog" aria-modal>
+    <div className={styles.backdrop} role="dialog" aria-modal="true">
       <div className={styles.modal}>
         <div className={styles.header}>
           <h3>Bulk token intake</h3>
@@ -147,6 +155,10 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
               placeholder={defaultRow}
               disabled={processing}
             />
+            <p className={styles.metaSummary} aria-live="polite">
+              Parsed {parsedInput.items.length} tokens. Filtered out {parsedInput.invalidLines}{' '}
+              {invalidLabel} and {parsedInput.duplicateLines} {duplicateLabel}.
+            </p>
           </div>
           <div className={styles.progressList} aria-live="polite">
             {items.length === 0 && <p>No items yet. Paste tokens to begin.</p>}
@@ -190,7 +202,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
               onClick={() => {
                 void handleProcess()
               }}
-              disabled={processing || !parsedItems.length}
+              disabled={processing || !parsedInput.items.length}
             >
               {processing ? 'Processing...' : 'Connect all'}
             </button>
@@ -201,21 +213,50 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   )
 }
 
-function parseInput(input: string): BulkTokenItem[] {
-  return input
+function parseInput(input: string): ParsedInput {
+  const rows = input
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.split(',').map((segment) => segment.trim()))
-    .filter((parts) => parts.length >= 2)
-    .map((parts) => ({
-      platform: parts[0] as Platform,
-      token: parts[1] ?? '',
-      accountId: parts[2],
+
+  const seen = new Set<string>()
+  const items: BulkTokenItem[] = []
+  let invalidLines = 0
+  let duplicateLines = 0
+
+  rows.forEach((line) => {
+    const parts = line.split(',').map((segment) => segment.trim())
+    if (parts.length < 2) {
+      invalidLines += 1
+      return
+    }
+
+    const platform = parts[0] as Platform
+    const token = parts[1] ?? ''
+    const accountId = parts[2]
+
+    if (!PLATFORMS.includes(platform)) {
+      invalidLines += 1
+      return
+    }
+
+    const key = `${platform}::${token}::${accountId ?? ''}`
+    if (seen.has(key)) {
+      duplicateLines += 1
+      return
+    }
+
+    seen.add(key)
+    items.push({
+      platform,
+      token,
+      accountId,
       status: 'pending',
       attempts: 0,
-    }))
-    .filter((item) => PLATFORMS.includes(item.platform))
+    })
+  })
+
+  return { items, invalidLines, duplicateLines }
 }
 
 function waitForDelay(attempt: number) {
