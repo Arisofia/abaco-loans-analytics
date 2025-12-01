@@ -23,18 +23,40 @@ jobs:
       matrix:
         language: ["javascript", "python"]
     steps:
+      - name: Check CodeQL default setup state
+        id: default_setup
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const { data } = await github.request('GET /repos/{owner}/{repo}/code-scanning/default-setup', {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              headers: { 'X-GitHub-Api-Version': '2022-11-28' },
+            });
+            core.info(`Default CodeQL setup state: ${data.state}`);
+            core.setOutput('state', data.state ?? 'unknown');
+
       - name: Checkout repository
+        if: steps.default_setup.outputs.state != 'configured'
         uses: actions/checkout@v4
 
       - name: Set up CodeQL
+        if: steps.default_setup.outputs.state != 'configured'
         uses: github/codeql-action/init@v3.31.5
         with:
           languages: ${{ matrix.language }}
 
       - name: Autobuild
+        if: steps.default_setup.outputs.state != 'configured'
         uses: github/codeql-action/autobuild@v3.31.5
 
       - name: Perform CodeQL Analysis
+        if: steps.default_setup.outputs.state != 'configured'
         uses: github/codeql-action/analyze@v3.31.5
         with:
           category: "/language:${{ matrix.language }}"
+
+      - name: Skip analyze because default CodeQL setup is enabled
+        if: steps.default_setup.outputs.state == 'configured'
+        run: echo "Default CodeQL setup is enabled; skipping custom workflow to avoid duplicate uploads."
