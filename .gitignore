@@ -1,29 +1,33 @@
-# Gradle
+# Gradle build artifacts
 .gradle/
 build/
 
-# Node / JavaScript
+# Node / JavaScript artifacts
 node_modules/
 .next/
+.turbo/
+dist/
+out/
 
-# Python
+# Python cache and virtualenvs
 .venv/
 venv/
 __pycache__/
 *.pyc
 
-# IDE / Editor specific
+# IDE / editor metadata
 .vscode/
 *.vsix
 .idea/
 
-# OS specific
+# Operating system files
 .DS_Store
 Thumbs.db
 
-# Local development tools and artifacts
+# Local development tools and clones
 nvm/
 abaco-loans-analytics/
 
-# Logs
+# Logs and diagnostics
+*.log
 duplicates.log
