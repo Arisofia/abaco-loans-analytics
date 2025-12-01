@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import Dict
+from typing import Dict, List
 
 class LoanAnalyticsEngine:
     """
@@ -23,6 +23,7 @@ class LoanAnalyticsEngine:
 
         self.loan_data = loan_data.copy()
         self._validate_columns()
+        self._coercion_report = self._coerce_numeric_columns()
 
     def _validate_columns(self):
         """Ensures the DataFrame contains the necessary columns for KPI computation."""
@@ -34,6 +35,32 @@ class LoanAnalyticsEngine:
         if missing_cols:
             raise ValueError(f"Missing required columns in loan_data: {', '.join(missing_cols)}")
 
+    def _coerce_numeric_columns(self) -> Dict[str, int]:
+        """
+        Convert numeric columns to proper dtypes while recording invalid values for auditability.
+
+        Returns:
+            Dict[str, int]: Count of values per column that became NaN during coercion.
+        """
+        numeric_cols: List[str] = [
+            'loan_amount',
+            'appraised_value',
+            'borrower_income',
+            'monthly_debt',
+            'interest_rate',
+            'principal_balance',
+        ]
+
+        coercion_report: Dict[str, int] = {}
+        for col in numeric_cols:
+            original = self.loan_data[col]
+            coerced = pd.to_numeric(original, errors='coerce')
+            invalid_count = int(coerced.isna().sum() - original.isna().sum())
+            coercion_report[col] = max(invalid_count, 0)
+            self.loan_data[col] = coerced
+
+        return coercion_report
+
     def compute_loan_to_value(self) -> pd.Series:
         """Computes the Loan-to-Value (LTV) ratio for each loan while avoiding division by zero."""
         appraised_value = self.loan_data['appraised_value'].replace(0, np.nan)
@@ -43,8 +70,9 @@ class LoanAnalyticsEngine:
     def compute_debt_to_income(self) -> pd.Series:
         """Computes the Debt-to-Income (DTI) ratio for each borrower."""
         monthly_income = self.loan_data['borrower_income'] / 12
+        positive_income = monthly_income > 0
         dti = np.where(
-            monthly_income > 0,
+            positive_income,
             (self.loan_data['monthly_debt'] / monthly_income) * 100,
             np.nan
         )
@@ -73,13 +101,31 @@ class LoanAnalyticsEngine:
         Returns:
             Dict[str, float]: Percentages for completeness and duplicate risk, plus the volume inspected.
         """
+        row_count = len(self.loan_data)
         null_ratio = float(self.loan_data.isna().mean().mean())
         duplicate_ratio = float(self.loan_data.duplicated().mean())
+
+        total_numeric_cells = row_count * len(self._coercion_report) if row_count else 0
+        invalid_numeric_ratio = (
+            sum(self._coercion_report.values()) / total_numeric_cells
+            if total_numeric_cells
+            else 0.0
+        )
+
+        data_quality_score = max(
+            0.0,
+            100
+            - (null_ratio * 100)
+            - (duplicate_ratio * 50)
+            - (invalid_numeric_ratio * 60),
+        )
+
         return {
-            "row_count": float(len(self.loan_data)),
+            "row_count": float(row_count),
             "average_null_ratio": round(null_ratio * 100, 2),
             "duplicate_ratio": round(duplicate_ratio * 100, 2),
-            "data_quality_score": round(max(0.0, 100 - (null_ratio * 100) - (duplicate_ratio * 50)), 2)
+            "invalid_numeric_ratio": round(invalid_numeric_ratio * 100, 2),
+            "data_quality_score": round(data_quality_score, 2),
         }
 
     def risk_alerts(self, ltv_threshold: float = 90.0, dti_threshold: float = 40.0) -> pd.DataFrame:
@@ -95,9 +141,10 @@ class LoanAnalyticsEngine:
         """
         ltv = self.compute_loan_to_value()
         dti = self.compute_debt_to_income()
-        alerts = self.loan_data.copy()
-        alerts['ltv_ratio'] = ltv
-        alerts['dti_ratio'] = dti
+        alerts = self.loan_data.copy().assign(
+            ltv_ratio=ltv,
+            dti_ratio=dti,
+        )
         alerts = alerts[(alerts['ltv_ratio'] > ltv_threshold) | (alerts['dti_ratio'] > dti_threshold)]
         if alerts.empty:
             return alerts
@@ -117,18 +164,19 @@ class LoanAnalyticsEngine:
         """
         Runs a comprehensive analysis and returns a dictionary of portfolio-level KPIs.
         """
-        self.loan_data['ltv_ratio'] = self.compute_loan_to_value()
-        self.loan_data['dti_ratio'] = self.compute_debt_to_income()
+        ltv_ratio = self.compute_loan_to_value()
+        dti_ratio = self.compute_debt_to_income()
 
         quality = self.data_quality_profile()
 
         return {
             "portfolio_delinquency_rate_percent": self.compute_delinquency_rate(),
             "portfolio_yield_percent": self.compute_portfolio_yield(),
-            "average_ltv_ratio_percent": self.loan_data['ltv_ratio'].mean(),
-            "average_dti_ratio_percent": self.loan_data['dti_ratio'].mean(),
+            "average_ltv_ratio_percent": ltv_ratio.mean(),
+            "average_dti_ratio_percent": dti_ratio.mean(),
             "data_quality_score": quality["data_quality_score"],
             "average_null_ratio_percent": quality["average_null_ratio"],
+            "invalid_numeric_ratio_percent": quality["invalid_numeric_ratio"],
         }
 
 if __name__ == '__main__':
