@@ -5,7 +5,6 @@ build/
 # Node / JavaScript
 node_modules/
 .next/
-<<<<<<< HEAD
 
 # Python
 .venv/
@@ -21,33 +20,7 @@ __pycache__/
 # OS specific
 .DS_Store
 Thumbs.db
-=======
->>>>>>> origin/feat/add-new-loan-analytics-chart
 
-<<<<<<< ours
-<<<<<<< ours
-# Python
-.venv/
-venv/
-__pycache__/
-*.pyc
-
-# IDE / Editor specific
-.vscode/
-*.vsix
-.idea/
-
-# OS specific
-.DS_Store
-Thumbs.db
-=======
-# Gradle build artifacts
-.gradle/
-build/
-
-=======
->>>>>>> theirs
 # Local development tools and artifacts
 nvm/
 abaco-loans-analytics/
->>>>>>> theirs
