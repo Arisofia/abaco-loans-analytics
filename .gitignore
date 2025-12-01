@@ -3,3 +3,5 @@ gemini-cli/
 .venv/
 .vscode/
 apps/.DS_Store
+
+node_modules/
