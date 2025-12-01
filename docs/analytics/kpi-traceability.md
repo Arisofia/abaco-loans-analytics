@@ -19,7 +19,7 @@ This playbook keeps every KPI, dashboard, and visualization traceable end-to-end
 ## GitHub workflow (standardized)
 1. Branch naming: `feature/kpi-*`, `fix/dashboard-*`, or `chore/data-*` with issue reference.
 2. PR template: fill KPI impact, data/PII touched, tests, and alert updates; link dashboards and runbooks touched.
-3. Assign and reviewers: set assignee to `@codex`; request reviews from `@sonarqube`, `@coderabbit`, and `@sourcery` to enforce SAST/quality automation.
+3. Assignee and reviewers: set assignee to `@codex`; request reviews from `@sonarqube`, `@coderabbit`, and `@sourcery` to enforce SAST/quality automation.
 4. Checks: require CodeQL, SonarCloud, and CI (web + analytics) to pass; block merge on coverage or data-quality regression.
 5. Auditability: attach screenshots of dashboard changes and include query hashes or dataset versions in the PR for reproducibility.
 
