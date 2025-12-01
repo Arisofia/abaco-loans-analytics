@@ -59,7 +59,8 @@ jobs:
 
       - name: Skip Java coverage (no gradle wrapper present)
         if: ${{ hashFiles('gradlew') == '' }}
-        run: echo "Skipping Jacoco: gradlew not present in repository"
+        run: |
+          echo "Skipping Jacoco: gradlew not present in repository"
 
       - name: Web coverage placeholder
         run: |
