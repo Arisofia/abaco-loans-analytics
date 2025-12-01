@@ -113,10 +113,16 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
     if (!failures.length) return
     setProcessing(true)
     setSummary('')
-    const refreshed = failures.map((item) => ({ ...item, status: 'pending' as ItemStatus, attempts: 0 }))
+    const refreshed = failures.map((item) => ({
+      ...item,
+      status: 'pending' as ItemStatus,
+      attempts: 0,
+    }))
     setItems((current) =>
       current.map((existing) =>
-        existing.status === 'error' ? { ...existing, status: 'pending' as ItemStatus, attempts: 0 } : existing
+        existing.status === 'error'
+          ? { ...existing, status: 'pending' as ItemStatus, attempts: 0 }
+          : existing
       )
     )
     const results = await processItems(refreshed)
