@@ -30,3 +30,4 @@ nvm/
 abaco-loans-analytics/
 data_samples/
 gemini-cli/
+gradle.properties
