@@ -24,6 +24,8 @@ This repository contains ContosoTeamStats, a .NET 6 Web API for managing sports 
 
 See docs/Analytics-Vision.md for the analytics vision, Streamlit blueprint, and the agent-ready narrative that keeps every KPI, scenario, and AI prompt aligned with our fintech-grade delivery.
 
+For governance, traceability, and GitHub-first review gates across KPIs and dashboards, follow `docs/analytics/governance.md`.
+
 ## KPI catalog and runbooks
 
 Consulta `docs/analytics/KPIs.md` para la taxonomía de KPIs, propietarios, orígenes de datos, umbrales y enlaces a dashboards, tablas de drill-down y runbooks (`docs/analytics/runbooks`). Usa `docs/analytics/dashboards.md` para la guía de visualizaciones y alertas.
