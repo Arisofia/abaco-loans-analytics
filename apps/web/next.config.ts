@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
-  headers: () => [
+  headers: async () => [
     {
       source: '/:path*',
       headers: [
@@ -24,11 +24,15 @@ const nextConfig: NextConfig = {
           key: 'X-XSS-Protection',
           value: '1; mode=block',
         },
+        {
+          key: 'Referrer-Policy',
+          value: 'strict-origin-when-cross-origin',
+        },
       ],
     },
   ],
-  redirects: () => [],
-  rewrites: () => ({
+  redirects: async () => [],
+  rewrites: async () => ({
     beforeFiles: [],
     afterFiles: [],
     fallback: [],
