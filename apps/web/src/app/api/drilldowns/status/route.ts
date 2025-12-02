@@ -7,6 +7,6 @@ const DEFAULT_STATUSES: Record<string, 'ok' | 'error'> = {
   '/ingestion-errors': 'ok',
 }
 
-export async function GET() {
+export function GET() {
   return NextResponse.json(DEFAULT_STATUSES)
 }
