@@ -58,10 +58,14 @@ deno run --allow-all main.ts
 
 `--unstable` is no longer needed in Deno 2.0; only include the specific `--unstable-*` flags when you actually depend on unstable APIs.
 
+## VS Code Python terminals
+
+If you rely on `.env` files while running the Python analytics scripts, enable the VS Code setting `python.terminal.useEnvFile` so integrated terminals automatically load those variables. Add this to your user `settings.json` via the Command Palette to avoid missing secrets during local runs.
+
 ## Troubleshooting VS Code Zencoder extension
 
 If you see `Failed to spawn Zencoder process: ... zencoder-cli ENOENT` while working in VS Code, follow the remediation checklist in `docs/Zencoder-Troubleshooting.md` to reinstall the extension and restore the missing binary.
 
 ## Java & Gradle
 
-The Gradle build is configured for JDK **21** via the toolchain in `build.gradle`. Running Gradle with newer early-access JDKs (e.g., JDK 25) is not supported by the current Gradle wrapper (8.10) and will fail during project sync. If your IDE selects a newer JDK by default, switch the Gradle JVM to JDK 21 (or another supported LTS version) and ensure your `JAVA_HOME` points to that installation.
+The Gradle build is configured for JDK **21** via the toolchain in `build.gradle`. Running Gradle with newer early-access JDKs (e.g., JDK 25) is not supported by the current Gradle wrapper (8.10) and will fail during project sync. If your IDE selects a newer JDK by default, switch the Gradle JVM to JDK 21 (or another supported LTS version) and ensure your `JAVA_HOME` points to that installation. In IntelliJ IDEA, go to **Settings > Build, Execution, Deployment > Build Tools > Gradle** and set **Gradle JVM** to JDK 21 to avoid the sync error.
