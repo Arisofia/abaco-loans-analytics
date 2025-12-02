@@ -85,17 +85,23 @@ function computeKPIs(rows: LoanRow[]) {
     (sum, row) => sum + row.loan_amount / Math.max(row.appraised_value, 1),
     0
   )
-  const averageDTI = rows.reduce((sum, row) => {
-    const income = row.borrower_income / 12
-    if (income <= 0) return sum
-    return sum + row.monthly_debt / income
-  }, 0)
+  const { totalDTI, validIncomes } = rows.reduce(
+    (acc, row) => {
+      const income = row.borrower_income / 12
+      if (income > 0) {
+        acc.totalDTI += row.monthly_debt / income
+        acc.validIncomes += 1
+      }
+      return acc
+    },
+    { totalDTI: 0, validIncomes: 0 }
+  )
 
   return {
     delinquencyRate: Number(riskRate.toFixed(2)),
     portfolioYield: Number(portfolioYield.toFixed(2)),
     averageLTV: Number(((averageLTV / Math.max(totalLoans, 1)) * 100).toFixed(1)),
-    averageDTI: Number(((averageDTI / Math.max(totalLoans, 1)) * 100).toFixed(1)),
+    averageDTI: Number(((totalDTI / Math.max(validIncomes, 1)) * 100).toFixed(1)),
     loanCount: totalLoans,
   }
 }
