@@ -7,6 +7,7 @@
   --color-accent-green: #22c55e;
   --color-accent-blue: #2563eb;
   --color-accent-eyebrow: #8fb5ff;
+  --surface-subtle-darker: rgba(255, 255, 255, 0.03);
 
   --surface-subtle: rgba(255, 255, 255, 0.04);
   --surface-interactive: rgba(255, 255, 255, 0.05);
@@ -21,8 +22,11 @@
   gap: 96px;
   padding: 72px 24px 96px;
   background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--color-accent-blue), transparent 88%), transparent 30%),
-    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--color-accent-green), transparent 86%), transparent 28%), var(--color-bg);
+    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.12), transparent 30%),
+    radial-gradient(circle at 80% 0%, rgba(34, 197, 94, 0.14), transparent 28%), var(--color-bg);
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--color-accent-blue) 12%, transparent), transparent 30%),
+    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--color-accent-green) 14%, transparent), transparent 28%), var(--color-bg);
   color: var(--color-text-primary);
 }
 
@@ -40,7 +44,7 @@
   padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid var(--border-interactive);
-  background: color-mix(in srgb, var(--surface-interactive), #000 40%);
+  background: var(--surface-subtle-darker);
   font-size: 13px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -54,7 +58,8 @@
 
 .hero p {
   max-width: 780px;
-  color: color-mix(in srgb, var(--color-text-primary), transparent 15%);
+  color: #d9dde2;
+  color: color-mix(in srgb, var(--color-text-primary) 85%);
   font-size: 18px;
   line-height: 1.7;
 }
@@ -97,8 +102,8 @@
 }
 
 .secondaryButton:hover {
-  border-color: color-mix(in srgb, var(--border-interactive), #fff 50%);
-  background: color-mix(in srgb, var(--surface-interactive), #fff 30%);
+  border-color: #4d4d4d;
+  background: #0f0f0f;
 }
 
 .metrics {
@@ -168,7 +173,8 @@
 }
 
 .card {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--surface-subtle), #fff 20%), color-mix(in srgb, var(--surface-subtle), #000 20%));
+  background: linear-gradient(160deg, #111111, #060606);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--surface-subtle) 80%, white), color-mix(in srgb, var(--surface-subtle) 80%, black));
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 20px;
@@ -207,7 +213,8 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: color-mix(in srgb, var(--color-text-primary), transparent 20%);
+  color: #c4c8ce;
+  color: color-mix(in srgb, var(--color-text-primary) 80%);
 }
 
 .checkBullet {
@@ -221,9 +228,9 @@
 
 .auditBox {
   background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--color-accent-green), transparent 84%), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.16), transparent 40%),
     var(--surface-interactive);
-  border: 1px solid color-mix(in srgb, var(--border-subtle), #fff 20%);
+  border: 1px solid #363636;
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -239,7 +246,8 @@
 
 .auditBox ul {
   padding-left: 18px;
-  color: color-mix(in srgb, var(--color-text-primary), transparent 25%);
+  color: #b9bcc1;
+  color: color-mix(in srgb, var(--color-text-primary) 75%);
   line-height: 1.6;
 }
 
@@ -250,13 +258,13 @@
 .primaryGhost {
   align-self: flex-start;
   color: var(--color-text-primary);
-  border-color: color-mix(in srgb, var(--border-interactive), #fff 50%);
   background: transparent;
+  border-color: #4d4d4d;
 }
 
 .primaryGhost:hover {
-  border-color: color-mix(in srgb, var(--border-interactive), #fff 100%);
-  background: color-mix(in srgb, var(--surface-interactive), #fff 10%);
+  border-color: #ffffff;
+  background: var(--surface-interactive);
 }
 
 .timeline {
