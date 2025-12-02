@@ -29,7 +29,7 @@ Goal: every KPI, dashboard, and alert is auditable, reproducible, and mapped to 
 - Secrets live in vault-backed CI/CD; .env files excluded from commits. Rotate keys after incidents.
 
 ## Continuous learning loop
-- After breaches or incidents: publish postmortem, add automated tests/monitors, and document permanent fixes.
+- After breaches or incidents: publish a postmortem, add automated tests/monitors, and document permanent fixes.
 - Quarterly: review KPI catalog for relevance, recalibrate thresholds, and archive deprecated metrics with rationale.
 - Keep a "known gaps" section in dashboards to transparently show pending data sources or modeling work.
 
