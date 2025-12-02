@@ -1,2 +1,4 @@
-pandas
-numpy
+pandas==2.2.1
+numpy==1.26.4
+azure-storage-blob==12.20.0
+azure-identity==1.17.1

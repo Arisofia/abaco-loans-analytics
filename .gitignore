@@ -6,3 +6,4 @@ apps/.DS_Store
 node_modules/
 .next/
 .next/
+.gradle/
