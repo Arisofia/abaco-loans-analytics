@@ -28,19 +28,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   const [processing, setProcessing] = useState(false)
   const [summary, setSummary] = useState<string>('')
 
-  const { items: parsedItems, skippedMessages, totalLines } = useMemo(
-    () => parseInput(rawInput),
-    [rawInput]
-  )
-
-  const parseSummary = useMemo(() => {
-    if (!rawInput.trim()) return 'Paste tokens in CSV format: platform,token,accountId?'
-    const readyText = `${parsedItems.length} of ${totalLines} line${
-      totalLines === 1 ? '' : 's'
-    } ready to process.`
-    if (!skippedMessages.length) return readyText
-    return `${readyText} Skipped ${skippedMessages.join('; ')}`
-  }, [parsedItems.length, skippedMessages, totalLines, rawInput])
+  const parsedItems = useMemo(() => parseInput(rawInput.trim()), [rawInput])
 
   const updateItem = useCallback((index: number, changes: Partial<BulkTokenItem>) => {
     setItems((current) =>
@@ -165,9 +153,6 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
               placeholder={defaultRow}
               disabled={processing}
             />
-            <p className={styles.hint} aria-live="polite">
-              {parseSummary}
-            </p>
           </div>
           <div className={styles.progressList} aria-live="polite">
             {items.length === 0 && <p>No items yet. Paste tokens to begin.</p>}
@@ -222,68 +207,28 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   )
 }
 
-type ParseResult = {
-  items: BulkTokenItem[]
-  skippedMessages: string[]
-  totalLines: number
-}
-
-function parseInput(input: string): ParseResult {
-  const lines = input
-    .split('\n')
+function parseInput(input: string): BulkTokenItem[] {
+  return input
+    .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
+    .map((line) => line.split(',').map((segment) => segment.trim()))
+    .filter((parts) => parts.length >= 2)
+    .map((parts) => {
+      const [rawPlatform, token, accountId] = parts
+      const normalizedPlatform = rawPlatform?.toLowerCase() as Platform | undefined
 
-  const skippedCounts = {
-    missingColumns: 0,
-    unsupportedPlatform: 0,
-    missingToken: 0,
-  }
-
-  const items: BulkTokenItem[] = []
-
-  lines.forEach((line) => {
-    const parts = line.split(',').map((segment) => segment.trim())
-    if (parts.length < 2) {
-      skippedCounts.missingColumns += 1
-      return
-    }
-
-    const [platform, token, accountId] = parts
-    if (!platform || !PLATFORMS.includes(platform as Platform)) {
-      skippedCounts.unsupportedPlatform += 1
-      return
-    }
-
-    if (!token) {
-      skippedCounts.missingToken += 1
-      return
-    }
-
-    items.push({
-      platform: platform as Platform,
-      token,
-      accountId,
-      status: 'pending' as ItemStatus,
-      attempts: 0,
+      return {
+        platform: normalizedPlatform,
+        token: token ?? '',
+        accountId,
+        status: 'pending' as ItemStatus,
+        attempts: 0,
+      }
     })
-  })
-
-  const skippedMessages = [
-    skippedCounts.missingColumns
-      ? `${skippedCounts.missingColumns} line${skippedCounts.missingColumns === 1 ? '' : 's'} missing platform/token`
-      : null,
-    skippedCounts.unsupportedPlatform
-      ? `${skippedCounts.unsupportedPlatform} unsupported platform line${
-          skippedCounts.unsupportedPlatform === 1 ? '' : 's'
-        }`
-      : null,
-    skippedCounts.missingToken
-      ? `${skippedCounts.missingToken} line${skippedCounts.missingToken === 1 ? '' : 's'} missing token`
-      : null,
-  ].filter(Boolean) as string[]
-
-  return { items, skippedMessages, totalLines: lines.length }
+    .filter(
+      (item): item is BulkTokenItem => Boolean(item.platform) && PLATFORMS.includes(item.platform)
+    )
 }
 
 function waitForDelay(attempt: number) {
