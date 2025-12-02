@@ -43,3 +43,13 @@ deno run --allow-all main.ts
 ```
 
 `--unstable` is no longer needed in Deno 2.0; only include the specific `--unstable-*` flags when you actually depend on unstable APIs.
+
+## Dispatching GitHub Actions workflows
+
+Use `scripts/trigger_workflows.py` to trigger workflow_dispatch runs from the command line when you need to validate ci-web, ci-analytics, SonarCloud, or any other workflow without navigating the GitHub UI. Provide a `GITHUB_TOKEN` with `workflow` scope and specify the repository in `owner/name` format:
+
+```
+GITHUB_TOKEN=<token> python scripts/trigger_workflows.py Abaco-Technol/abaco-loans-analytics --ref main --workflows ci-web ci-analytics sonarcloud
+```
+
+Omit `--workflows` to dispatch every workflow in the repository or add `--delay` to throttle calls between workflows.
