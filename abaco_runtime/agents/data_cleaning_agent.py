@@ -1,23 +1,21 @@
-"""Agents focused on cleaning inbound records before analytics pipelines."""
-
+"""Data cleaning agent responsible for sanitizing raw records."""
 from __future__ import annotations
 
-from copy import deepcopy
+import copy
 from typing import Any, Dict, List
 
 
 class DataCleaningAgent:
-    """Performs non-destructive cleaning of inbound record lists."""
+    """Provide safe, side-effect free cleaning of ingested records."""
 
     def clean_records(self, records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        # Deep copy to isolate processing from caller-managed data structures
-        cleaned_records = deepcopy(records)
+        """Return cleaned copies of records without mutating the originals."""
 
-        for record in cleaned_records:
-            for key, value in list(record.items()):
+        cleaned_records: List[Dict[str, Any]] = []
+        for record in records:
+            sanitized = copy.deepcopy(record)
+            for key, value in sanitized.items():
                 if isinstance(value, str):
-                    record[key] = value.strip()
-                if value is None:
-                    record.pop(key)
-
+                    sanitized[key] = value.strip()
+            cleaned_records.append(sanitized)
         return cleaned_records
