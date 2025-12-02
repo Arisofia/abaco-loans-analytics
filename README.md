@@ -1,12 +1,12 @@
 # ABACO — Loan Analytics Platform
 
-## Arquitectura
+## Architecture
 
-- **apps/web**: Next.js dashboard corporativo.
-- **apps/analytics**: pipelines de Python para riesgo, scoring y KPIs.
-- **infra/azure**: scripts de despliegue Azure.
-- **data_samples**: datasets anonimizados para desarrollo.
-## Integraciones disponibles
+- **apps/web**: Next.js corporate dashboard.
+- **apps/analytics**: Python pipelines for risk, scoring, and KPIs.
+- **infra/azure**: Azure deployment scripts.
+- **data_samples**: anonymized datasets for development.
+## Available integrations
 
 - Azure SQL / Cosmos / Storage
 - Supabase
@@ -14,71 +14,69 @@
 - OpenAI / Gemini / Claude
 - SonarCloud
 - GitHub Actions
-Consulta `docs/integration-readiness.md` para verificar el estado de cada integración y las comprobaciones previas que
-debes ejecutar antes de usarlas.
+See `docs/integration-readiness.md` to verify the status of each integration and the pre-flight checks you should run
+before using them.
 
 ## ContosoTeamStats
 
-Este repositorio contiene ContosoTeamStats, una API Web de .NET 6 para gestionar equipos deportivos que incluye Docker,
-scripts de despliegue en Azure, integraciones con SendGrid/Twilio y migraciones de SQL Server. Sigue
-`docs/ContosoTeamStats-setup.md` para la configuración local, secretos, aprovisionamiento de base de datos y validación
-de contenedores.
+This repository includes ContosoTeamStats, a .NET 6 Web API for managing sports teams that ships with Docker, Azure
+deployment scripts, SendGrid/Twilio integrations, and SQL Server migrations. Follow `docs/ContosoTeamStats-setup.md`
+for local setup, secrets, database provisioning, and container validation.
 
-Consulta `docs/Analytics-Vision.md` para la visión analítica, el plano de Streamlit y la narrativa preparada para
-agentes que mantiene cada KPI, escenario y prompt de IA alineados con nuestra entrega de nivel fintech.
+See `docs/Analytics-Vision.md` for the analytics vision, Streamlit blueprint, and agent-ready narrative that keeps each
+KPI, scenario, and AI prompt aligned with our fintech-grade delivery.
 
-Para gobernanza, trazabilidad y flujos de revisión GitHub-first en KPIs y dashboards, sigue
+For governance, traceability, and GitHub-first review flows on KPIs and dashboards, follow
 `docs/analytics/governance.md`.
 
-## Catálogo de KPIs y runbooks
+## KPI catalog and runbooks
 
-Consulta `docs/analytics/KPIs.md` para la taxonomía de KPIs, propietarios, orígenes de datos, umbrales y enlaces a
-dashboards, tablas de drill-down y runbooks (`docs/analytics/runbooks`). Usa `docs/analytics/dashboards.md` como guía de
-visualizaciones y alertas.
+See `docs/analytics/KPIs.md` for the KPI taxonomy, owners, data sources, thresholds, and links to dashboards, drill-down
+tables, and runbooks (`docs/analytics/runbooks`). Use `docs/analytics/dashboards.md` as a guide for visualizations and
+alerts.
 
-### Variables de entorno (alertas y drill-down)
+### Environment variables (alerts and drill-down)
 
-- `NEXT_PUBLIC_ALERT_SLACK_WEBHOOK`: webhook de Slack para alertas (red/amber).
-- `NEXT_PUBLIC_ALERT_EMAIL`: correo de alertas si Slack no está disponible.
-- `NEXT_PUBLIC_DRILLDOWN_BASE_URL`: base URL para tablas de drill-down (cola de cobranzas, cohortes de mora, errores de ingesta).
-Configura estas variables en tu despliegue (Vercel/Azure) y en `.env.local` durante desarrollo.
+- `NEXT_PUBLIC_ALERT_SLACK_WEBHOOK`: Slack webhook for red/amber alerts.
+- `NEXT_PUBLIC_ALERT_EMAIL`: alert email if Slack is unavailable.
+- `NEXT_PUBLIC_DRILLDOWN_BASE_URL`: base URL for drill-down tables (collections queue, delinquency cohorts, ingestion errors).
+Set these variables in your deployment (Vercel/Azure) and in `.env.local` during development.
 
 ## Copilot Enterprise workflow
 
-Usa `docs/Copilot-Team-Workflow.md` cuando invites a tu equipo a Copilot, documentes los flujos de validación y
-seguridad, y mantengas alineada la checklist de Azure, GitHub Actions y KPIs durante tu prueba de 30 días de Enterprise
-(App Service F1, ACR Basic y tiers de seguridad gratuitos de Azure). El documento incluye prompts reutilizables cuando
-Copilot guíe los cambios.
+Use `docs/Copilot-Team-Workflow.md` when inviting your team to Copilot, documenting validation and security flows, and
+keeping the Azure, GitHub Actions, and KPI checklists aligned during the 30-day Enterprise trial (App Service F1, ACR
+Basic, and Azure’s free security tiers). The document includes reusable prompts for Copilot-guided changes.
 
-## Fitten Code AI 编程助手
+## Fitten Code AI assistant
 
-Para integrar Fitten Code AI en este monorepo (local y GitHub), consulta `docs/Fitten-Code-AI-Manual.md`, que cubre la
-introducción al producto, instalación, integración, preguntas frecuentes y pruebas de inferencia local.
+To integrate Fitten Code AI in this monorepo (local and GitHub), see `docs/Fitten-Code-AI-Manual.md`, which covers the
+product introduction, installation, integration, FAQs, and local inference tests.
 
 ## MCP configuration
 
-Usa `docs/MCP_CONFIGURATION.md` para agregar servidores MCP mediante la CLI de Codex o editando `config.toml`, con
-ejemplos para Context7, Figma, Chrome DevTools y cómo ejecutar Codex como servidor MCP.
+Use `docs/MCP_CONFIGURATION.md` to add MCP servers via the Codex CLI or by editing `config.toml`, with examples for
+Context7, Figma, Chrome DevTools, and how to run Codex as an MCP server.
 
 ## Deno helper
 
-El repositorio expone un helper ligero en `main.ts` que verifica los directorios esperados antes de ejecutar
-herramientas como Fitten o scripts analíticos. Ejecútalo con:
+The repo includes a lightweight helper in `main.ts` that verifies expected directories before running tools like Fitten
+or analytics scripts. Run it with:
 
 ```sh
 deno run --allow-all main.ts
 ```
 
-`--unstable` ya no es necesario en Deno 2.0; solo incluye los flags `--unstable-*` cuando dependas de APIs inestables.
+`--unstable` is no longer required in Deno 2.0; include `--unstable-*` flags only when you rely on unstable APIs.
 
-## Solución de problemas con la extensión VS Code Zencoder
+## VS Code Zencoder extension troubleshooting
 
-Si observas `Failed to spawn Zencoder process: ... zencoder-cli ENOENT` en VS Code, sigue la checklist de remediación en
-`docs/Zencoder-Troubleshooting.md` para reinstalar la extensión y restaurar el binario faltante.
+If you see `Failed to spawn Zencoder process: ... zencoder-cli ENOENT` in VS Code, follow the remediation checklist in
+`docs/Zencoder-Troubleshooting.md` to reinstall the extension and restore the missing binary.
 
 ## Java & Gradle
 
-La build de Gradle está configurada para JDK **21** mediante la toolchain en `build.gradle`. Ejecutar Gradle con JDKs en
-versión preliminar (por ejemplo, JDK 25) no es compatible con el wrapper actual (8.10) y fallará durante la
-sincronización del proyecto. Si tu IDE selecciona un JDK más reciente por defecto, cambia la JVM de Gradle a JDK 21 (u
-otra versión LTS soportada) y asegúrate de que `JAVA_HOME` apunte a esa instalación.
+The Gradle build is configured for JDK **21** via the toolchain in `build.gradle`. Running Gradle with preview JDKs
+(e.g., JDK 25) is not compatible with the current wrapper (8.10) and will fail during project sync. If your IDE picks a
+newer JDK by default, switch the Gradle JVM to JDK 21 (or another supported LTS) and ensure `JAVA_HOME` points to that
+installation.
