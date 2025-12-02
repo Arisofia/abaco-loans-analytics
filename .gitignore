@@ -1,33 +1,82 @@
-# Gradle build artifacts
+# Gradle
 .gradle/
 build/
 
-# Node / JavaScript artifacts
+# Node / JavaScript
 node_modules/
 .next/
+<<<<<<< Updated upstream
+<<<<<<< HEAD
 .turbo/
 dist/
-out/
+coverage/
+=======
+<<<<<<< Updated upstream
+.next/
+>>>>>>> codex/create-integrations-page-layout
 
-# Python cache and virtualenvs
+# Python
 .venv/
 venv/
 __pycache__/
 *.pyc
 
-# IDE / editor metadata
+# IDE / Editor
+.vscode/
+.idea/
+*.vsix
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project-specific artifacts
+apps/.DS_Store
+nvm/
+abaco-loans-analytics/
+<<<<<<< HEAD
+data_samples/
+gemini-cli/
+gradle.properties
+=======
+=======
+=======
+>>>>>>> Stashed changes
+
+<<<<<<< ours
+<<<<<<< ours
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDE / Editor specific
 .vscode/
 *.vsix
 .idea/
 
-# Operating system files
+# OS specific
 .DS_Store
 Thumbs.db
+=======
+# Gradle build artifacts
+.gradle/
+build/
 
-# Local development tools and clones
+=======
+>>>>>>> theirs
+# Local development tools and artifacts
 nvm/
 abaco-loans-analytics/
+>>>>>>> theirs
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+.gradle/
+>>>>>>> codex/create-integrations-page-layout
+.env
+.env
 
-# Logs and diagnostics
-*.log
-duplicates.log
+.env*.local
+=======
+>>>>>>> Stashed changes
