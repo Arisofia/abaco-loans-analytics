@@ -72,3 +72,4 @@ jobs:
           args: >
             -Dsonar.verbose=true
             -Dsonar.python.coverage.reportPaths=coverage-python.xml
+            -Dsonar.javascript.lcov.reportPaths=apps/web/coverage/lcov.info
