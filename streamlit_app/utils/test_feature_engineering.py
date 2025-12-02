@@ -64,5 +64,13 @@ class TestFeatureEngineering(unittest.TestCase):
         self.assertIn('FeatureEngineer', dir(utils))
         self.assertTrue(hasattr(utils, 'FeatureEngineer'))
 
+    def test_utils_surface_is_traceable_and_cached(self):
+        """Validate discovery helpers and cache-friendly lazy loading."""
+
+        self.assertIn('FeatureEngineer', utils.available_utils())
+        first = utils.FeatureEngineer
+        second = utils.FeatureEngineer
+        self.assertIs(first, second)
+
 if __name__ == '__main__':
     unittest.main()
