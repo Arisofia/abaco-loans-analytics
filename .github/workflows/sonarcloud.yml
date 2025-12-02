@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Necessary for SonarCloud to analyze history
           fetch-depth: 0
@@ -72,3 +72,4 @@ jobs:
           args: >
             -Dsonar.verbose=true
             -Dsonar.python.coverage.reportPaths=coverage-python.xml
+            -Dsonar.javascript.lcov.reportPaths=apps/web/coverage/lcov.info
