@@ -85,7 +85,6 @@ function computeKPIs(rows: LoanRow[]) {
     (sum, row) => sum + row.loan_amount / Math.max(row.appraised_value, 1),
     0
   )
-<<<<<<< HEAD
   const { totalDTI, validIncomes } = rows.reduce(
     (acc, row) => {
       const income = row.borrower_income / 12
@@ -97,23 +96,12 @@ function computeKPIs(rows: LoanRow[]) {
     },
     { totalDTI: 0, validIncomes: 0 }
   )
-=======
-  const averageDTI = rows.reduce((sum, row) => {
-    const income = row.borrower_income / 12
-    if (income <= 0) return sum
-    return sum + row.monthly_debt / income
-  }, 0)
->>>>>>> codex/create-integrations-page-layout
 
   return {
     delinquencyRate: Number(riskRate.toFixed(2)),
     portfolioYield: Number(portfolioYield.toFixed(2)),
     averageLTV: Number(((averageLTV / Math.max(totalLoans, 1)) * 100).toFixed(1)),
-<<<<<<< HEAD
     averageDTI: Number(((totalDTI / Math.max(validIncomes, 1)) * 100).toFixed(1)),
-=======
-    averageDTI: Number(((averageDTI / Math.max(totalLoans, 1)) * 100).toFixed(1)),
->>>>>>> codex/create-integrations-page-layout
     loanCount: totalLoans,
   }
 }
