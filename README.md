@@ -61,3 +61,7 @@ deno run --allow-all main.ts
 ## Troubleshooting VS Code Zencoder extension
 
 If you see `Failed to spawn Zencoder process: ... zencoder-cli ENOENT` while working in VS Code, follow the remediation checklist in `docs/Zencoder-Troubleshooting.md` to reinstall the extension and restore the missing binary.
+
+## Java & Gradle
+
+The Gradle build is configured for JDK **21** via the toolchain in `build.gradle`. Running Gradle with newer early-access JDKs (e.g., JDK 25) is not supported by the current Gradle wrapper (8.10) and will fail during project sync. If your IDE selects a newer JDK by default, switch the Gradle JVM to JDK 21 (or another supported LTS version) and ensure your `JAVA_HOME` points to that installation.
