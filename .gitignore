@@ -5,4 +5,5 @@ gemini-cli/
 apps/.DS_Store
 node_modules/
 .next/
+.gradle/
 .next/
