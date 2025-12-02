@@ -83,6 +83,7 @@ def test_portfolio_kpis_surfaces_weighted_metrics():
         loans[0].term_months * loans[0].principal + loans[1].term_months * loans[1].principal
     ) / expected_exposure
     expected_interest = sum(loan.principal * (loan.annual_interest_rate / 12) for loan in loans)
+    expected_loss_value = sum(expected_loss(loan, 0.4) for loan in loans)
 
     assert isinstance(kpis, PortfolioKPIs)
     assert kpis.exposure == expected_exposure
@@ -92,4 +93,9 @@ def test_portfolio_kpis_surfaces_weighted_metrics():
     assert kpis.expected_monthly_payment == pytest.approx(
         calculate_monthly_payment(loans[0]) + calculate_monthly_payment(loans[1])
     )
-    assert kpis.expected_loss == pytest.approx(sum(expected_loss(loan, 0.4) for loan in loans))
+    assert kpis.expected_loss == pytest.approx(expected_loss_value)
+    assert kpis.expected_loss_rate == pytest.approx(expected_loss_value / expected_exposure)
+    assert kpis.interest_yield_rate == pytest.approx(expected_interest / expected_exposure)
+    assert kpis.risk_adjusted_return == pytest.approx(
+        (expected_interest - expected_loss_value) / expected_exposure
+    )
