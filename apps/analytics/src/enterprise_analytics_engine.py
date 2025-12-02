@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Sequence
 
 import numpy as np
 import pandas as pd
@@ -50,6 +50,15 @@ class LoanAnalyticsEngine:
         "principal_balance",
     }
 
+    NUMERIC_COLUMNS = {
+        "loan_amount",
+        "appraised_value",
+        "borrower_income",
+        "monthly_debt",
+        "interest_rate",
+        "principal_balance",
+    }
+
     def __init__(self, loan_data: pd.DataFrame):
         if not isinstance(loan_data, pd.DataFrame) or loan_data.empty:
             logger.error("Initialization failed: empty or non-DataFrame input.")
@@ -58,9 +67,18 @@ class LoanAnalyticsEngine:
         self.timestamp = datetime.now(timezone.utc)
         self.loan_data = loan_data.copy()
         self._validate_schema()
+        self._coerce_numeric()
         self._sanitize_data()
         self._validate_non_negative(["loan_amount", "appraised_value", "borrower_income", "principal_balance"])
         logger.info("Engine initialized with %s records.", len(self.loan_data))
+
+    def _coerce_numeric(self) -> None:
+        for column in self.NUMERIC_COLUMNS:
+            coerced = pd.to_numeric(self.loan_data[column], errors="coerce")
+            if coerced.isna().any():
+                logger.error("Non-numeric or invalid values detected in %s.", column)
+                raise DataValidationError(f"Invalid numeric values found in {column}")
+            self.loan_data[column] = coerced.astype(float)
 
     def _validate_schema(self) -> None:
         missing = self.REQUIRED_COLUMNS - set(self.loan_data.columns)
@@ -77,7 +95,7 @@ class LoanAnalyticsEngine:
             logger.warning("Null numeric values detected; coercing to zero for conservative KPIs.")
             self.loan_data[numeric_cols] = self.loan_data[numeric_cols].fillna(0.0)
 
-    def _validate_non_negative(self, columns: list[str]) -> None:
+    def _validate_non_negative(self, columns: Sequence[str]) -> None:
         for column in columns:
             if (self.loan_data[column] < 0).any():
                 logger.error("Negative values detected in %s; aborting.", column)
@@ -91,7 +109,7 @@ class LoanAnalyticsEngine:
             float(ltv.mean(skipna=True)),
             float(ltv.max(skipna=True)),
         )
-        return ltv.fillna(0.0)
+        return ltv.fillna(0.0).astype(float).round(2)
 
     def compute_debt_to_income(self) -> pd.Series:
         monthly_income = self.loan_data["borrower_income"] / 12
@@ -101,7 +119,7 @@ class LoanAnalyticsEngine:
             0.0,
         )
         logger.info("DTI computed | mean=%.2f%%", float(np.mean(dti)))
-        return pd.Series(dti)
+        return pd.Series(dti, dtype=float).round(2)
 
     def compute_delinquency_rate(self) -> float:
         delinquent_statuses = ["30-59 days past due", "60-89 days past due", "90+ days past due"]
