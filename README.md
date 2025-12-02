@@ -50,6 +50,8 @@ seguridad, y mantengas alineada la checklist de Azure, GitHub Actions y KPIs dur
 (App Service F1, ACR Basic y tiers de seguridad gratuitos de Azure). El documento incluye prompts reutilizables cuando
 Copilot guíe los cambios.
 
+Validation signal: refreshed on the validation/contoso-team-stats branch to trigger CI verification for the current release cycle.
+
 ## Fitten Code AI 编程助手
 
 Para integrar Fitten Code AI en este monorepo (local y GitHub), consulta `docs/Fitten-Code-AI-Manual.md`, que cubre la
