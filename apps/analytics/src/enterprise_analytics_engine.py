@@ -1,11 +1,12 @@
-"""Abaco Enterprise Analytics Engine v2.0.0.
+"""Abaco Enterprise Analytics Engine v2.1.0.
 Risk and growth KPIs with audit-grade traceability.
 """
 
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from typing import Dict
 
 import numpy as np
@@ -21,6 +22,19 @@ logger = logging.getLogger("AbacoRiskEngine")
 
 class DataValidationError(Exception):
     """Raised when input data violates expected schema or quality thresholds."""
+
+
+@dataclass(frozen=True)
+class PortfolioReport:
+    timestamp_utc: str
+    portfolio_delinquency_rate_percent: float
+    portfolio_yield_percent: float
+    average_ltv_ratio_percent: float
+    average_dti_ratio_percent: float
+    total_exposure: float
+
+    def as_dict(self) -> Dict[str, float]:
+        return asdict(self)
 
 
 class LoanAnalyticsEngine:
@@ -41,10 +55,11 @@ class LoanAnalyticsEngine:
             logger.error("Initialization failed: empty or non-DataFrame input.")
             raise DataValidationError("Input must be a non-empty pandas DataFrame.")
 
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now(timezone.utc)
         self.loan_data = loan_data.copy()
         self._validate_schema()
         self._sanitize_data()
+        self._validate_non_negative(["loan_amount", "appraised_value", "borrower_income", "principal_balance"])
         logger.info("Engine initialized with %s records.", len(self.loan_data))
 
     def _validate_schema(self) -> None:
@@ -58,10 +73,24 @@ class LoanAnalyticsEngine:
         if np.isinf(self.loan_data[numeric_cols]).any().any():
             logger.warning("Infinite values detected; replacing with NaN for safe calculations.")
             self.loan_data.replace([np.inf, -np.inf], np.nan, inplace=True)
+        if self.loan_data[numeric_cols].isna().any().any():
+            logger.warning("Null numeric values detected; coercing to zero for conservative KPIs.")
+            self.loan_data[numeric_cols] = self.loan_data[numeric_cols].fillna(0.0)
+
+    def _validate_non_negative(self, columns: list[str]) -> None:
+        for column in columns:
+            if (self.loan_data[column] < 0).any():
+                logger.error("Negative values detected in %s; aborting.", column)
+                raise DataValidationError(f"Negative values found in {column}")
 
     def compute_loan_to_value(self) -> pd.Series:
-        ltv = (self.loan_data["loan_amount"] / self.loan_data["appraised_value"].replace(0, np.nan)) * 100
-        logger.info("LTV computed | mean=%.2f%% max=%.2f%%", float(ltv.mean(skipna=True)), float(ltv.max(skipna=True)))
+        safe_appraised_value = self.loan_data["appraised_value"].replace(0, np.nan)
+        ltv = (self.loan_data["loan_amount"] / safe_appraised_value) * 100
+        logger.info(
+            "LTV computed | mean=%.2f%% max=%.2f%%",
+            float(ltv.mean(skipna=True)),
+            float(ltv.max(skipna=True)),
+        )
         return ltv.fillna(0.0)
 
     def compute_debt_to_income(self) -> pd.Series:
@@ -94,16 +123,16 @@ class LoanAnalyticsEngine:
         logger.info("Starting full portfolio analysis cycle.")
         self.loan_data["ltv_ratio"] = self.compute_loan_to_value()
         self.loan_data["dti_ratio"] = self.compute_debt_to_income()
-        results = {
-            "timestamp_utc": self.timestamp.isoformat(),
-            "portfolio_delinquency_rate_percent": self.compute_delinquency_rate(),
-            "portfolio_yield_percent": self.compute_portfolio_yield(),
-            "average_ltv_ratio_percent": float(round(self.loan_data["ltv_ratio"].mean(), 2)),
-            "average_dti_ratio_percent": float(round(self.loan_data["dti_ratio"].mean(), 2)),
-            "total_exposure": float(round(self.loan_data["principal_balance"].sum(), 2)),
-        }
+        report = PortfolioReport(
+            timestamp_utc=self.timestamp.isoformat(),
+            portfolio_delinquency_rate_percent=self.compute_delinquency_rate(),
+            portfolio_yield_percent=self.compute_portfolio_yield(),
+            average_ltv_ratio_percent=float(round(self.loan_data["ltv_ratio"].mean(), 2)),
+            average_dti_ratio_percent=float(round(self.loan_data["dti_ratio"].mean(), 2)),
+            total_exposure=float(round(self.loan_data["principal_balance"].sum(), 2)),
+        )
         logger.info("Analysis complete. KPIs ready for downstream dashboards.")
-        return results
+        return report.as_dict()
 
 
 if __name__ == "__main__":
