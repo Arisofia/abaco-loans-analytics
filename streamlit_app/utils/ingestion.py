@@ -46,7 +46,7 @@ class DataIngestionEngine:
                 continue
             normalized[col] = normalized[col].str.strip()
 
-        numeric_pattern = re.compile(r"^-?\d+(\.\d+)?$")
+        numeric_pattern = re.compile(r"^-?\d+(?:\.\d+)?$")
         for col in normalized.columns:
             if normalized[col].dtype == object and normalized[col].str.match(numeric_pattern).any():
                 normalized[col] = self.convert_numeric_tolerant(normalized[col])
