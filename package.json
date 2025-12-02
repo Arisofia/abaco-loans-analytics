@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "lint": "npm --prefix apps/web run lint"
+  },
   "dependencies": {
     "@openai/codex-sdk": "^0.63.0",
     "@supabase/supabase-js": "^2.86.0",
