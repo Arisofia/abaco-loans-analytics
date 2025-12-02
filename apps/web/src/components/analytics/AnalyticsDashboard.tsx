@@ -37,7 +37,9 @@ const DEFAULT_SAMPLE: LoanRow[] = [
 
 export function AnalyticsDashboard() {
   const [loanData, setLoanData] = useState<LoanRow[]>(DEFAULT_SAMPLE)
-  const [drilldownStatuses, setDrilldownStatuses] = useState<Record<string, 'ok' | 'error' | 'unknown'>>({
+  const [drilldownStatuses, setDrilldownStatuses] = useState<
+    Record<string, 'ok' | 'error' | 'unknown'>
+  >({
     '/delinquency': 'unknown',
     '/roll-rate': 'unknown',
     '/collections': 'unknown',
@@ -47,7 +49,8 @@ export function AnalyticsDashboard() {
   const analytics = useMemo(() => processLoanRows(loanData), [loanData])
   const docBase = 'https://github.com/Abaco-Technol/abaco-loans-analytics/blob/main'
   const drilldownBase =
-    process.env.NEXT_PUBLIC_DRILLDOWN_BASE_URL ?? 'https://github.com/Abaco-Technol/abaco-loans-analytics/tree/main/docs'
+    process.env.NEXT_PUBLIC_DRILLDOWN_BASE_URL ??
+    'https://github.com/Abaco-Technol/abaco-loans-analytics/tree/main/docs'
   const alertSlack = process.env.NEXT_PUBLIC_ALERT_SLACK_WEBHOOK
   const alertEmail = process.env.NEXT_PUBLIC_ALERT_EMAIL ?? 'alerts@abaco.loans'
 
@@ -84,8 +87,18 @@ export function AnalyticsDashboard() {
       try {
         const res = await fetch('/api/drilldowns/status')
         if (!res.ok) throw new Error('status fetch failed')
-        const json: Record<string, 'ok' | 'error'> = await res.json()
-        setDrilldownStatuses((prev) => ({ ...prev, ...json }))
+        const json = (await res.json()) as unknown
+        if (json && typeof json === 'object' && !Array.isArray(json)) {
+          const parsed = Object.entries(json as Record<string, unknown>).reduce<
+            Record<string, 'ok' | 'error'>
+          >((acc, [key, value]) => {
+            if (value === 'ok' || value === 'error') {
+              acc[key] = value
+            }
+            return acc
+          }, {})
+          setDrilldownStatuses((prev) => ({ ...prev, ...parsed }))
+        }
       } catch {
         // keep existing/unknown on failure
       }
@@ -100,19 +113,20 @@ export function AnalyticsDashboard() {
         <div className={styles.sectionHeader}>
           <p className={styles.sectionTitle}>Alert routing & runbooks</p>
           <p className={styles.sectionCopy}>
-            Every chart links to drill-down tables and owners. Alerts route with SLA and next-best action.
+            Every chart links to drill-down tables and owners. Alerts route with SLA and next-best
+            action.
           </p>
         </div>
         <div className={styles.linkGrid}>
           <div className={styles.linkCard}>
             <div className={styles.pill}>Alert policy</div>
             <p className={styles.linkDescription}>
-              Red = page owner + backup paged. Amber = owner notified. Messages include KPI, threshold, runbook link,
-              and ETA.
+              Red = page owner + backup paged. Amber = owner notified. Messages include KPI,
+              threshold, runbook link, and ETA.
             </p>
             <p className={styles.linkDescription}>
-              Slack: {alertSlack ? 'configured' : 'not set (NEXT_PUBLIC_ALERT_SLACK_WEBHOOK)'} · Email routing:{' '}
-              {alertEmail}
+              Slack: {alertSlack ? 'configured' : 'not set (NEXT_PUBLIC_ALERT_SLACK_WEBHOOK)'} ·
+              Email routing: {alertEmail}
             </p>
           </div>
           {runbookLinks.map((item) => (
@@ -133,8 +147,8 @@ export function AnalyticsDashboard() {
         <div className={styles.sectionHeader}>
           <p className={styles.sectionTitle}>Drill-down tables</p>
           <p className={styles.sectionCopy}>
-            Link charts to real tables for investigation. Configure NEXT_PUBLIC_DRILLDOWN_BASE_URL to point at your data
-            app/API.
+            Link charts to real tables for investigation. Configure NEXT_PUBLIC_DRILLDOWN_BASE_URL
+            to point at your data app/API.
           </p>
         </div>
         <div className={styles.linkGrid}>
@@ -147,18 +161,21 @@ export function AnalyticsDashboard() {
             const status = drilldownStatuses[item.path] ?? 'unknown'
             const statusText = status === 'ok' ? 'Ready' : status === 'error' ? 'Error' : 'Unknown'
             return (
-            <Link
-              key={item.path}
-              href={`${drilldownBase}${item.path}`}
-              target="_blank"
-              rel="noreferrer"
-              className={styles.linkCard}
-            >
-              <span className={styles.linkTitle}>{item.label}</span>
-              <span className={styles.linkDescription}>Opens drill-down table for this chart.</span>
-              <span className={styles.pill}>{statusText}</span>
-            </Link>
-          )})}
+              <Link
+                key={item.path}
+                href={`${drilldownBase}${item.path}`}
+                target="_blank"
+                rel="noreferrer"
+                className={styles.linkCard}
+              >
+                <span className={styles.linkTitle}>{item.label}</span>
+                <span className={styles.linkDescription}>
+                  Opens drill-down table for this chart.
+                </span>
+                <span className={styles.pill}>{statusText}</span>
+              </Link>
+            )
+          })}
         </div>
       </section>
       <PortfolioHealthKPIs kpis={analytics.kpis} />
