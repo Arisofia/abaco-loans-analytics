@@ -1,1 +1,1 @@
-"""Source package for enterprise analytics engines and utilities."""
+"""Source package for enterprise analytics engines and supporting utilities."""

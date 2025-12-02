@@ -1,1 +1,1 @@
-"""Analytics capabilities for KPI measurement and dashboards."""
+"""Analytics app namespace exposing KPI and risk intelligence components."""
