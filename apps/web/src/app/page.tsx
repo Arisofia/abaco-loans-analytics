@@ -58,6 +58,9 @@ export default async function Home() {
           <Link href="#products" className={styles.secondaryButton}>
             Explore products
           </Link>
+          <Link href="/settings" className={styles.secondaryButton}>
+            Open settings
+          </Link>
         </div>
         <div className={styles.metrics}>
           {metrics.map((metric) => (
