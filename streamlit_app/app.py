@@ -1,3 +1,4 @@
+import hashlib
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -22,12 +23,15 @@ def load_and_prepare_data():
 
     completeness = (raw_df.notna().sum().sum() / (raw_df.shape[0] * raw_df.shape[1])) * 100
     freshness_days = rng.integers(0, 5)
+    checksum = hashlib.sha256(pd.util.hash_pandas_object(raw_df, index=True).values).hexdigest()
     metadata = {
         "rng_seed": rng_seed,
         "record_count": len(raw_df),
         "completeness_pct": completeness,
         "freshness_days": int(freshness_days),
         "ingestion_ts": pd.Timestamp.utcnow().isoformat(),
+        "source_system": "demo-synthetic-generator",
+        "dataset_checksum": checksum,
     }
     return raw_df, metadata
 
@@ -69,6 +73,36 @@ kpi_table = pd.DataFrame([
 ])
 
 st.dataframe(kpi_table, hide_index=True, use_container_width=True)
+
+controls_table = pd.DataFrame([
+    {
+        "Control": "Deterministic Seed",
+        "Owner": "Data Engineering",
+        "Status": "Pass",
+        "Detail": f"rng_seed={ingestion_metadata['rng_seed']} ensures reproducibility",
+    },
+    {
+        "Control": "Data Completeness",
+        "Owner": "Data Quality",
+        "Status": "Pass" if ingestion_metadata['completeness_pct'] >= 95 else "Watch",
+        "Detail": f"{ingestion_metadata['completeness_pct']:.2f}% non-null coverage",
+    },
+    {
+        "Control": "Checksum Traceability",
+        "Owner": "Risk & Controls",
+        "Status": "Pass",
+        "Detail": f"SHA-256: {ingestion_metadata['dataset_checksum'][:12]}...",
+    },
+    {
+        "Control": "Freshness SLA",
+        "Owner": "Ops",
+        "Status": "Pass" if ingestion_metadata['freshness_days'] <= 1 else "Watch",
+        "Detail": f"{ingestion_metadata['freshness_days']} days since last load",
+    },
+])
+
+st.subheader("Operational Controls & Audit Trail")
+st.dataframe(controls_table, hide_index=True, use_container_width=True)
 
 # 3. Display Distribution Charts
 st.header("Customer Distributions")
@@ -123,6 +157,31 @@ yield_risk_chart = alt.Chart(enriched_df).mark_circle(size=80, opacity=0.7).enco
 ).properties(title='Utilization vs. Delinquency by Segment')
 st.altair_chart(yield_risk_chart, use_container_width=True)
 
+st.header("Delinquency Incidence by Segment")
+segment_delinquency = (
+    enriched_df.assign(delinquent=lambda df: df['dpd'] >= 30)
+    .groupby('segment')
+    .agg(
+        customers=('customer_id', 'count'),
+        delinquent_customers=('delinquent', 'sum'),
+        delinquency_rate=('delinquent', 'mean'),
+    )
+    .reset_index()
+)
+
+segment_dpd_chart = alt.Chart(segment_delinquency).mark_bar().encode(
+    x=alt.X('segment:N', sort=['Bronze', 'Silver', 'Gold'], title='Customer Segment'),
+    y=alt.Y('delinquency_rate:Q', title='30+ DPD Rate', axis=alt.Axis(format='%')),
+    tooltip=[
+        alt.Tooltip('segment', title='Segment'),
+        alt.Tooltip('customers', title='Customers'),
+        alt.Tooltip('delinquent_customers', title='30+ DPD'),
+        alt.Tooltip('delinquency_rate', title='30+ DPD Rate', format='.1%'),
+    ],
+    color='segment:N',
+).properties(title='30+ DPD Incidence by Segment')
+st.altair_chart(segment_dpd_chart, use_container_width=True)
+
 # 4. Display Customer Data Table
 st.header("Enriched Customer Portfolio Data")
 st.dataframe(enriched_df)
@@ -134,6 +193,8 @@ with st.expander("Data lineage & governance"):
             "records": ingestion_metadata['record_count'],
             "completeness_pct": round(ingestion_metadata['completeness_pct'], 2),
             "freshness_days": ingestion_metadata['freshness_days'],
+            "source_system": ingestion_metadata['source_system'],
+            "dataset_checksum": ingestion_metadata['dataset_checksum'],
         }
     )
 st.caption("Industry GDP Benchmark: +2.1% (YoY)")
