@@ -82,22 +82,22 @@ export function AnalyticsDashboard() {
     },
   ]
 
-  const isStatusRecord = (value: unknown): value is Record<string, 'ok' | 'error'> => {
-    if (!value || typeof value !== 'object') return false
-    return Object.values(value).every((entry) => entry === 'ok' || entry === 'error')
-  }
-
   useEffect(() => {
     async function fetchStatuses() {
       try {
         const res = await fetch('/api/drilldowns/status')
         if (!res.ok) throw new Error('status fetch failed')
-        const payload: unknown = await res.json()
-        if (isStatusRecord(payload)) {
-          setDrilldownStatuses((prev) => ({ ...prev, ...payload }))
-        } else {
-          // eslint-disable-next-line no-console
-          console.warn('Unexpected /api/drilldowns/status payload', payload)
+        const json = (await res.json()) as unknown
+        if (json && typeof json === 'object' && !Array.isArray(json)) {
+          const parsed = Object.entries(json as Record<string, unknown>).reduce<
+            Record<string, 'ok' | 'error'>
+          >((acc, [key, value]) => {
+            if (value === 'ok' || value === 'error') {
+              acc[key] = value
+            }
+            return acc
+          }, {})
+          setDrilldownStatuses((prev) => ({ ...prev, ...parsed }))
         }
       } catch {
         // keep existing/unknown on failure

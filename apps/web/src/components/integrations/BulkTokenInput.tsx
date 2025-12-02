@@ -28,7 +28,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   const [processing, setProcessing] = useState(false)
   const [summary, setSummary] = useState<string>('')
 
-  const parsedItems = useMemo(() => parseInput(rawInput), [rawInput])
+  const parsedItems = useMemo(() => parseInput(rawInput.trim()), [rawInput])
 
   const updateItem = useCallback((index: number, changes: Partial<BulkTokenItem>) => {
     setItems((current) =>
@@ -91,7 +91,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
 
   const handleProcess = async () => {
     const list = parsedItems
-    setItems(list.map((item) => ({ ...item, status: 'pending', attempts: 0 })))
+    setItems(list.map((item) => ({ ...item, status: 'pending' as ItemStatus, attempts: 0 })))
     setProcessing(true)
     setSummary('')
 
@@ -113,10 +113,16 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
     if (!failures.length) return
     setProcessing(true)
     setSummary('')
-    const refreshed = failures.map((item) => ({ ...item, status: 'pending', attempts: 0 }))
+    const refreshed = failures.map((item) => ({
+      ...item,
+      status: 'pending' as ItemStatus,
+      attempts: 0,
+    }))
     setItems((current) =>
       current.map((existing) =>
-        existing.status === 'error' ? { ...existing, status: 'pending', attempts: 0 } : existing
+        existing.status === 'error'
+          ? { ...existing, status: 'pending' as ItemStatus, attempts: 0 }
+          : existing
       )
     )
     const results = await processItems(refreshed)
@@ -203,19 +209,26 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
 
 function parseInput(input: string): BulkTokenItem[] {
   return input
-    .split('\n')
+    .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => line.split(',').map((segment) => segment.trim()))
     .filter((parts) => parts.length >= 2)
-    .map((parts) => ({
-      platform: parts[0] as Platform,
-      token: parts[1] ?? '',
-      accountId: parts[2],
-      status: 'pending',
-      attempts: 0,
-    }))
-    .filter((item) => PLATFORMS.includes(item.platform))
+    .map((parts) => {
+      const [rawPlatform, token, accountId] = parts
+      const normalizedPlatform = rawPlatform?.toLowerCase() as Platform | undefined
+
+      return {
+        platform: normalizedPlatform,
+        token: token ?? '',
+        accountId,
+        status: 'pending' as ItemStatus,
+        attempts: 0,
+      }
+    })
+    .filter(
+      (item): item is BulkTokenItem => Boolean(item.platform) && PLATFORMS.includes(item.platform)
+    )
 }
 
 function waitForDelay(attempt: number) {
