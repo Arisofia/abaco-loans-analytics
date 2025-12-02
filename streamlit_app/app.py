@@ -24,14 +24,16 @@ def load_and_prepare_data():
     completeness = (raw_df.notna().sum().sum() / (raw_df.shape[0] * raw_df.shape[1])) * 100
     freshness_days = rng.integers(0, 5)
     checksum = hashlib.sha256(pd.util.hash_pandas_object(raw_df, index=True).values).hexdigest()
+    run_ts = pd.Timestamp.utcnow()
     metadata = {
         "rng_seed": rng_seed,
         "record_count": len(raw_df),
         "completeness_pct": completeness,
         "freshness_days": int(freshness_days),
-        "ingestion_ts": pd.Timestamp.utcnow().isoformat(),
+        "ingestion_ts": run_ts.isoformat(),
         "source_system": "demo-synthetic-generator",
         "dataset_checksum": checksum,
+        "run_id": f"run-{run_ts.strftime('%Y%m%d%H%M%S')}",
     }
     return raw_df, metadata
 
@@ -86,6 +88,36 @@ ingestion_history = pd.DataFrame(
         "completeness": history_completeness,
         "freshness_days": history_freshness,
     }
+)
+segment_scorecard = (
+    enriched_df
+    .groupby('segment')
+    .agg(
+        customers=('customer_id', 'count'),
+        balance=('balance', 'sum'),
+        revenue=('revenue', 'sum'),
+        expected_loss=('expected_loss', 'sum'),
+        utilization=('utilization', 'mean'),
+    )
+    .reset_index()
+)
+segment_scorecard['risk_adjusted_yield'] = (
+    (segment_scorecard['revenue'] - segment_scorecard['expected_loss'])
+    / segment_scorecard['balance']
+)
+segment_scorecard['expected_loss_rate'] = segment_scorecard['expected_loss'] / segment_scorecard['balance']
+audit_ledger = pd.DataFrame(
+    [
+        {
+            "Run ID": ingestion_metadata['run_id'],
+            "Timestamp": ingestion_metadata['ingestion_ts'],
+            "Checksum": governance_checksum,
+            "Records": ingestion_metadata['record_count'],
+            "Completeness": f"{ingestion_metadata['completeness_pct']:.2f}%",
+            "Freshness": f"{ingestion_metadata['freshness_days']} days",
+            "Status": "Pass" if ingestion_metadata['completeness_pct'] >= 95 and ingestion_metadata['freshness_days'] <= 2 else "Watch",
+        }
+    ]
 )
 
 # 2. Display High-Level Metrics
@@ -148,6 +180,7 @@ controls_table = pd.DataFrame([
 
 st.subheader("Operational Controls & Audit Trail")
 st.dataframe(controls_table, hide_index=True, use_container_width=True)
+st.dataframe(audit_ledger, hide_index=True, use_container_width=True)
 
 st.subheader("Risk-Adjusted Value Signals")
 signal_table = pd.DataFrame([
@@ -172,6 +205,17 @@ signal_table = pd.DataFrame([
 ])
 st.dataframe(signal_table, hide_index=True, use_container_width=True)
 
+st.subheader("Segment Risk & Value Scorecard")
+segment_scorecard_display = segment_scorecard.assign(
+    balance=lambda df: df['balance'].map('${:,.0f}'.format),
+    revenue=lambda df: df['revenue'].map('${:,.0f}'.format),
+    expected_loss=lambda df: df['expected_loss'].map('${:,.0f}'.format),
+    utilization=lambda df: df['utilization'].map('{:.1%}'.format),
+    risk_adjusted_yield=lambda df: df['risk_adjusted_yield'].map('{:.2f}x'.format),
+    expected_loss_rate=lambda df: df['expected_loss_rate'].map('{:.2%}'.format),
+)
+st.dataframe(segment_scorecard_display, hide_index=True, use_container_width=True)
+
 # 3. Display Distribution Charts
 st.header("Customer Distributions")
 col_dist1, col_dist2 = st.columns(2)
@@ -195,6 +239,32 @@ with col_dist2:
         title='Customer Segment Distribution'
     )
     st.altair_chart(segment_chart, use_container_width=True)
+
+st.header("Expected Loss Concentration")
+expected_loss_chart = alt.Chart(segment_scorecard).mark_bar().encode(
+    x=alt.X('segment:N', sort=['Bronze', 'Silver', 'Gold'], title='Customer Segment'),
+    y=alt.Y('expected_loss:Q', title='Expected Loss'),
+    color='segment:N',
+    tooltip=[
+        alt.Tooltip('segment', title='Segment'),
+        alt.Tooltip('expected_loss', title='Expected Loss', format='$,.0f'),
+        alt.Tooltip('expected_loss_rate', title='EL Rate', format='.2%'),
+    ],
+).properties(title='Expected Loss by Segment')
+st.altair_chart(expected_loss_chart, use_container_width=True)
+
+st.header("Risk-Adjusted Yield by Segment")
+risk_adjusted_chart = alt.Chart(segment_scorecard).mark_bar().encode(
+    x=alt.X('segment:N', sort=['Bronze', 'Silver', 'Gold'], title='Customer Segment'),
+    y=alt.Y('risk_adjusted_yield:Q', title='Risk-Adjusted Yield'),
+    color='segment:N',
+    tooltip=[
+        alt.Tooltip('segment', title='Segment'),
+        alt.Tooltip('risk_adjusted_yield', title='Risk-Adjusted Yield', format='.2f'),
+        alt.Tooltip('utilization', title='Utilization', format='.1%'),
+    ],
+).properties(title='Yield After Expected Loss')
+st.altair_chart(risk_adjusted_chart, use_container_width=True)
 
 st.header("Utilization by Segment")
 utilization_chart = alt.Chart(enriched_df).mark_bar().encode(
