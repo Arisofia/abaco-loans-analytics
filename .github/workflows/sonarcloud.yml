@@ -59,7 +59,7 @@ jobs:
 
       - name: Skip Java coverage (no gradle wrapper present)
         if: ${{ hashFiles('gradlew') == '' }}
-        run: echo "Skipping Jacoco: gradlew not present in repository"
+        run: "echo 'Skipping Jacoco: gradlew not present in repository'"
 
       - name: Web coverage placeholder
         run: |
@@ -73,3 +73,4 @@ jobs:
           args: >
             -Dsonar.verbose=true
             -Dsonar.python.coverage.reportPaths=coverage-python.xml
+            -Dsonar.javascript.lcov.reportPaths=apps/web/coverage/lcov.info
