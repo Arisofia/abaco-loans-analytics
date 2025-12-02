@@ -1,2 +1,1 @@
-"""Core analytics engine and metric utilities."""
-
+"""Source package for enterprise analytics engines and supporting utilities."""
