@@ -3,6 +3,7 @@ import styles from './page.module.css'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import {
   EMPTY_LANDING_PAGE_DATA,
+  landingPageDataSchema,
   type LandingPageData,
   type Metric,
   type Product,
@@ -27,7 +28,14 @@ async function getData(): Promise<LandingPageData> {
     return EMPTY_LANDING_PAGE_DATA
   }
 
-  return data
+  const parsed = landingPageDataSchema.safeParse(data)
+
+  if (!parsed.success) {
+    console.error('Invalid landing page data shape from Supabase:', parsed.error.flatten())
+    return EMPTY_LANDING_PAGE_DATA
+  }
+
+  return parsed.data
 }
 
 export default async function Home() {
