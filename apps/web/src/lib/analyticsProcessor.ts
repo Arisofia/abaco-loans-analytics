@@ -8,38 +8,6 @@ import {
 
 const currencyRegex = /[^\d.-]/g
 
-function splitCsvLine(line: string): string[] {
-  const values: string[] = []
-  let current = ''
-  let inQuotes = false
-
-  for (let i = 0; i < line.length; i += 1) {
-    const char = line[i]
-
-    if (char === '"') {
-      const nextChar = line[i + 1]
-      if (inQuotes && nextChar === '"') {
-        current += '"'
-        i += 1
-        continue
-      }
-      inQuotes = !inQuotes
-      continue
-    }
-
-    if (char === ',' && !inQuotes) {
-      values.push(current.trim())
-      current = ''
-      continue
-    }
-
-    current += char
-  }
-
-  values.push(current.trim())
-  return values
-}
-
 function toNumber(value: string | number): number {
   if (typeof value === 'number') {
     return value
@@ -48,51 +16,39 @@ function toNumber(value: string | number): number {
   return Number(cleaned) || 0
 }
 
+type LoanCsvRecord = Record<string, string>
+
 export function parseLoanCsv(content: string): LoanRow[] {
-  const lines = content
+  const rows = content
+    .trim()
     .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .map((line) => line.split(','))
+    .filter((parts) => parts.length >= 7)
 
-  if (lines.length === 0) return []
+  const header = rows.shift()
+  if (!header) return []
 
-  const header = splitCsvLine(lines[0]).map((col) => col.toLowerCase())
-  const rows = lines.slice(1).map((line) => splitCsvLine(line))
+  const keys = header.map((col) => col.trim().toLowerCase())
 
-  const requiredColumns = new Set([
-    'loan_amount',
-    'appraised_value',
-    'borrower_income',
-    'monthly_debt',
-    'loan_status',
-    'interest_rate',
-    'principal_balance',
-    'dpd_status',
-  ])
-
-  const headerMap = header.reduce<Record<string, number>>((acc, key, index) => {
-    acc[key] = index
-    return acc
-  }, {})
-
-  const hasAllColumns = [...requiredColumns].every((key) => headerMap[key] !== undefined)
-  if (!hasAllColumns) return []
-
-  return rows.map((parts) => {
-    const record = header.reduce<Record<string, string>>((acc, key, index) => {
-      acc[key] = parts[index]?.trim() ?? ''
+  const toRecord = (parts: string[]): LoanCsvRecord =>
+    parts.reduce<LoanCsvRecord>((acc, value, index) => {
+      const key = keys[index] ?? `col_${index}`
+      acc[key] = value.trim()
       return acc
     }, {})
 
+  return rows.map((parts) => {
+    const record = toRecord(parts)
+    const getField = (key: string) => record[key] ?? ''
     return {
-      loan_amount: toNumber(record.loan_amount),
-      appraised_value: toNumber(record.appraised_value),
-      borrower_income: toNumber(record.borrower_income),
-      monthly_debt: toNumber(record.monthly_debt),
-      loan_status: record.loan_status || 'unknown',
-      interest_rate: toNumber(record.interest_rate),
-      principal_balance: toNumber(record.principal_balance),
-      dpd_status: record.dpd_status || '',
+      loan_amount: toNumber(getField('loan_amount')),
+      appraised_value: toNumber(getField('appraised_value')),
+      borrower_income: toNumber(getField('borrower_income')),
+      monthly_debt: toNumber(getField('monthly_debt')),
+      loan_status: getField('loan_status') || 'unknown',
+      interest_rate: toNumber(getField('interest_rate')),
+      principal_balance: toNumber(getField('principal_balance')),
+      dpd_status: getField('dpd_status') || '',
     }
   })
 }
@@ -129,17 +85,23 @@ function computeKPIs(rows: LoanRow[]) {
     (sum, row) => sum + row.loan_amount / Math.max(row.appraised_value, 1),
     0
   )
-  const averageDTI = rows.reduce((sum, row) => {
-    const income = row.borrower_income / 12
-    if (income <= 0) return sum
-    return sum + row.monthly_debt / income
-  }, 0)
+  const { totalDTI, validIncomes } = rows.reduce(
+    (acc, row) => {
+      const income = row.borrower_income / 12
+      if (income > 0) {
+        acc.totalDTI += row.monthly_debt / income
+        acc.validIncomes += 1
+      }
+      return acc
+    },
+    { totalDTI: 0, validIncomes: 0 }
+  )
 
   return {
     delinquencyRate: Number(riskRate.toFixed(2)),
     portfolioYield: Number(portfolioYield.toFixed(2)),
     averageLTV: Number(((averageLTV / Math.max(totalLoans, 1)) * 100).toFixed(1)),
-    averageDTI: Number(((averageDTI / Math.max(totalLoans, 1)) * 100).toFixed(1)),
+    averageDTI: Number(((totalDTI / Math.max(validIncomes, 1)) * 100).toFixed(1)),
     loanCount: totalLoans,
   }
 }

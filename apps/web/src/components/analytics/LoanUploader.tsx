@@ -18,7 +18,11 @@ export function LoanUploader({ onData }: Props) {
       reader.onload = () => {
         const result = reader.result
         const text =
-          typeof result === 'string' ? result : new TextDecoder().decode(result as ArrayBuffer)
+          typeof result === 'string'
+            ? result
+            : result instanceof ArrayBuffer
+              ? new TextDecoder().decode(result)
+              : ''
         const parsed = parseLoanCsv(text)
         onData(parsed)
       }
