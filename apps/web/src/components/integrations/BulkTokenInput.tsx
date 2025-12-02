@@ -20,14 +20,6 @@ type BulkTokenInputProps = {
 
 type ItemStatus = TokenStatus | 'pending' | 'success' | 'retrying'
 
-type ParsedInput = {
-  items: BulkTokenItem[]
-  invalidLines: number
-  duplicateLines: number
-  emptyTokenLines: number
-  totalLines: number
-}
-
 const defaultRow = 'platform,token,accountId(optional)'
 
 export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputProps) {
@@ -36,11 +28,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   const [processing, setProcessing] = useState(false)
   const [summary, setSummary] = useState<string>('')
 
-  const parsedInput = useMemo(() => parseInput(rawInput), [rawInput])
-  const invalidLabel = parsedInput.invalidLines === 1 ? 'invalid line' : 'invalid lines'
-  const duplicateLabel = parsedInput.duplicateLines === 1 ? 'duplicate' : 'duplicates'
-  const emptyTokenLabel = parsedInput.emptyTokenLines === 1 ? 'missing token' : 'missing tokens'
-  const hasInput = parsedInput.totalLines > 0
+  const parsedItems = useMemo(() => parseInput(rawInput.trim()), [rawInput])
 
   const updateItem = useCallback((index: number, changes: Partial<BulkTokenItem>) => {
     setItems((current) =>
@@ -102,8 +90,8 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   }
 
   const handleProcess = async () => {
-    const list = parsedInput.items
-    setItems(list.map((item) => ({ ...item, status: 'pending', attempts: 0 })))
+    const list = parsedItems
+    setItems(list.map((item) => ({ ...item, status: 'pending' as ItemStatus, attempts: 0 })))
     setProcessing(true)
     setSummary('')
 
@@ -125,10 +113,16 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
     if (!failures.length) return
     setProcessing(true)
     setSummary('')
-    const refreshed = failures.map((item) => ({ ...item, status: 'pending', attempts: 0 }))
+    const refreshed = failures.map((item) => ({
+      ...item,
+      status: 'pending' as ItemStatus,
+      attempts: 0,
+    }))
     setItems((current) =>
       current.map((existing) =>
-        existing.status === 'error' ? { ...existing, status: 'pending', attempts: 0 } : existing
+        existing.status === 'error'
+          ? { ...existing, status: 'pending' as ItemStatus, attempts: 0 }
+          : existing
       )
     )
     const results = await processItems(refreshed)
@@ -142,7 +136,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   if (!open) return null
 
   return (
-    <div className={styles.backdrop} role="dialog" aria-modal="true">
+    <div className={styles.backdrop} role="dialog" aria-modal>
       <div className={styles.modal}>
         <div className={styles.header}>
           <h3>Bulk token intake</h3>
@@ -159,20 +153,6 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
               placeholder={defaultRow}
               disabled={processing}
             />
-            <p className={styles.metaSummary} aria-live="off">
-              {hasInput ? (
-                <>
-                  Validated {parsedInput.items.length} of {parsedInput.totalLines} lines. Filtered
-                  out {parsedInput.invalidLines} {invalidLabel}
-                  {parsedInput.emptyTokenLines > 0
-                    ? ` (${parsedInput.emptyTokenLines} ${emptyTokenLabel})`
-                    : ''}{' '}
-                  and {parsedInput.duplicateLines} {duplicateLabel}.
-                </>
-              ) : (
-                'Paste tokens above to validate format and platforms.'
-              )}
-            </p>
           </div>
           <div className={styles.progressList} aria-live="polite">
             {items.length === 0 && <p>No items yet. Paste tokens to begin.</p>}
@@ -216,7 +196,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
               onClick={() => {
                 void handleProcess()
               }}
-              disabled={processing || !parsedInput.items.length}
+              disabled={processing || !parsedItems.length}
             >
               {processing ? 'Processing...' : 'Connect all'}
             </button>
@@ -227,57 +207,28 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   )
 }
 
-function parseInput(input: string): ParsedInput {
-  const rows = input
-    .split('\n')
+function parseInput(input: string): BulkTokenItem[] {
+  return input
+    .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
+    .map((line) => line.split(',').map((segment) => segment.trim()))
+    .filter((parts) => parts.length >= 2)
+    .map((parts) => {
+      const [rawPlatform, token, accountId] = parts
+      const normalizedPlatform = rawPlatform?.toLowerCase() as Platform | undefined
 
-  const seen = new Set<string>()
-  const items: BulkTokenItem[] = []
-  let invalidLines = 0
-  let duplicateLines = 0
-  let emptyTokenLines = 0
-
-  rows.forEach((line) => {
-    const parts = line.split(',').map((segment) => segment.trim())
-    if (parts.length < 2) {
-      invalidLines += 1
-      return
-    }
-
-    const platform = parts[0] as Platform
-    const token = parts[1]?.trim() ?? ''
-    const accountId = parts[2]
-
-    if (!token) {
-      emptyTokenLines += 1
-      invalidLines += 1
-      return
-    }
-
-    if (!PLATFORMS.includes(platform)) {
-      invalidLines += 1
-      return
-    }
-
-    const key = `${platform}::${token}::${accountId ?? ''}`
-    if (seen.has(key)) {
-      duplicateLines += 1
-      return
-    }
-
-    seen.add(key)
-    items.push({
-      platform,
-      token,
-      accountId,
-      status: 'pending',
-      attempts: 0,
+      return {
+        platform: normalizedPlatform,
+        token: token ?? '',
+        accountId,
+        status: 'pending' as ItemStatus,
+        attempts: 0,
+      }
     })
-  })
-
-  return { items, invalidLines, duplicateLines, emptyTokenLines, totalLines: rows.length }
+    .filter(
+      (item): item is BulkTokenItem => Boolean(item.platform) && PLATFORMS.includes(item.platform)
+    )
 }
 
 function waitForDelay(attempt: number) {

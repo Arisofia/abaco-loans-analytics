@@ -1,6 +1,10 @@
 'use client'
 
-import { processedAnalyticsToCSV, processedAnalyticsToJSON } from '@/lib/exportHelpers'
+import {
+  processedAnalyticsToCSV,
+  processedAnalyticsToJSON,
+  processedAnalyticsToMarkdown,
+} from '@/lib/exportHelpers'
 import styles from './analytics.module.css'
 import type { ProcessedAnalytics } from '@/types/analytics'
 
@@ -10,11 +14,18 @@ type Props = {
 
 function download(name: string, data: string, mime: string) {
   const blob = new Blob([data], { type: mime })
+  const objectUrl = URL.createObjectURL(blob)
   const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
+  link.href = objectUrl
   link.download = name
-  link.click()
-  URL.revokeObjectURL(link.href)
+  document.body.appendChild(link)
+
+  try {
+    link.click()
+  } finally {
+    link.remove()
+    URL.revokeObjectURL(objectUrl)
+  }
 }
 
 export function ExportControls({ analytics }: Props) {
@@ -42,6 +53,19 @@ export function ExportControls({ analytics }: Props) {
           }
         >
           Download JSON
+        </button>
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          onClick={() =>
+            download(
+              'analytics.md',
+              processedAnalyticsToMarkdown(analytics),
+              'text/markdown'
+            )
+          }
+        >
+          Download Markdown
         </button>
       </div>
     </section>
