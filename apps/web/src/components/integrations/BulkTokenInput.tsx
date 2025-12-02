@@ -28,10 +28,11 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   const [processing, setProcessing] = useState(false)
   const [summary, setSummary] = useState<string>('')
 
-  const { items: parsedItems, skippedMessages, totalLines } = useMemo(
-    () => parseInput(rawInput),
-    [rawInput]
-  )
+  const {
+    items: parsedItems,
+    skippedMessages,
+    totalLines,
+  } = useMemo(() => parseInput(rawInput), [rawInput])
 
   const parseSummary = useMemo(() => {
     if (!rawInput.trim()) return 'Paste tokens in CSV format: platform,token,accountId?'
