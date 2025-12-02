@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import styles from './page.module.css'
 
 type KeyValue = { id: number; key: string; value: string }
@@ -8,6 +9,16 @@ type BodyMode = 'json' | 'form-data' | 'x-www-form-urlencoded'
 type AuthMode = 'none' | 'apiKey'
 
 const methodOptions = ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'] as const
+type KeployAuth = { type: 'none' } | { type: 'apiKey'; key: string; value: string }
+type KeployPayload = {
+  method: (typeof methodOptions)[number]
+  url: string
+  params: Record<string, string>
+  headers: Record<string, string>
+  body: unknown
+  bodyType: BodyMode
+  auth: KeployAuth
+}
 
 type KeyValueListProps = {
   items: KeyValue[]
@@ -171,7 +182,7 @@ export default function Home() {
         : {}),
     }
 
-    const payload = {
+    const payload: KeployPayload = {
       method,
       url: apiUrl,
       params: cleanKeyValue(params),
