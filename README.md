@@ -81,4 +81,5 @@ Si observas `Failed to spawn Zencoder process: ... zencoder-cli ENOENT` en VS Co
 La build de Gradle está configurada para JDK **21** mediante la toolchain en `build.gradle`. Ejecutar Gradle con JDKs en
 versión preliminar (por ejemplo, JDK 25) no es compatible con el wrapper actual (8.10) y fallará durante la
 sincronización del proyecto. Si tu IDE selecciona un JDK más reciente por defecto, cambia la JVM de Gradle a JDK 21 (u
-otra versión LTS soportada) y asegúrate de que `JAVA_HOME` apunte a esa instalación.
+otra versión LTS soportada) y asegúrate de que `JAVA_HOME` apunte a esa instalación. Para entornos que respetan
+`.java-version`, el archivo raíz fija automáticamente el uso de JDK 21.
