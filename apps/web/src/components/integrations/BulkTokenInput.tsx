@@ -28,7 +28,7 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
   const [processing, setProcessing] = useState(false)
   const [summary, setSummary] = useState<string>('')
 
-  const parsedItems = useMemo(() => parseInput(rawInput), [rawInput])
+  const parsedItems = useMemo(() => parseInput(rawInput.trim()), [rawInput])
 
   const updateItem = useCallback((index: number, changes: Partial<BulkTokenItem>) => {
     setItems((current) =>
