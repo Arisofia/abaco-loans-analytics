@@ -208,7 +208,9 @@ export function BulkTokenInput({ open, onClose, onProcessItem }: BulkTokenInputP
 }
 
 function parseInput(input: string): BulkTokenItem[] {
-  return input
+  const sanitized = input.trim()
+
+  return sanitized
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
