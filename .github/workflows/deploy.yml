@@ -54,5 +54,4 @@ jobs:
 
       - name: Skip deploy (missing Vercel secrets)
         if: steps.vercel_secrets.outputs.present != 'true'
-        run: |
-          echo "Skipping Vercel deploy: VERCEL_TOKEN/ORG_ID/PROJECT_ID not configured."
+        run: "echo \"Skipping Vercel deploy: VERCEL_TOKEN/ORG_ID/PROJECT_ID not configured.\""
