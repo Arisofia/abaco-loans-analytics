@@ -1,55 +1,83 @@
+import type { PostgrestSingleResponse } from '@supabase/supabase-js'
 import Link from 'next/link'
+import { z } from 'zod'
+import {
+  controls as fallbackControls,
+  metrics as fallbackMetrics,
+  products as fallbackProducts,
+  steps as fallbackSteps,
+} from './data'
 import styles from './page.module.css'
+import { supabase } from '../lib/supabaseClient'
+import type { LandingPageData } from '../types/landingPage'
+import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard'
 
-const metrics = [
-  { label: 'Approval uplift with governed risk', value: '+18%' },
-  { label: 'Reduction in manual reviews', value: '42%' },
-  { label: 'Portfolio coverage with audit trails', value: '100%' },
-]
+const landingPageSchema = z.object({
+  metrics: z.array(
+    z.object({
+      label: z.string().min(1),
+      value: z.string().min(1),
+    })
+  ),
+  products: z.array(
+    z.object({
+      title: z.string().min(1),
+      detail: z.string().min(1),
+    })
+  ),
+  controls: z.array(z.string().min(1)),
+  steps: z.array(
+    z.object({
+      label: z.string().min(1),
+      title: z.string().min(1),
+      copy: z.string().min(1),
+    })
+  ),
+})
 
-const products = [
-  {
-    title: 'Portfolio Intelligence',
-    detail:
-      'Daily performance lenses across cohorts, pricing, and liquidity to unlock resilient margins.',
-  },
-  {
-    title: 'Risk Orchestration',
-    detail:
-      'Dynamic policy controls, challenger experiments, and guardrails to defend credit quality.',
-  },
-  {
-    title: 'Growth Enablement',
-    detail:
-      'Pre-approved journeys, partner-ready APIs, and data rooms that accelerate funding decisions.',
-  },
-]
+const fallbackData: LandingPageData = {
+  metrics: fallbackMetrics,
+  products: fallbackProducts,
+  controls: fallbackControls,
+  steps: fallbackSteps,
+}
 
-const controls = [
-  'Segregated roles, approvals, and immutable audit logs for every change.',
-  'Real-time monitoring of SLAs, risk thresholds, and operational KPIs.',
-  'Encryption by default with least-privilege access across environments.',
-]
+function cloneFallback(): LandingPageData {
+  return {
+    metrics: fallbackData.metrics.map((item) => ({ ...item })),
+    products: fallbackData.products.map((item) => ({ ...item })),
+    controls: [...fallbackData.controls],
+    steps: fallbackData.steps.map((item) => ({ ...item })),
+  }
+}
 
-const steps = [
-  {
-    label: '01',
-    title: 'Unify data signals',
-    copy: 'Blend credit bureau, behavioral, and operational streams to build a trusted lending graph.',
-  },
-  {
-    label: '02',
-    title: 'Model & decide',
-    copy: 'Score applicants with explainable risk layers and adaptive policies aligned to appetite.',
-  },
-  {
-    label: '03',
-    title: 'Measure & learn',
-    copy: 'Track outcomes against revenue and risk KPIs, iterating with governed experiment loops.',
-  },
-]
+async function getData(): Promise<LandingPageData> {
+  if (!supabase) {
+    return cloneFallback()
+  }
 
-export default function Home() {
+  const { data, error }: PostgrestSingleResponse<LandingPageData> = await supabase
+    .from('landing_page_data')
+    .select()
+    .single()
+
+  if (error || !data) {
+    console.error('Error fetching landing page data:', error)
+    return cloneFallback()
+  }
+
+  const parsed = landingPageSchema.safeParse(data)
+  if (!parsed.success) {
+    console.error('Invalid landing page payload received:', parsed.error.flatten())
+    return cloneFallback()
+  }
+
+  return parsed.data
+}
+
+export default async function Home() {
+  const { metrics, products, controls, steps } = await getData()
+
   return (
     <div className={styles.page}>
       <header className={styles.hero}>
@@ -66,6 +94,9 @@ export default function Home() {
           <Link href="#products" className={styles.secondaryButton}>
             Explore products
           </Link>
+          <Link href="/settings" className={styles.secondaryButton}>
+            Open settings
+          </Link>
         </div>
         <div className={styles.metrics}>
           {metrics.map((metric) => (
@@ -77,7 +108,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section id="products" className={styles.section}>
+      <section id="products" className={styles.section} aria-labelledby="products-heading">
         <div className={styles.sectionHeader}>
           <p className={styles.eyebrow}>Customer-centric growth</p>
           <h2>Build, fund, and protect every loan strategy</h2>
@@ -96,7 +127,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.section}>
+      <section className={styles.section} aria-labelledby="excellence-heading">
         <div className={styles.sectionHeader}>
           <p className={styles.eyebrow}>Operational excellence</p>
           <h2>Compliance-first, automation-ready</h2>
@@ -128,7 +159,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="demo" className={styles.section}>
+      <section id="demo" className={styles.section} aria-labelledby="playbook-heading">
         <div className={styles.sectionHeader}>
           <p className={styles.eyebrow}>Delivery playbook</p>
           <h2>From data to decisions in weeks</h2>
@@ -148,6 +179,10 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className={styles.section} id="analytics">
+        <AnalyticsDashboard />
       </section>
     </div>
   )
