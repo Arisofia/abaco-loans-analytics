@@ -240,10 +240,42 @@ if validation_toggle and uploaded is not None:
     if missing:
         st.sidebar.error(f"Missing required columns: {', '.join(sorted(set(missing)))}")
 
+def get_upload_signature(uploaded_file) -> str | None:
+    if uploaded_file is None:
+        return None
+    current_position = uploaded_file.tell() if hasattr(uploaded_file, "tell") else None
+    if hasattr(uploaded_file, "seek"):
+        uploaded_file.seek(0)
+    file_bytes = uploaded_file.getvalue()
+    content_hash = hashlib.sha256(file_bytes).hexdigest()
+
+    if hasattr(uploaded_file, "seek") and current_position is not None:
+        uploaded_file.seek(current_position)
+
+    return f"{uploaded_file.name}:{uploaded_file.size}:{content_hash}"
+
+
 if "loan_data" not in st.session_state:
     st.session_state["loan_data"] = pd.DataFrame()
 if "ingestion_state" not in st.session_state:
     st.session_state["ingestion_state"] = {}
+<<<<<<< HEAD
+if "last_upload" not in st.session_state:
+    st.session_state["last_upload"] = None
+if "last_upload_signature" not in st.session_state:
+    st.session_state["last_upload_signature"] = None
+
+
+def should_ingest(signature: str | None) -> bool:
+    return signature is not None and signature != st.session_state.get("last_upload_signature")
+
+
+def ingest(current_upload):
+    signature = get_upload_signature(current_upload)
+    if hasattr(current_upload, "seek"):
+        current_upload.seek(0)
+    raw = parse_uploaded_file(current_upload)
+=======
 if "last_upload_signature" not in st.session_state:
     st.session_state["last_upload_signature"] = None
 if "last_ingested_at" not in st.session_state:
@@ -261,6 +293,7 @@ def compute_upload_signature(uploaded_file) -> str | None:
 >>>>>>> origin/main
 def ingest(uploaded_file, signature: str | None):
     raw = parse_uploaded_file(uploaded_file)
+>>>>>>> origin/main
     normalized = normalize_columns(raw)
     numeric_columns = normalized.select_dtypes(include=["object"]).columns
     numeric_payload = normalized.copy()
@@ -270,6 +303,19 @@ def ingest(uploaded_file, signature: str | None):
             numeric_payload[col] = converted
     st.session_state["loan_data"] = numeric_payload
     st.session_state["ingestion_state"] = define_ingestion_state(numeric_payload)
+<<<<<<< HEAD
+    st.session_state["last_upload"] = pd.Timestamp.now()
+    st.session_state["last_upload_signature"] = signature
+
+
+current_signature = get_upload_signature(uploaded)
+if should_ingest(current_signature):
+    ingest(uploaded)
+
+if st.sidebar.button("Refresh ingestion", use_container_width=True):
+    if should_ingest(current_signature):
+        ingest(uploaded)
+=======
     st.session_state["last_upload_signature"] = signature
     st.session_state["last_ingested_at"] = pd.Timestamp.now()
 
