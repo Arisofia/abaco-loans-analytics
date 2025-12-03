@@ -20,16 +20,7 @@ export function TreemapVisualization({ entries }: Props) {
         {entries.map((entry) => (
           <div className={styles.treemapItem} key={entry.label}>
             <span>{entry.label}</span>
-<<<<<<< HEAD
-            <span
-              style={{
-                color: entry.color,
-                fontWeight: 600,
-              }}
-            >
-=======
             <span style={{ color: entry.color, fontWeight: 600 }}>
->>>>>>> upstream/main
               {entry.value.toLocaleString()}
             </span>
           </div>

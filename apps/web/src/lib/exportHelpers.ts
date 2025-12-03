@@ -46,24 +46,16 @@ export function processedAnalyticsToCSV(analytics: ProcessedAnalytics): string {
 export function processedAnalyticsToJSON(analytics: ProcessedAnalytics): string {
   return JSON.stringify(
     {
-<<<<<<< HEAD
-=======
       generatedAt: new Date().toISOString(),
->>>>>>> upstream/main
       kpis: analytics.kpis,
       treemap: analytics.treemap,
       rollRates: analytics.rollRates,
       growthProjection: analytics.growthProjection,
-<<<<<<< HEAD
-=======
       loans: analytics.loans,
->>>>>>> upstream/main
     },
     null,
     2
   )
-<<<<<<< HEAD
-=======
 }
 
 export function processedAnalyticsToMarkdown(analytics: ProcessedAnalytics): string {
@@ -125,5 +117,4 @@ export function processedAnalyticsToMarkdown(analytics: ProcessedAnalytics): str
     '## Growth projection',
     growthTable,
   ].join('\n')
->>>>>>> upstream/main
 }

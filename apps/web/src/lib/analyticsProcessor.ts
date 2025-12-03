@@ -1,16 +1,9 @@
 import {
-<<<<<<< HEAD
-  GrowthPoint,
-=======
->>>>>>> upstream/main
   LoanRow,
   ProcessedAnalytics,
   RollRateEntry,
   TreemapEntry,
-<<<<<<< HEAD
-=======
   GrowthPoint,
->>>>>>> upstream/main
 } from '@/types/analytics'
 
 const currencyRegex = /[^\d.-]/g
@@ -45,22 +38,6 @@ export function parseLoanCsv(content: string): LoanRow[] {
     }, {})
 
   return rows.map((parts) => {
-<<<<<<< HEAD
-    const record: Record<string, string> = {}
-    parts.forEach((value, index) => {
-      const key = keys[index] ?? `col_${index}`
-      record[key] = value.trim()
-    })
-    return {
-      loan_amount: toNumber(record.loan_amount ?? '0'),
-      appraised_value: toNumber(record.appraised_value ?? '0'),
-      borrower_income: toNumber(record.borrower_income ?? '0'),
-      monthly_debt: toNumber(record.monthly_debt ?? '0'),
-      loan_status: record.loan_status ?? 'unknown',
-      interest_rate: toNumber(record.interest_rate ?? '0'),
-      principal_balance: toNumber(record.principal_balance ?? '0'),
-      dpd_status: record.dpd_status ?? '',
-=======
     const record = toRecord(parts)
     const getField = (key: string) => record[key] ?? ''
     return {
@@ -72,7 +49,6 @@ export function parseLoanCsv(content: string): LoanRow[] {
       interest_rate: toNumber(getField('interest_rate')),
       principal_balance: toNumber(getField('principal_balance')),
       dpd_status: getField('dpd_status') || '',
->>>>>>> upstream/main
     }
   })
 }
@@ -109,13 +85,6 @@ function computeKPIs(rows: LoanRow[]) {
     (sum, row) => sum + row.loan_amount / Math.max(row.appraised_value, 1),
     0
   )
-<<<<<<< HEAD
-  const averageDTI = rows.reduce((sum, row) => {
-    const income = row.borrower_income / 12
-    if (income <= 0) return sum
-    return sum + row.monthly_debt / income
-  }, 0)
-=======
   const { totalDTI, validIncomes } = rows.reduce(
     (acc, row) => {
       const income = row.borrower_income / 12
@@ -127,17 +96,12 @@ function computeKPIs(rows: LoanRow[]) {
     },
     { totalDTI: 0, validIncomes: 0 }
   )
->>>>>>> upstream/main
 
   return {
     delinquencyRate: Number(riskRate.toFixed(2)),
     portfolioYield: Number(portfolioYield.toFixed(2)),
     averageLTV: Number(((averageLTV / Math.max(totalLoans, 1)) * 100).toFixed(1)),
-<<<<<<< HEAD
-    averageDTI: Number(((averageDTI / Math.max(totalLoans, 1)) * 100).toFixed(1)),
-=======
     averageDTI: Number(((totalDTI / Math.max(validIncomes, 1)) * 100).toFixed(1)),
->>>>>>> upstream/main
     loanCount: totalLoans,
   }
 }
