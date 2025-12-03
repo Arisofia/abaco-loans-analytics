@@ -73,6 +73,10 @@ introducción al producto, instalación, integración, preguntas frecuentes y pr
 Usa `docs/MCP_CONFIGURATION.md` para agregar servidores MCP mediante la CLI de Codex o editando `config.toml`, con
 ejemplos para Context7, Figma, Chrome DevTools y cómo ejecutar Codex como servidor MCP.
 
+## MCP configuration
+
+Use `docs/MCP_CONFIGURATION.md` to add MCP servers via the Codex CLI or by editing `config.toml`, including examples for Context7, Figma, Chrome DevTools, and how to run Codex itself as an MCP server.
+
 ## Deno helper
 
 The repository exposes a tiny Deno helper at `main.ts` that verifies the expected directories before you execute
