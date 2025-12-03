@@ -79,11 +79,30 @@ Use `docs/MCP_CONFIGURATION.md` to add MCP servers via the Codex CLI or by editi
 
 ## Deno helper
 
+<<<<<<< HEAD
+The repository exposes a Deno helper at `main.ts` that verifies the expected directories before you execute tooling such as Fitten or analytics scripts. Run it with:
+
+```
+deno run --allow-read main.ts
+```
+
+Options:
+
+- `--strict` exits with a non-zero code when any key folder is missing.
+- `--json` emits the scan results in machine-readable JSON.
+- `--path=label:path` checks additional paths with custom labels.
+
+Example:
+
+```
+deno run --allow-read main.ts --strict --path=Temp:data_samples/tmp
+=======
 The repository exposes a tiny Deno helper at `main.ts` that verifies the expected directories before you execute
 tooling such as Fitten or analytics scripts. Run it with:
 
 ```sh
 deno run --allow-all main.ts
+>>>>>>> origin/main
 ```
 
 <<<<<<< HEAD
