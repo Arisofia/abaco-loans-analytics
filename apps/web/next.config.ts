@@ -5,10 +5,14 @@ const nextConfig: NextConfig = {
   typescript: {
     tsconfigPath: './tsconfig.json',
   },
+  experimental: {
+    turbopackUseSystemTlsCerts: true,
+  },
   turbopack: {
     root: __dirname,
   },
-  headers: () => [
+  // eslint-disable-next-line @typescript-eslint/require-await
+  headers: async () => [
     {
       source: '/:path*',
       headers: [
@@ -24,11 +28,17 @@ const nextConfig: NextConfig = {
           key: 'X-XSS-Protection',
           value: '1; mode=block',
         },
+        {
+          key: 'Referrer-Policy',
+          value: 'strict-origin-when-cross-origin',
+        },
       ],
     },
   ],
-  redirects: () => [],
-  rewrites: () => ({
+  // eslint-disable-next-line @typescript-eslint/require-await
+  redirects: async () => [],
+  // eslint-disable-next-line @typescript-eslint/require-await
+  rewrites: async () => ({
     beforeFiles: [],
     afterFiles: [],
     fallback: [],
