@@ -1,11 +1,6 @@
 {
   "scripts": {
-<<<<<<< HEAD
-    "lint": "npm --prefix apps/web run lint",
-    "lint:fix": "npm --prefix apps/web run lint:fix"
-=======
     "lint": "npm --prefix apps/web run lint"
->>>>>>> upstream/main
   },
   "dependencies": {
     "@openai/codex-sdk": "^0.63.0",

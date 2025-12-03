@@ -9,13 +9,6 @@ node_modules/
 dist/
 coverage/
 
-<<<<<<< HEAD
-# Build artifacts
-build/
-.gradle/
-
-# Local development tools and artifacts
-=======
 # Python
 .venv/
 venv/
@@ -33,7 +26,6 @@ Thumbs.db
 
 # Project-specific artifacts
 apps/.DS_Store
->>>>>>> upstream/main
 nvm/
 abaco-loans-analytics/
 data_samples/
