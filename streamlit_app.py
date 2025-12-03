@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import unicodedata
 
 import numpy as np
 import pandas as pd
@@ -154,6 +155,35 @@ def define_ingestion_state(df: pd.DataFrame) -> pd.Series:
     )
 
 
+def normalize_text(value: str) -> str:
+    if not isinstance(value, str):
+        return ""
+    normalized = unicodedata.normalize("NFKD", value)
+    stripped = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    cleaned = re.sub(r"[^a-z0-9]+", " ", stripped.lower()).strip()
+    return re.sub(r"\s+", " ", cleaned)
+
+
+def select_payer_column(df: pd.DataFrame) -> str | None:
+    preferred = [
+        "payer",
+        "payer_name",
+        "payor",
+        "pagador",
+        "offtaker",
+        "buyer",
+        "debtor",
+        "customer_name",
+    ]
+    for col in df.columns:
+        if col in preferred:
+            return col
+    for col in df.columns:
+        if re.search(r"payer|payor|pagador|offtaker|buyer|debtor", col, re.IGNORECASE):
+            return col
+    return None
+
+
 @st.cache_data(show_spinner=False)
 def parse_uploaded_file(uploaded) -> pd.DataFrame:
     if uploaded is None:
@@ -220,19 +250,40 @@ if "last_ingested_at" not in st.session_state:
     st.session_state["last_ingested_at"] = None
 
 
+<<<<<<< HEAD
+def compute_upload_signature(uploaded_file) -> str | None:
+    if uploaded_file is None:
+        return None
+    return f"{uploaded_file.name}:{uploaded_file.size}"
+
+
+=======
+>>>>>>> origin/main
 def ingest(uploaded_file, signature: str | None):
     raw = parse_uploaded_file(uploaded_file)
     normalized = normalize_columns(raw)
     numeric_columns = normalized.select_dtypes(include=["object"]).columns
     numeric_payload = normalized.copy()
     for col in numeric_columns:
-        numeric_payload[col] = safe_numeric(numeric_payload[col])
+        converted = safe_numeric(numeric_payload[col])
+        if converted.notna().sum() > 0:
+            numeric_payload[col] = converted
     st.session_state["loan_data"] = numeric_payload
     st.session_state["ingestion_state"] = define_ingestion_state(numeric_payload)
     st.session_state["last_upload_signature"] = signature
     st.session_state["last_ingested_at"] = pd.Timestamp.now()
 
 
+<<<<<<< HEAD
+if uploaded is not None:
+    current_signature = compute_upload_signature(uploaded)
+    if current_signature != st.session_state.get("last_upload_signature"):
+        ingest(uploaded, current_signature)
+
+if st.sidebar.button("Refresh ingestion", use_container_width=True):
+    if uploaded is not None:
+        ingest(uploaded, compute_upload_signature(uploaded))
+=======
 if uploaded is not None and (current_signature := compute_upload_signature(uploaded)):
     if current_signature != st.session_state.get("last_upload_signature"):
         ingest(uploaded, current_signature)
@@ -242,6 +293,7 @@ if uploaded is not None and (current_signature := compute_upload_signature(uploa
 if st.sidebar.button("Refresh ingestion", use_container_width=True):
     if uploaded is not None and (signature := compute_upload_signature(uploaded)):
         ingest(uploaded, signature)
+>>>>>>> origin/main
         st.sidebar.success("Ingestion refreshed.")
     else:
         st.sidebar.warning("Upload a new file before refreshing.")
@@ -256,6 +308,11 @@ ing_state = st.session_state["ingestion_state"]
 st.markdown(f"- Rows: {ing_state['rows']}, Columns: {ing_state['columns']}")
 st.markdown(f"- Loan base validated: {ing_state['has_loan_base']}")
 if st.session_state["last_ingested_at"] is not None:
+<<<<<<< HEAD
+    st.markdown(
+        f"- Last ingested at: {st.session_state['last_ingested_at'].strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+=======
     st.markdown(f"- Last ingested at: {st.session_state['last_ingested_at'].strftime('%Y-%m-%d %H:%M:%S')}")
 
 missing_required_columns = [col for col in REQUIRED_COLUMNS if col not in loan_df.columns]
@@ -265,6 +322,7 @@ if missing_required_columns:
         + ", ".join(sorted(missing_required_columns))
     )
     st.stop()
+>>>>>>> origin/main
 
 st.markdown("## Data Quality Audit")
 quality_score = 100
@@ -279,7 +337,10 @@ st.markdown("Critical tables scored, missing columns handled, and zeros penalize
 st.markdown("## Payer Coverage Scan")
 payer_column = select_payer_column(loan_df)
 if payer_column:
+<<<<<<< HEAD
+=======
     st.success(f"Detected payer column: {payer_column}")
+>>>>>>> origin/main
     normalized_col = f"{payer_column}_normalized"
     loan_df[normalized_col] = loan_df[payer_column].apply(normalize_text)
     target_aliases = {
@@ -295,11 +356,15 @@ if payer_column:
     for target, patterns in target_aliases.items():
         pattern = "|".join(patterns)
         mask = loan_df[normalized_col].str.contains(pattern, regex=True, na=False)
+<<<<<<< HEAD
+        exposure = loan_df.loc[mask, "principal_balance"].sum() if "principal_balance" in loan_df.columns else np.nan
+=======
         exposure = (
             loan_df.loc[mask, "principal_balance"].sum()
             if "principal_balance" in loan_df.columns
             else np.nan
         )
+>>>>>>> origin/main
         coverage_rows.append(
             {
                 "Target": target,
@@ -311,11 +376,17 @@ if payer_column:
     st.dataframe(coverage_df, hide_index=True)
     missing = coverage_df.loc[coverage_df["Matches"] == 0, "Target"].tolist()
     if missing:
+<<<<<<< HEAD
+        st.info(f"No matches detected for: {', '.join(missing)}. Use normalized payer names to confirm coverage gaps.")
+else:
+    st.info("Add a payer/offtaker column (payer, payor, pagador, buyer, or debtor) to measure international coverage.")
+=======
         st.info(
             f"No matches detected for: {', '.join(missing)}. Use normalized payer names to confirm coverage gaps."
         )
 else:
     st.info("Add a payer/payor/pagador/offtaker/buyer/debtor column to assess coverage.")
+>>>>>>> origin/main
 
 st.markdown("## KPI Calculations")
 loan_df["ltv_ratio"] = (loan_df["loan_amount"] / loan_df["appraised_value"]) * 100
