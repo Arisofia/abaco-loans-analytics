@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { LoanRow, ProcessedAnalytics, KPIStats } from '@/types/analytics'
 
-export type ValidationResult<T> = 
+export type ValidationResult<T> =
   | { success: true; data: T; warnings: string[] }
   | { success: false; error: string; details: Record<string, unknown> }
 
@@ -12,7 +12,10 @@ export const LoanRowSchema = z.object({
   borrower_income: z.number().nonnegative('Borrower income cannot be negative'),
   monthly_debt: z.number().nonnegative('Monthly debt cannot be negative'),
   loan_status: z.string().min(1, 'Loan status required'),
-  interest_rate: z.number().min(0, 'Interest rate cannot be negative').max(100, 'Interest rate cannot exceed 100%'),
+  interest_rate: z
+    .number()
+    .min(0, 'Interest rate cannot be negative')
+    .max(100, 'Interest rate cannot exceed 100%'),
   principal_balance: z.number().nonnegative('Principal balance cannot be negative'),
   dpd_status: z.string().optional(),
 }) satisfies z.ZodType<LoanRow>
@@ -27,21 +30,27 @@ export const KPIStatsSchema = z.object({
 
 export const ProcessedAnalyticsSchema = z.object({
   kpis: KPIStatsSchema,
-  treemap: z.array(z.object({
-    label: z.string(),
-    value: z.number().nonnegative(),
-    color: z.string(),
-  })),
-  rollRates: z.array(z.object({
-    from: z.string(),
-    to: z.string(),
-    percent: z.number().min(0).max(100),
-  })),
-  growthProjection: z.array(z.object({
-    label: z.string(),
-    yield: z.number().min(0),
-    loanVolume: z.number().nonnegative().int(),
-  })),
+  treemap: z.array(
+    z.object({
+      label: z.string(),
+      value: z.number().nonnegative(),
+      color: z.string(),
+    })
+  ),
+  rollRates: z.array(
+    z.object({
+      from: z.string(),
+      to: z.string(),
+      percent: z.number().min(0).max(100),
+    })
+  ),
+  growthProjection: z.array(
+    z.object({
+      label: z.string(),
+      yield: z.number().min(0),
+      loanVolume: z.number().nonnegative().int(),
+    })
+  ),
   loans: z.array(LoanRowSchema),
 }) satisfies z.ZodType<ProcessedAnalytics>
 
@@ -75,23 +84,23 @@ export function validateAnalytics(data: unknown): ValidationResult<ProcessedAnal
   try {
     const validated = ProcessedAnalyticsSchema.parse(data)
     const warnings: string[] = []
-    
+
     if (validated.loans.length === 0) {
       warnings.push('No loans provided')
     }
-    
+
     if (validated.treemap.length === 0) {
       warnings.push('Treemap is empty - no loan statuses found')
     }
-    
+
     if (validated.rollRates.length === 0) {
       warnings.push('Roll rates are empty - no DPD status data found')
     }
-    
+
     if (validated.kpis.loanCount === 0) {
       warnings.push('Loan count is zero')
     }
-    
+
     return { success: true, data: validated, warnings }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -137,7 +146,7 @@ export function validateCsvInput(content: string): ValidationResult<{
   }
 
   const lines = content.trim().split(/\r?\n/)
-  
+
   if (lines.length < 2) {
     return {
       success: false,
