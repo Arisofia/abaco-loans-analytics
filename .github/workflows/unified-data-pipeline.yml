@@ -1,0 +1,211 @@
+name: Unified Multi-Agent Data Pipeline
+
+on:
+  schedule:
+    # Run daily at 4:00 AM CET (3:00 AM UTC) - before agent workflows
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+env:
+  SUPABASESERVICEROLE: ${{ secrets.SUPABASESERVICEROLE }}
+  CASCADEUSERNAME: ${{ secrets.CASCADEUSERNAME }}
+  CASCADEPASSWORD: ${{ secrets.CASCADEPASSWORD }}
+  HUBSPOTTOKEN: ${{ secrets.HUBSPOTTOKEN }}
+  OPIKTOKEN: ${{ secrets.OPIKTOKEN }}
+  SLACKBOTTOKEN: ${{ secrets.SLACKBOTTOKEN }}
+
+jobs:
+  # Job 1: Fetch loan data from Cascade (legacy system)
+  fetch-cascade-loans:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Fetch Cascade loan applications
+        run: |
+          echo "Fetching loan data from Cascade..."
+          python scripts/fetch_cascade_data.py
+
+      - name: Upload Cascade data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cascade-loans
+          path: data/cascade/
+          retention-days: 1
+
+  # Job 2: Fetch CRM contacts/deals from HubSpot
+  fetch-hubspot-crm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Fetch HubSpot contacts and deals
+        run: |
+          echo "Fetching CRM data from HubSpot..."
+          python scripts/fetch_hubspot_data.py
+
+      - name: Upload HubSpot data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hubspot-crm
+          path: data/hubspot/
+          retention-days: 1
+
+  # Job 3: Refresh Supabase materialized views
+  refresh-supabase-views:
+    needs: [fetch-cascade-loans, fetch-hubspot-crm]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Cascade data
+        uses: actions/download-artifact@v4
+        with:
+          name: cascade-loans
+          path: data/cascade/
+
+      - name: Download HubSpot data
+        uses: actions/download-artifact@v4
+        with:
+          name: hubspot-crm
+          path: data/hubspot/
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Refresh Supabase materialized views
+        run: |
+          echo "Refreshing Supabase materialized views..."
+          python scripts/refresh_supabase_views.py
+
+  # Job 4: Validate data quality and generate manifest
+  validate-data-quality:
+    needs: refresh-supabase-views
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run data quality checks
+        run: |
+          echo "Running data quality checks..."
+          python scripts/validate_data_quality.py
+
+  # Job 5: Generate data manifest with freshness timestamps
+  generate-data-manifest:
+    needs: validate-data-quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create manifest with data freshness timestamps
+        run: |
+          echo "Creating manifest with data freshness timestamps..."
+          python scripts/generate_data_manifest.py
+
+  # Job 6: Signal agents that data is ready
+  signal-agents-data-ready:
+    needs: generate-data-manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Broadcast data-ready signal to agent workflows
+        run: |
+          echo "Broadcasting data-ready signal to agent workflows..."
+          curl -X POST ${{ secrets.SLACKBOTTOKEN }} \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"✅ Data pipeline completed at $(date). All agents can now run."}'
+
+  # Job 7: Log pipeline metrics to Opik for observability
+  log-pipeline-metrics:
+    needs: signal-agents-data-ready
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Log to Opik
+        run: |
+          python scripts/log_pipeline_metrics.py \
+            --cascade-status ${{ steps.cascade.outcome }} \
+            --hubspot-status ${{ steps.hubspot.outcome }} \
+            --supabase-status ${{ steps.supabase.outcome }}
+
+  # Job 8: Alert on critical failure
+  alert-on-failure:
+    needs: [fetch-cascade-loans, fetch-hubspot-crm, refresh-supabase-views]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack failure alert
+        run: |
+          curl -X POST ${{ secrets.SLACKBOTTOKEN }} \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"🚨 CRITICAL: Data pipeline failed. Agent workflows may operate on stale data."}'
+
+  # Job 9: Upload pipeline artifacts for debugging
+  upload-pipeline-artifacts:
+    needs: generate-data-manifest
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: data-pipeline-logs
+          path: |
+            logs/
+            data/manifest.json
+          retention-days: 7
