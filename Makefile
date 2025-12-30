@@ -1,6 +1,6 @@
 .PHONY: install install-dev test test-cov run-pipeline run-dashboard clean check-maturity \
         lint format type-check audit-code quality env-clean venv venv-install \
-        test-kpi-parity gradle-build upgrade-gradle vscode-envfile-info help
+        test-kpi-parity analytics-sync analytics-run gradle-build upgrade-gradle vscode-envfile-info help
 
 # ------------------------------------------------------------------------------
 # Installation targets
@@ -85,6 +85,13 @@ venv-install: venv
 test-kpi-parity:
 	. .venv/bin/activate && pytest -q tests/test_kpi_parity.py
 
+# Analytics validation and execution
+analytics-run:
+	python3 run_complete_analytics.py
+
+analytics-sync:
+	python3 tools/check_kpi_sync.py --print-json
+
 # ------------------------------------------------------------------------------
 # Gradle / Java helpers
 # ------------------------------------------------------------------------------
@@ -140,6 +147,8 @@ help:
 	@echo "  make venv             - Create a fresh .venv (no packages)"
 	@echo "  make venv-install     - Create .venv and install requirements"
 	@echo "  make test-kpi-parity  - Run KPI parity tests (Python vs SQL)"
+	@echo "  make analytics-run    - Run complete analytics pipeline"
+	@echo "  make analytics-sync   - Validate KPI sync and health"
 	@echo "  make gradle-build     - Run Gradle build with provided JAVA_HOME"
 	@echo "  make upgrade-gradle   - Upgrade Gradle wrapper to 9.1.0"
 	@echo "  make clean            - Clean up temporary files"
