@@ -102,6 +102,7 @@ CREATE OR REPLACE VIEW analytics.kpi_monthly_pricing AS
 WITH income_per_loan AS (
     SELECT
         loan_id,
+        (date_trunc('month', true_payment_date) + INTERVAL '1 month - 1 day')::date AS month_end,
         SUM(COALESCE(true_interest_payment, 0)) AS total_int,
         SUM(COALESCE(true_fee_payment, 0))      AS total_fee,
         SUM(COALESCE(true_other_payment, 0))    AS total_other,
@@ -109,7 +110,7 @@ WITH income_per_loan AS (
         SUM(COALESCE(true_fee_tax_payment, 0))  AS total_fee_tax,
         SUM(COALESCE(true_rebates, 0))          AS total_rebates
     FROM real_payment
-    GROUP BY 1
+    GROUP BY 1, 2
 ),
 loan_rates AS (
     SELECT
@@ -120,16 +121,17 @@ loan_rates AS (
         (lm.origination_fee + lm.origination_fee_taxes)
             / NULLIF(lm.disbursement_amount, 0)      AS fee_rate,
         (
-            (COALESCE(i.total_fee, 0)
+            (COALESCE(i.total_int, 0)
+            + COALESCE(i.total_fee, 0)
             + COALESCE(i.total_other, 0)
             + COALESCE(i.total_tax, 0)
             + COALESCE(i.total_fee_tax, 0)
             - COALESCE(i.total_rebates, 0))
-            / NULLIF(lm.disbursement_amount, 0)
+            / NULLIF(lm.outstanding, 0)
         )                                           AS other_income_rate
     FROM analytics.loan_month lm
     LEFT JOIN income_per_loan i
-      ON i.loan_id = lm.loan_id
+      ON i.loan_id = lm.loan_id AND i.month_end = lm.month_end
 )
 SELECT
     month_end                           AS year_month,
@@ -137,9 +139,9 @@ SELECT
         / NULLIF(SUM(outstanding), 0)   AS weighted_apr,
     SUM(fee_rate * outstanding)
         / NULLIF(SUM(outstanding), 0)   AS weighted_fee_rate,
-    SUM(other_income_rate * outstanding)
+    SUM(COALESCE(other_income_rate, 0) * outstanding)
         / NULLIF(SUM(outstanding), 0)   AS weighted_other_income_rate,
-    SUM((apr + fee_rate + other_income_rate) * outstanding)
+    SUM((apr + fee_rate + COALESCE(other_income_rate, 0)) * outstanding)
         / NULLIF(SUM(outstanding), 0)   AS weighted_effective_rate
 FROM loan_rates
 WHERE outstanding > 1e-4
@@ -186,8 +188,10 @@ WITH ranked_loans AS (
         customer_id,
         disbursement_date::date AS disbursement_date,
         disbursement_amount,
+        days_past_due,
         ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY disbursement_date, loan_id) AS rn,
-        LAG(disbursement_date::date) OVER (PARTITION BY customer_id ORDER BY disbursement_date, loan_id) AS prev_disb
+        LAG(disbursement_date::date) OVER (PARTITION BY customer_id ORDER BY disbursement_date, loan_id) AS prev_disb,
+        MAX(days_past_due) OVER (PARTITION BY customer_id) AS max_dpd_ever
     FROM loan_data
 ),
 classified AS (
@@ -196,6 +200,7 @@ classified AS (
         disbursement_date,
         disbursement_amount,
         CASE
+            WHEN max_dpd_ever > 90 AND days_past_due <= 30 THEN 'Recovered'
             WHEN rn = 1 THEN 'New'
             WHEN prev_disb IS NOT NULL AND (disbursement_date - prev_disb) > 180 THEN 'Reactivated'
             ELSE 'Recurrent'
@@ -365,5 +370,96 @@ FROM analytics.loan_month
 WHERE outstanding > 1e-4
 GROUP BY 1
 ORDER BY 1;
+
+-- ---------------------------------------------------------------------
+-- 13. ANALYTICS FACTS TABLE (For CSV Imports)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.analytics_facts (
+    month                       DATE PRIMARY KEY,
+    outstanding                 NUMERIC,
+    active_clients              INTEGER,
+    sched_revenue               NUMERIC,
+    recv_revenue_paid_month     NUMERIC,
+    sched_interest              NUMERIC,
+    recv_interest_paid_month    NUMERIC,
+    recv_fee_paid_month         NUMERIC,
+    sched_fee                   NUMERIC,
+    new_clients                 NUMERIC,
+    reactivated_clients         NUMERIC,
+    recovered_clients           NUMERIC,
+    recurrent_clients           NUMERIC,
+    disbursement                NUMERIC,
+    top10_concentration         NUMERIC,
+    early                       NUMERIC,
+    late                        NUMERIC,
+    on_time                     NUMERIC,
+    unmapped                    NUMERIC,
+    collection_rate_due_month   NUMERIC,
+    cum_scheduled               NUMERIC,
+    cum_received_paid_month     NUMERIC,
+    cum_received_due_month      NUMERIC,
+    outstanding_proj            NUMERIC,
+    planned_disbursement        NUMERIC,
+    remaining_capital           NUMERIC,
+    recv_interest_for_month     NUMERIC,
+    recv_fee_for_month          NUMERIC,
+    recv_revenue_for_month      NUMERIC,
+    recurrence_pct              NUMERIC,
+    throughput_12m              NUMERIC,
+    rotation                    NUMERIC,
+    apr_realized                NUMERIC,
+    yield_incl_fees             NUMERIC,
+    sam_penetration             NUMERIC,
+    cac                         NUMERIC,
+    ltv_realized                NUMERIC,
+    ltv_cac_ratio               NUMERIC,
+    cum_unique_customers        NUMERIC
+);
+
+-- ---------------------------------------------------------------------
+-- 14. FIGMA DASHBOARD VIEW
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE VIEW public.figma_dashboard AS
+SELECT
+  month::date                AS "Month",
+  to_char(month,'YYYY-MM')   AS "Month Label",
+  active_clients             AS "Active Clients",
+  new_clients                AS "New Clients",
+  recurrent_clients          AS "Recurrent Clients",
+  recovered_clients          AS "Recovered Clients",
+  outstanding                AS "Outstanding",
+  outstanding_proj           AS "Outstanding (Proj)",
+  disbursement               AS "Disbursement",
+  top10_concentration        AS "Top10 Concentration",
+  planned_disbursement       AS "Planned Disbursement",
+  remaining_capital          AS "Remaining Capital",
+  sched_interest             AS "Sched Interest",
+  sched_fee                  AS "Sched Fee",
+  sched_revenue              AS "Sched Revenue",
+  recv_interest_for_month    AS "Recv Interest for Month",
+  recv_fee_for_month         AS "Recv Fee for Month",
+  recv_revenue_for_month     AS "Recv Revenue for Month",
+  recv_interest_paid_month   AS "Recv Interest (Paid Month)",
+  recv_fee_paid_month        AS "Recv Fee (Paid Month)",
+  recv_revenue_paid_month    AS "Recv Revenue (Paid Month)",
+  early                      AS "Early",
+  on_time                    AS "On-time",
+  late                       AS "Late",
+  unmapped                   AS "Unmapped",
+  collection_rate_due_month  AS "Collection Rate (for Due Month)",
+  cum_scheduled              AS "Cum Scheduled",
+  cum_received_paid_month    AS "Cum Received (Paid Month)",
+  cum_received_due_month     AS "Cum Received (for Due Month)",
+  recurrence_pct             AS "Recurrence (%)",
+  throughput_12m             AS "Throughput 12M",
+  rotation                   AS "Rotation",
+  apr_realized               AS "APR Realized",
+  yield_incl_fees            AS "Yield incl. Fees",
+  sam_penetration            AS "SAM Penetration",
+  cac                        AS "CAC",
+  ltv_realized               AS "LTV Realized",
+  ltv_cac_ratio              AS "LTV/CAC Ratio",
+  cum_unique_customers       AS "Clients EOP"
+FROM public.analytics_facts;
 
 COMMIT;

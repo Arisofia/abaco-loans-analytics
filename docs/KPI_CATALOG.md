@@ -127,30 +127,27 @@ Global monthly delinquency KPIs.
 
 ---
 
-## 4. Customer Model & Replines
+## 5. Figma Dashboard & Executive Summary
 
-### 4.1 `analytics.kpi_customer_types`
+### 5.1 `public.figma_dashboard`
 
 **Purpose**  
-New / Recurrent / Reactivated customers and disbursements.
+Consolidated view for board and investor reporting, aligned with Figma design bindings.
 
-**Source**
+**Metrics Definition**
 
-- `public.loan_data`
+- **Ingresos mensuales (Revenue)**: `True Interest Payment + True Fee Payment + True Other Payment - True Rebates`. Excludes Principal and Taxes.
+- **Sales (Ventas)**: Total monthly disbursements (`Disbursement Amount`).
+- **Recurrence (%)**: `Interest / Ingresos`.
+- **Clients EOP**: Cumulative unique customers with at least one disbursement.
+- **Throughput 12M**: Sum of `True Principal Payment` in the last 12 months.
+- **Rotation**: `Throughput 12M / Current AUM`.
+- **APR Realized**: `LTM Interest / Avg AUM LTM`.
+- **Yield incl. Fees**: `LTM Revenue / Avg AUM LTM`.
+- **SAM Penetration**: `Throughput 12M / USD 0.9B`.
+- **CAC**: `Commercial Expense / New Clients`.
+- **LTV Realized**: `Cumulative Revenue / Cumulative Unique Customers`.
 
-**Logic**
-
-- Window: `2024-01-01` onwards
-- **New**: First-ever disbursement in window
-- **Reactivated**: Customer with previous history and gap > 180 days before first disbursement in window
-- **Recurrent**: All other cases in window
-
-**KPIs**
-
-- `unique_customers`
-- `disbursement_amount`
-
-**Dimensions**
-
-- `year_month`
-- `customer_type` (`New`, `Recurrent`, `Reactivated`)
+**Source**  
+- `public.analytics_facts` (CSV Import)
+- `python/analytics/kpi_catalog_processor.py`

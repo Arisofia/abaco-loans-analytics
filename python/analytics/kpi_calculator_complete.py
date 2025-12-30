@@ -51,6 +51,18 @@ class ABACOKPICalculator:
             if any(x in col for x in ["date", "fecha"]):
                 df[col] = pd.to_datetime(df[col], errors="coerce")
 
+        # Synthetic loan_end_date if missing but term exists
+        if "disbursement_date" in df.columns and "term" in df.columns:
+            if "loan_end_date" not in df.columns and "maturity_date" not in df.columns:
+                try:
+                    unit = df["term_unit"].iloc[0].lower() if "term_unit" in df.columns else "days"
+                    if "day" in unit:
+                        df["loan_end_date"] = df["disbursement_date"] + pd.to_timedelta(df["term"], unit="D")
+                    elif "month" in unit:
+                        df["loan_end_date"] = df["disbursement_date"] + pd.to_timedelta(df["term"] * 30, unit="D")
+                except Exception:
+                    pass
+
         return df
 
     # === PORTFOLIO FUNDAMENTALS ===
@@ -103,7 +115,7 @@ class ABACOKPICalculator:
         """
         disb_col = self._find_column(["disbursement_date", "disburse_date"])
         end_col = self._find_column(["loan_end_date", "maturity_date"])
-        amount_col = self._find_column(["loan_amount", "disburse_principal"])
+        amount_col = self._find_column(["loan_amount", "disburse_principal", "disbursement_amount"])
 
         if not all([disb_col, end_col, amount_col]):
             logger.warning(
@@ -112,11 +124,16 @@ class ABACOKPICalculator:
             return 0.0
 
         try:
-            current_month = pd.Timestamp.now().to_period("M")
+            # Use the latest month in the dataset
+            all_disb_months = self.loans[disb_col].dt.to_period("M")
+            if all_disb_months.empty:
+                return 0.0
+            
+            latest_month = all_disb_months.max()
 
             # Disbursements in current month
             disb_df = self.loans[
-                self.loans[disb_col].dt.to_period("M") == current_month
+                self.loans[disb_col].dt.to_period("M") == latest_month
             ]
             total_disb = pd.to_numeric(
                 disb_df[amount_col], errors="coerce"
@@ -124,7 +141,7 @@ class ABACOKPICalculator:
 
             # Matured loans in current month
             matured_df = self.loans[
-                self.loans[end_col].dt.to_period("M") == current_month
+                self.loans[end_col].dt.to_period("M") == latest_month
             ]
             total_matured = pd.to_numeric(
                 matured_df[amount_col], errors="coerce"
@@ -141,10 +158,10 @@ class ABACOKPICalculator:
     def get_monthly_revenue(self) -> float:
         """Total payment/revenue in current month."""
         payment_col = self._find_column(
-            ["payment_amount", "amount", "monto_pago"], self.payments
+            ["payment_amount", "amount", "monto_pago", "true_total_payment"], self.payments
         )
         date_col = self._find_column(
-            ["payment_date", "fecha_pago"], self.payments
+            ["payment_date", "fecha_pago", "true_payment_date"], self.payments
         )
 
         if not payment_col or payment_col not in self.payments.columns:
@@ -154,9 +171,14 @@ class ABACOKPICalculator:
             return 0.0
 
         try:
-            current_month = pd.Timestamp.now().to_period("M")
+            # Use the latest month in the dataset if current month has no data
+            all_months = self.payments[date_col].dt.to_period("M")
+            if all_months.empty:
+                return 0.0
+            
+            latest_month = all_months.max()
             monthly = self.payments[
-                self.payments[date_col].dt.to_period("M") == current_month
+                self.payments[date_col].dt.to_period("M") == latest_month
             ]
             return pd.to_numeric(monthly[payment_col], errors="coerce").sum()
         except Exception as e:
@@ -166,10 +188,10 @@ class ABACOKPICalculator:
     def get_revenue_by_month(self) -> pd.Series:
         """Monthly revenue trend."""
         payment_col = self._find_column(
-            ["payment_amount", "amount"], self.payments
+            ["payment_amount", "amount", "true_total_payment"], self.payments
         )
         date_col = self._find_column(
-            ["payment_date", "fecha_pago"], self.payments
+            ["payment_date", "fecha_pago", "true_payment_date"], self.payments
         )
 
         if not payment_col:

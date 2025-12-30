@@ -157,8 +157,21 @@ def load_real_data():
         
         # Deduplicate customers
         customers_df = customers_df.drop_duplicates(subset=["customer_id"])
+
+    # Try to find payment schedule data
+    schedule_files = [
+        base_path / "data" / "abaco" / "payment_schedule.csv",
+        base_path / "Abaco - Loan Tape_Payment Schedule_Table (6).csv",
+    ]
     
-    return loans_df, payments_df, customers_df
+    schedule_df = None
+    for fpath in schedule_files:
+        if fpath.exists():
+            print(f"✅ Loading payment schedule from: {fpath.name}")
+            schedule_df = pd.read_csv(fpath)
+            break
+    
+    return loans_df, payments_df, customers_df, schedule_df
 
 # Load the KPI catalog processor
 spec_cat = importlib.util.spec_from_file_location("kpi_cat", 
@@ -175,11 +188,15 @@ def main():
     
     # Load data
     print("📁 Loading data files...\n")
-    loans_df, payments_df, customers_df = load_real_data()
+    loans_df, payments_df, customers_df, schedule_df = load_real_data()
     
     print(f"Loaded {len(loans_df):,} loans")
     print(f"Loaded {len(payments_df):,} payments")
-    print(f"Loaded {len(customers_df):,} customers\n")
+    print(f"Loaded {len(customers_df):,} customers")
+    if schedule_df is not None:
+        print(f"Loaded {len(schedule_df):,} schedule rows\n")
+    else:
+        print("⚠️ No schedule data loaded\n")
     
     # Calculate Standard KPIs
     print("🧮 Calculating Standard KPIs...\n")
@@ -189,10 +206,24 @@ def main():
     # Calculate Extended KPIs from Catalog
     print("📊 Calculating Extended KPIs from Catalog...\n")
     try:
-        catalog_proc = KPICatalogProcessor(loans_df, payments_df, customers_df)
+        catalog_proc = KPICatalogProcessor(loans_df, payments_df, customers_df, schedule_df)
         extended_kpis = catalog_proc.get_all_kpis()
         dashboard["extended_kpis"] = extended_kpis
         print("✅ Extended KPIs calculated successfully")
+        
+        # Export Figma Dashboard CSV
+        print("📝 Exporting Figma Dashboard CSV...")
+        figma_df = catalog_proc.get_figma_dashboard_df()
+        csv_path = project_root / "exports" / "analytics_facts.csv"
+        figma_df.to_csv(csv_path, index=False)
+        print(f"✅ Figma Dashboard CSV saved to: {csv_path}")
+
+        # Export Quarterly Scorecard CSV
+        print("📝 Exporting Quarterly Scorecard CSV...")
+        scorecard_df = catalog_proc.get_quarterly_scorecard()
+        scorecard_path = project_root / "exports" / "quarterly_scorecard.csv"
+        scorecard_df.to_csv(scorecard_path, index=False)
+        print(f"✅ Quarterly Scorecard saved to: {scorecard_path}")
     except Exception as e:
         print(f"⚠️  Error calculating extended KPIs: {e}")
         import traceback
@@ -209,6 +240,15 @@ def main():
     
     print("📈 PRODUCT MOMENTUM")
     print(f"  Replines %: {dashboard['replines_percentage']:.2f}%\n")
+
+    print("🏷️ PRICING & YIELDS")
+    ext = dashboard.get("extended_kpis", {})
+    weighted_apr = ext.get("weighted_apr_contractual", 0)
+    eir_sched = ext.get("eir_scheduled", 0)
+    eir_real = ext.get("eir_real", 0)
+    print(f"  Weighted APR (Lista): {weighted_apr*100:.2f}%")
+    print(f"  EIR (Programado): {eir_sched*100:.2f}%")
+    print(f"  EIR (Realizado): {eir_real*100:.2f}%\n")
     
     print("💵 REVENUE")
     print(f"  Monthly Revenue: ${dashboard['monthly_revenue_usd']:,.2f}")

@@ -76,9 +76,19 @@
 - lgd: Loss given default
 - ead_factor: Exposure at default factor
 
-## data/support/targets.csv
-- year_month: Month-end date
-- customer_type: New / Recurrent / Reactivated
-- segment: Segment (Nimal/Gob/OC/Top)
-- target_disbursement: Monthly disbursement target
-- target_customers: Monthly target for unique customers
+## exports/analytics_facts.csv (Supabase analytics_facts table)
+- month: Month-end date
+- outstanding: Total AUM at month-end
+- active_clients: Unique customers with outstanding balance > 0
+- sched_revenue: Total scheduled interest and fees
+- recv_revenue_paid_month: Actual revenue received (Interest + Fees + Other - Rebates)
+- recurrence_pct: Interest portion of received revenue
+- throughput_12m: Cumulative principal recovery in the last 12 months
+- rotation: Throughput 12M / AUM
+- apr_realized: LTM Interest / Avg AUM LTM
+- yield_incl_fees: LTM Revenue / Avg AUM LTM
+- sam_penetration: Throughput 12M / $0.9B
+- cac: Commercial Expense / New Clients
+- ltv_realized: Cumulative Revenue / Cumulative Unique Customers
+- cum_unique_customers: Total unique customers seen to date (Clients EOP)
+- ...
