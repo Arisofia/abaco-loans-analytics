@@ -16,11 +16,14 @@ REL_TOL = 1e-4
 
 
 def _load_extended_kpis():
+    print(f"\n[DEBUG] Loading JSON from {JSON_PATH.absolute()}")
     if not JSON_PATH.exists():
         pytest.skip(f"JSON export not found at {JSON_PATH}")
     with JSON_PATH.open("r", encoding="utf-8") as f:
         obj = json.load(f)
     extended = obj.get("extended_kpis") or obj
+    if "monthly_risk" in extended:
+        print(f"[DEBUG] first monthly_risk total_outstanding: {extended['monthly_risk'][0].get('total_outstanding')}")
     return extended
 
 

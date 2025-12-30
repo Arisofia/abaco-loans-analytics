@@ -29,9 +29,9 @@ def load_real_data():
     
     # Try to find loan data
     loan_files = [
+        base_path / "data" / "abaco" / "loan_data.csv",
         base_path / "data" / "raw" / "looker_exports" / "loans.csv",
         base_path / "data_samples" / "abaco_portfolio_sample.csv",
-        base_path / "Abaco - Loan Tape_Loan Data_Table (6).csv",
     ]
     
     loans_df = None
@@ -56,9 +56,28 @@ def load_real_data():
             "loan_status": np.random.choice(["Active", "Complete", "Defaulted"], 100, p=[0.6, 0.3, 0.1]),
             "product_type": np.random.choice(["Factoring", "LOC", "Term Loan"], 100),
         })
+    else:
+        # Map specific columns
+        rename_map = {
+            "Loan ID": "loan_id",
+            "Customer ID": "customer_id",
+            "Disbursement Date": "disbursement_date",
+            "Disbursement Amount": "disbursement_amount",
+            "Outstanding Loan Value": "outstanding_loan_value",
+            "Loan Status": "loan_status",
+            "Product Type": "product_type",
+            "Days in Default": "dpd"
+        }
+        for old, new in rename_map.items():
+            if old in loans_df.columns:
+                loans_df = loans_df.rename(columns={old: new})
+        
+        # Deduplicate loans
+        loans_df = loans_df.drop_duplicates(subset=["loan_id"])
     
     # Try to find payment data
     payment_files = [
+        base_path / "data" / "abaco" / "real_payment.csv",
         base_path / "data" / "raw" / "looker_exports" / "payments.csv",
         base_path / "Abaco - Loan Tape_Historic Real Payment_Table (6).csv",
     ]
@@ -79,9 +98,22 @@ def load_real_data():
             "payment_date": pd.date_range("2023-01-01", periods=len(loans_df) * 2, freq="D"),
             "payment_amount": np.random.uniform(100, 5000, len(loans_df) * 2),
         })
+    else:
+        # Map specific columns
+        rename_map = {
+            "Loan ID": "loan_id",
+            "True Payment Date": "payment_date",
+            "True Total Payment": "payment_amount",
+            "True Principal Payment": "principal_payment",
+            "True Interest Payment": "interest_payment"
+        }
+        for old, new in rename_map.items():
+            if old in payments_df.columns:
+                payments_df = payments_df.rename(columns={old: new})
     
     # Try to find customer data
     customer_files = [
+        base_path / "data" / "abaco" / "customer_data.csv",
         base_path / "customers.csv",
         base_path / "Abaco - Loan Tape_Customer Data_Table (6).csv",
     ]
@@ -101,6 +133,28 @@ def load_real_data():
             "customer_id": unique_customers,
             "customer_type": np.random.choice(["SME", "Corporate", "Individual"], len(unique_customers)),
         })
+    else:
+        # Map specific columns if they exist with different names
+        rename_map = {
+            "Customer ID": "customer_id",
+            "Client Type": "customer_type",
+            "Income": "income",
+            "Income Currency": "currency",
+            "Gender": "gender",
+            "Birth Year": "birth_date",
+            "Sales Channel": "channel_type",
+            "Number of Dependents": "dependents",
+            "Location City": "geography_city",
+            "Location State Province": "geography_state",
+            "Location Country": "geography_country",
+            "Industry": "industry"
+        }
+        for old, new in rename_map.items():
+            if old in customers_df.columns:
+                customers_df = customers_df.rename(columns={old: new})
+        
+        # Deduplicate customers
+        customers_df = customers_df.drop_duplicates(subset=["customer_id"])
     
     return loans_df, payments_df, customers_df
 
