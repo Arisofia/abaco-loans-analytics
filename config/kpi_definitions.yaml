@@ -27,6 +27,24 @@ kpis:
     owner_agent: risk-ai
     version: "2.0"
 
+    query:
+      view: "v_portfolio_risk_snapshot"
+      value_column: "par_90_balance_pct"
+      where:
+        snapshot_id: ":snapshot_id"
+      params:
+        snapshot_id:
+          type: "string"
+          required: true
+          enum: ["2025-12-01", "2025-12-15", "2025-12-30"]
+          nullable: false
+          default: "2025-12-30"
+    sql: |
+      SELECT
+        SUM(balance) FILTER (WHERE days_past_due >= 90) / NULLIF(SUM(balance), 0) AS par_90_balance_pct
+      FROM cascade.loan_status
+      WHERE snapshot_id = :snapshot_id;
+
   growth.origination_volume:
     name: "Monthly Origination Volume"
     description: "Total principal amount of new loans originated"
@@ -46,6 +64,27 @@ kpis:
     snapshot_boundary: snapshot_id
     owner_agent: sales-ai
     version: "2.0"
+
+    query:
+      view: "v_origination_metrics"
+      value_column: "origination_volume_mtd"
+      where:
+        snapshot_id: ":snapshot_id"
+      params:
+        snapshot_id:
+          type: "string"
+          required: true
+          range:
+            min: 20250101
+            max: 20251231
+          nullable: true
+          default: null
+    sql: |
+      SELECT
+        SUM(principal_amount) AS origination_volume_mtd
+      FROM cascade.loan_origination
+      WHERE date_approved >= DATE_TRUNC('month', CURRENT_DATE)
+        AND snapshot_id = :snapshot_id;
 
   finance.arr:
     name: "Annualized Recurring Revenue"
@@ -67,6 +106,21 @@ kpis:
     owner_agent: finance-ai
     version: "2.0"
 
+    query:
+      view: "v_profitability_metrics"
+      value_column: "arr_usd"
+      where:
+        snapshot_id: ":snapshot_id"
+      params:
+        snapshot_id:
+          type: "string"
+          required: true
+    sql: |
+      SELECT
+        SUM(interest_rate * balance * 12) AS arr_usd
+      FROM cascade.loan_performance
+      WHERE snapshot_id = :snapshot_id;
+
   compliance.data_quality_score:
     name: "Data Quality Score"
     description: "Percentage of data passing validation checks"
@@ -86,6 +140,21 @@ kpis:
     snapshot_boundary: snapshot_id
     owner_agent: compliance-ai
     version: "2.0"
+
+    query:
+      view: "v_data_quality_metrics"
+      value_column: "data_quality_score_pct"
+      where:
+        snapshot_id: ":snapshot_id"
+      params:
+        snapshot_id:
+          type: "string"
+          required: true
+    sql: |
+      SELECT
+        SUM(validation_passed)::float / NULLIF(SUM(validation_total), 0) * 100 AS data_quality_score_pct
+      FROM data.validation_results
+      WHERE snapshot_id = :snapshot_id;
 
 departmental_kpi_mappings:
   risk:

@@ -1,57 +1,206 @@
+
 #!/usr/bin/env python3
-"""
-Automated batch runner for client financial analysis notebook.
-- Runs the notebook for all (or a sample of) client_ids.
-- Exports results to outputs/ as CSV/XLS/JSON.
-- Designed for CI/CD or scheduled automation.
+from __future__ import annotations
 
-Usage:
-    python scripts/run_client_analysis_batch.py --notebook notebooks/client_financial_analysis.ipynb [--all] [--sample 10]
-
-Requirements:
-- papermill
-- pandas
-- openpyxl
-- (optionally) jupyter
-"""
 import os
+import json
+import time
 import argparse
-import pandas as pd
-from pathlib import Path
-import papermill as pm
+import logging
+from dataclasses import dataclass, asdict
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-def get_client_ids(loans_path: str) -> list:
-    df = pd.read_parquet(loans_path) if loans_path.endswith('.parquet') else pd.read_csv(loans_path)
-    return df['customer_id'].dropna().astype(str).unique().tolist()
+import pandas as pd
+import numpy as np
+import requests
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
-def main():
-    parser = argparse.ArgumentParser(description="Batch run client analysis notebook.")
-    parser.add_argument('--notebook', required=True, help='Path to the analysis notebook')
-    parser.add_argument('--all', action='store_true', help='Run for all client_ids')
-    parser.add_argument('--sample', type=int, default=10, help='Sample N client_ids (default: 10)')
-    parser.add_argument('--loans', default='data/loans.csv', help='Path to loans CSV/Parquet for client_id list')
-    parser.add_argument('--outdir', default='outputs', help='Output directory')
-    args = parser.parse_args()
+# -----------------
+# Logging
+# -----------------
+def _setup_logger(level: str) -> logging.Logger:
+	logger = logging.getLogger("client_analysis_batch")
+	if logger.handlers:
+		return logger
+	logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+	h = logging.StreamHandler()
+	h.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+	logger.addHandler(h)
+	return logger
 
-    client_ids = get_client_ids(args.loans)
-    if not args.all:
-        client_ids = client_ids[:args.sample]
-    print(f"[INFO] Running analysis for {len(client_ids)} clients.")
+def _env(name: str) -> str:
+	v = os.getenv(name)
+	if not v:
+		raise RuntimeError(f"Missing env var: {name}")
+	return v
 
-    out_dir = Path(args.outdir)
-    out_dir.mkdir(exist_ok=True)
-    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+SUPABASE_URL = _env("SUPABASE_URL").rstrip("/")
+SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+if not SUPABASE_KEY:
+	raise RuntimeError("Missing SUPABASE_ANON_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY).")
 
-    for cid in client_ids:
-        out_nb = out_dir / f"client_{cid}_analysis_{ts}.ipynb"
-        print(f"[INFO] Running for client_id={cid}")
-        pm.execute_notebook(
-            args.notebook,
-            str(out_nb),
-            parameters=dict(client_id=cid)
-        )
-        # Optionally, parse and collect outputs here
+HEADERS = {
+	"apikey": SUPABASE_KEY,
+	"Authorization": f"Bearer {SUPABASE_KEY}",
+	"Content-Type": "application/json",
+	"Accept": "application/json",
+}
+
+def _rest_get(relation: str, select: str = "*", where: Optional[Dict[str, Any]] = None, limit: int = 50000) -> pd.DataFrame:
+	url = f"{SUPABASE_URL}/rest/v1/{relation}"
+	params = {"select": select, "limit": limit}
+	if where:
+		for k, v in where.items():
+			params[k] = f"eq.{v}"
+	r = requests.get(url, headers=HEADERS, params=params, timeout=60)
+	if r.status_code >= 300:
+		raise RuntimeError(f"GET {relation} failed {r.status_code}: {r.text[:500]}")
+	return pd.DataFrame(r.json() or [])
+
+def _rest_upsert(relation: str, payload: List[Dict[str, Any]], on_conflict: Optional[str] = None) -> None:
+	url = f"{SUPABASE_URL}/rest/v1/{relation}"
+	headers = dict(HEADERS)
+	headers["Prefer"] = "resolution=merge-duplicates"
+	params = {}
+	if on_conflict:
+		params["on_conflict"] = on_conflict
+	r = requests.post(url, headers=headers, params=params, data=json.dumps(payload), timeout=60)
+	if r.status_code >= 300:
+		raise RuntimeError(f"UPSERT {relation} failed {r.status_code}: {r.text[:500]}")
+
+# -----------------
+# Analytics
+# -----------------
+def safe_div(n: float, d: float) -> float:
+	return float(n) / float(d) if d and d != 0 else float("nan")
+
+def compute_client_metrics(loans: pd.DataFrame, client_id: str) -> Dict[str, Any]:
+	df = loans.copy()
+	df["customer_id"] = df["customer_id"].astype(str)
+	c = df[df["customer_id"] == str(client_id)].copy()
+	if c.empty:
+		raise ValueError(f"No rows for client_id={client_id}")
+
+	total_outstanding = pd.to_numeric(df["outstanding_balance"], errors="coerce").sum(skipna=True)
+	c_outstanding = pd.to_numeric(c["outstanding_balance"], errors="coerce").sum(skipna=True)
+
+	dpd = pd.to_numeric(c["dpd"], errors="coerce")
+	bal = pd.to_numeric(c["outstanding_balance"], errors="coerce")
+
+	par90_bal = bal.where(dpd >= 90, 0).sum(skipna=True)
+	par30_bal = bal.where(dpd >= 30, 0).sum(skipna=True)
+
+	return {
+		"client_id": str(client_id),
+		"total_disbursed": float(pd.to_numeric(c["disbursement_amount"], errors="coerce").sum(skipna=True)),
+		"outstanding_balance": float(c_outstanding),
+		"share_portfolio_outstanding": safe_div(c_outstanding, total_outstanding),
+		"par30_balance_pct": safe_div(par30_bal, c_outstanding),
+		"par90_balance_pct": safe_div(par90_bal, c_outstanding),
+		"max_dpd": float(dpd.max(skipna=True)),
+		"mean_dpd": float(dpd.mean(skipna=True)),
+	}
+
+@dataclass
+class RunResult:
+	client_id: str
+	status: str
+	error: Optional[str] = None
+	duration_seconds: Optional[float] = None
+
+def _execute_one(client_id: str, loans_view: str, run_id: str) -> RunResult:
+	t0 = time.time()
+	try:
+		loans = _rest_get(loans_view, select="customer_id,disbursement_amount,outstanding_balance,dpd", limit=250000)
+		metrics = compute_client_metrics(loans, client_id)
+
+		row = {
+			"run_id": run_id,
+			"client_id": metrics["client_id"],
+			"metrics_json": metrics,
+			"computed_at_utc": datetime.utcnow().isoformat(),
+		}
+		_rest_upsert("analytics.client_metrics", [row], on_conflict="run_id,client_id")
+
+		return RunResult(client_id=client_id, status="success", duration_seconds=round(time.time() - t0, 2))
+	except Exception as e:
+		return RunResult(client_id=client_id, status="failed", error=f"{type(e).__name__}: {e}", duration_seconds=round(time.time() - t0, 2))
+
+def main() -> None:
+	ap = argparse.ArgumentParser()
+	ap.add_argument("--loans-view", default=os.getenv("LOANS_VIEW", "v_loan_portfolio_daily"))
+	ap.add_argument("--clients-view", default=os.getenv("CLIENTS_VIEW", "v_clients"))
+	ap.add_argument("--client-id-col", default="customer_id")
+	ap.add_argument("--all", action="store_true")
+	ap.add_argument("--sample", type=int, default=25)
+	ap.add_argument("--seed", type=int, default=7)
+	ap.add_argument("--workers", type=int, default=4)
+	ap.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
+	args = ap.parse_args()
+
+	logger = _setup_logger(args.log_level)
+	run_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+
+	# Record run header in DB (no manifest.json)
+	_rest_upsert("analytics.batch_runs", [{
+		"run_id": run_id,
+		"started_at_utc": datetime.utcnow().isoformat(),
+		"loans_view": args.loans_view,
+		"workers": args.workers,
+	}], on_conflict="run_id")
+
+	clients_df = _rest_get(args.clients_view, select=args.client_id_col, limit=200000)
+	client_ids = clients_df[args.client_id_col].dropna().astype(str).unique().tolist()
+	if not client_ids:
+		raise RuntimeError("No clients returned from clients_view.")
+
+	if not args.all:
+		client_ids = pd.Series(client_ids).sample(n=min(args.sample, len(client_ids)), random_state=args.seed).tolist()
+
+	logger.info("run_id=%s | clients=%d | workers=%d", run_id, len(client_ids), args.workers)
+
+	results: List[RunResult] = []
+	if args.workers <= 1:
+		for cid in client_ids:
+			rr = _execute_one(cid, args.loans_view, run_id)
+			results.append(rr)
+			if rr.status != "success":
+				logger.error("FAILED client=%s: %s", cid, rr.error)
+	else:
+		with ProcessPoolExecutor(max_workers=args.workers) as ex:
+			futs = [ex.submit(_execute_one, cid, args.loans_view, run_id) for cid in client_ids]
+			for fut in as_completed(futs):
+				rr = fut.result()
+				results.append(rr)
+				if rr.status != "success":
+					logger.error("FAILED client=%s: %s", rr.client_id, rr.error)
+
+	# Finalize run row in DB
+	failures = [r for r in results if r.status != "success"]
+	_rest_upsert("analytics.batch_runs", [{
+		"run_id": run_id,
+		"finished_at_utc": datetime.utcnow().isoformat(),
+		"total_clients": len(results),
+		"failed_clients": len(failures),
+		"status": "failed" if failures else "success",
+		"results_json": [asdict(r) for r in sorted(results, key=lambda x: x.client_id)],
+	}], on_conflict="run_id")
+
+	# Emit summary to stdout for CI
+	print(json.dumps({
+		"run_id": run_id,
+		"total_clients": len(results),
+		"failed_clients": len(failures),
+		"status": "failed" if failures else "success",
+		"results": [asdict(r) for r in sorted(results, key=lambda x: x.client_id)],
+	}, indent=2))
+
+	if failures:
+		raise SystemExit(2)
+	raise SystemExit(0)
 
 if __name__ == "__main__":
-    main()
+	main()
+
+
