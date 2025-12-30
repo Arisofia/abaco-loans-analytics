@@ -9,7 +9,7 @@ placeholder metrics for observability monitoring.
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
@@ -44,7 +44,7 @@ def fetch_opik_metrics():
 def generate_placeholder_metrics():
     """Generate placeholder metrics for testing."""
     return {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "system": {
             "status": "healthy",
             "uptime_hours": 168,

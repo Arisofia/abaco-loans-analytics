@@ -21,6 +21,7 @@ data/metrics/
 data_samples/*.csv
 logs/
 exports/
+outputs/
 
 # Build / tooling
 .next/

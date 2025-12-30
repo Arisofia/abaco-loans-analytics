@@ -7,7 +7,7 @@ This script generates an HTML observability dashboard from collected metrics.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
@@ -118,7 +118,7 @@ def generate_dashboard(pipeline_status=None, agent_status=None, quality_trend=No
 <body>
     <div class="container">
         <h1>🔍 Abaco Analytics - Observability Dashboard</h1>
-        <p class="timestamp">Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+        <p class="timestamp">Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
         
         <h2>System Status</h2>
         <div class="metrics-grid">

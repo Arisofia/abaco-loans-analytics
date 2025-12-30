@@ -220,45 +220,46 @@ class UnifiedPipeline:
                         timeseries=calculation_result.timeseries,
                     )
 
-            summary = {
-                "status": "success",
-                "run_id": self.run_id,
-                "started_at": run_started,
-                "completed_at": utc_now(),
-                "phases": {
-                    "ingestion": {
-                        "run_id": ingestion_result.run_id,
-                        "rows": len(ingestion_result.df),
+                summary = {
+                    "status": "success",
+                    "run_id": self.run_id,
+                    "started_at": run_started,
+                    "completed_at": utc_now(),
+                    "phases": {
+                        "ingestion": {
+                            "run_id": ingestion_result.run_id,
+                            "rows": len(ingestion_result.df),
+                        },
+                        "transformation": {
+                            "run_id": transformation_result.run_id,
+                            "rows": len(transformation_result.df),
+                            "masked_columns": transformation_result.masked_columns,
+                        },
+                        "calculation": {
+                            "run_id": calculation_result.run_id,
+                            "metrics": list(calculation_result.metrics.keys()),
+                            "anomalies": calculation_result.anomalies,
+                        },
+                        "output": {
+                            "manifest": str(output_result.manifest_path),
+                            "outputs": output_result.output_paths,
+                        },
                     },
-                    "transformation": {
-                        "run_id": transformation_result.run_id,
-                        "rows": len(transformation_result.df),
-                        "masked_columns": transformation_result.masked_columns,
-                    },
-                    "calculation": {
-                        "run_id": calculation_result.run_id,
-                        "metrics": list(calculation_result.metrics.keys()),
-                        "anomalies": calculation_result.anomalies,
-                    },
-                    "output": {
-                        "manifest": str(output_result.manifest_path),
-                        "outputs": output_result.output_paths,
-                    },
-                },
-            }
+                }
 
-            write_json(run_dir / f"{self.run_id}_summary.json", summary)
-            return summary
+                write_json(run_dir / f"{self.run_id}_summary.json", summary)
+                return summary
 
-        except Exception as exc:
-            logger.error("Pipeline execution failed: %s", str(exc), exc_info=True)
-            return {
-                "status": "failed",
-                "run_id": self.run_id,
-                "error": str(exc),
-                "started_at": run_started,
-                "completed_at": utc_now(),
-            }
+            except Exception as exc:
+                span.record_exception(exc)
+                logger.error("Pipeline execution failed: %s", str(exc), exc_info=True)
+                return {
+                    "status": "failed",
+                    "run_id": self.run_id,
+                    "error": str(exc),
+                    "started_at": run_started,
+                    "completed_at": utc_now(),
+                }
 
     def run(self, input_file: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         context = context or {}
