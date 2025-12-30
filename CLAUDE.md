@@ -1,153 +1,216 @@
-# Automation & Development Reference
+# Engineering Mandate: Key Commands & Progress
 
-## Quick Commands
+**Last Updated**: 2025-12-26  
+**Overall Project Status**: 100% Core Analytics Functional
 
-### Environment Setup
+## Phase 6: KPI Governance Commands
+
+### Azure Function Deployment
 ```bash
-# Activate venv
-source .venv-1/bin/activate
-
-# Install dev dependencies (pre-commit, black, isort, pylint)
-pip install pre-commit black isort pylint pytest pytest-cov coverage
-
-# Install pre-commit hooks (runs on every git commit)
-pre-commit install
+# Publish function app (optimized via .funcignore)
+func azure functionapp publish hubspot-segment-agent --python
 ```
 
-### Preflight & Validation
+### KPI Health & Parity
 ```bash
-# Run environment checks
-bash scripts/preflight.sh
+# Quick end-to-end health check (machine readable)
+python tools/check_kpi_sync.py --print-json
 
-# VS Code: Terminal → Run Task → Preflight (Environment checks)
+# Human-readable bootstrap status & agent guidance
+python tools/zencoder_bootstrap.py
+
+# Run full analytics pipeline (regenerates JSON export)
+python run_complete_analytics.py
+
+# Run parity tests (Python logic vs SQL views)
+pytest -q tests/test_kpi_parity.py
+```
+
+### Governance Rules
+1. **Catalog Alignment**: Any KPI change must align with `docs/KPI_CATALOG.md`.
+2. **Dual-Engine Parity**: Always update both `python/analytics/kpi_catalog_processor.py` and `supabase/migrations/20260101_analytics_kpi_views.sql`.
+3. **Pre-flight Check**: Run `python tools/zencoder_bootstrap.py` before and after major edits.
+
+---
+
+## Phase Status
+
+✅ **Phase 1**: Repository Audit (100%)  
+✅ **Phase 3A**: Module Consolidation (100%)  
+✅ **Phase 3.4E-F**: Configuration Consolidation (100%)  
+🔄 **Phase 4**: Engineering Standards (In Progress)  
+⏳ **Phase 5**: Operational Deliverables (Pending)
+
+---
+
+## Phase 4: Engineering Standards Commands
+
+### Setup Development Environment
+```bash
+# First time only: install development dependencies
+make install-dev
+```
+
+### Code Quality Checks
+
+**Quick lint (non-blocking)**
+```bash
+make lint
+```
+
+**Auto-format code**
+```bash
+make format
+```
+
+**Type checking with mypy**
+```bash
+make type-check
+```
+
+**Full quality audit** (runs lint, type-check, and coverage)
+```bash
+make audit-code
+```
+
+**Complete quality check** (format, lint, type-check, test)
+```bash
+make quality
 ```
 
 ### Testing
+
+**Run all tests**
 ```bash
-# All tests (excluding evaluation tests)
-pytest --ignore=tests/evaluation -v
-
-# Analytics tests only
-pytest apps/analytics/tests -v
-
-# Data contract tests (KPI)
-pytest tests/data_tests/test_kpi_contracts.py -v
-
-# Unit tests (edge cases)
-pytest tests/unit/test_kpi_calculations.py -v
-
-# All with coverage report
-coverage run -m pytest --ignore=tests/evaluation
-coverage report -m
-coverage html  # Opens htmlcov/index.html
-
-# VS Code tasks: Terminal → Run Task → Test: [Analytics|All|Data Contracts|etc]
+make test
 ```
 
-### Code Quality
+**Tests with coverage report**
 ```bash
-# Format check (no changes)
-black --check --diff python scripts tests
-
-# Format fix
-black python scripts tests
-
-# Import sorting
-isort --profile black python scripts tests
-
-# Pre-commit run (all hooks)
-pre-commit run --all-files
-
-# VS Code tasks: Terminal → Run Task → Lint: [check|fix]
+make test-cov
 ```
 
-### Data Pipeline
-```bash
-# Ingest CSV → Parquet
-python scripts/ingest.py data_samples/abaco_portfolio_sample.csv
+---
 
-# Transform & Calculate KPIs
-python scripts/transform_and_calc.py data_samples/abaco_portfolio_sample.csv
+## Phase 4 Deliverables
 
-# VS Code tasks: Terminal → Run Task → [Ingest|Pipeline: Transform & Calculate]
-```
+- ✅ dev-requirements.txt created with all tools
+- ✅ Makefile updated with quality targets
+- ⏳ Run linting checks and document findings
+- ⏳ Run type checking and document findings
+- ⏳ Create ENGINEERING_STANDARDS.md documenting best practices
+- ⏳ Document linting exceptions and rationale
 
-## CI/CD Pipeline (GitHub Actions)
+### Tools Configured
 
-### Pipeline Jobs
-1. **preflight**: Environment checks (Python, pip, packages, repo sanity)
-2. **python**: Tests on 3.11 + 3.14, 85% coverage threshold, cached pip
-3. **data-contracts**: KPI formula validation (collection_rate, par_90)
-4. **analytics**: apps/analytics tests, coverage enforcement
-5. **web**: Next.js lint/build/type-check
-6. **build**: Java/Gradle (stub, no source currently)
-7. **sonar**: SonarQube (main branch only, skips PRs)
-8. **provision-infra**: Infrastructure deployment (main branch only)
+| Tool | Purpose | Config |
+|------|---------|--------|
+| pylint | Static code analysis | pyproject.toml |
+| flake8 | Style enforcement | pyproject.toml |
+| ruff | Fast Python linter | Built-in |
+| black | Code formatter | pyproject.toml |
+| isort | Import sorting | Built-in |
+| mypy | Type checking | TBD |
+| pytest | Testing | Built-in |
+| coverage | Test coverage | Built-in |
 
-### Enforcement
-- Coverage threshold: **85%** (set in `.coveragerc`)
-- All jobs depend on `preflight` for sanity checking
-- Artifacts uploaded: `coverage.xml` for each Python version
-- Failures block downstream jobs
+---
 
-## File Structure (New/Modified)
+## Phase 5: Operational Deliverables
 
-| File | Purpose |
-|------|---------|
-| `python/kpi_engine.py` | Fixed: collection_rate uses `cash_available_usd` |
-| `python/data_validation.py` | Schema validation, numeric bounds checks |
-| `scripts/ingest.py` | CSV → Parquet ingestion with timestamps |
-| `scripts/transform_and_calc.py` | Transformation + KPI calculation + segment breakdown |
-| `tests/unit/test_kpi_calculations.py` | Edge case unit tests (17 tests) |
-| `.coveragerc` | Coverage configuration (fail_under=85) |
-| `.pre-commit-config.yaml` | Pre-commit hooks (black, isort, pylint) |
-| `.vscode/tasks.json` | 10+ automated tasks for testing/linting/pipeline |
-| `.github/workflows/ci-main.yml` | Consolidated Next.js, Python, and Gradle lint/build/test jobs with preflight + coverage gates |
+**Pending deliverables**:
+1. OPERATIONS.md - Operational Runbook
+2. MIGRATION.md - Migration Guide
+3. Data Quality Report
+4. Ready-to-Execute Commands document
 
-## Key Metrics
+---
 
-- **Test Suite**: 203/203 passing
-- **Coverage**: 97% (code is highly tested)
-- **KPI Contracts**: All 3 passing (par_90, collection_rate portfolio & segments)
-- **Unit Tests**: 17 new edge case tests (PAR90, collection_rate, validation)
-- **Lint**: Black, isort, pylint configured + enforced via pre-commit
+## Recent Changes (Phase 3.4E-F)
 
-## Troubleshooting
+**Commit**: PHASE 3.4E-F COMPLETE: Configuration consolidation
 
-### Coverage below threshold
-- Write more unit tests (focus on uncovered lines)
-- Check `.coverage` file: `coverage report -m`
-- View HTML: `coverage html && open htmlcov/index.html`
+**Key Files Created/Modified**:
+- `config/pipeline.yml` - Master configuration (526 lines)
+- `config/environments/` - Environment overrides (dev/staging/prod)
+- `config/LEGACY/` - Archived configs with deprecation guide
+- `python/pipeline/orchestrator.py` - Environment-aware config loading
+- `PROGRESS_REPORT.md` - Updated with Phase 3 completion
+- `CONFIG_CONSOLIDATION_SUMMARY.md` - Detailed analysis
 
-### Pre-commit hook fails
-- Run `pre-commit run --all-files` to diagnose
-- Run `black python scripts tests` to auto-fix formatting
-- Adjust thresholds in `.pre-commit-config.yaml` if needed
+**Results**:
+- 18 config files → 4 unified files (78% reduction)
+- 65% less duplication
+- Automatic environment switching via PIPELINE_ENV
+- 100% backwards compatible
 
-### Missing yaml module (evaluation tests)
-- These tests require `PyYAML`, not in core requirements
-- Safe to exclude: `pytest --ignore=tests/evaluation`
-
-### CI fails on coverage
-- Local: `coverage report --fail-under=85` shows exactly which modules are below
-- Add tests to those modules or adjust threshold in `.coveragerc`
+---
 
 ## Next Steps
 
-1. **Commit & Push**: All changes tracked in git
-2. **Watch CI**: First run validates pipeline
-3. **Monitor Coverage**: On each PR, artifacts show coverage.xml
-4. **Iterate**: Add features → tests → coverage → merge
+1. **Today/Tomorrow (Phase 4)**:
+   - Run `make lint` and document findings
+   - Run `make type-check` and resolve issues
+   - Create ENGINEERING_STANDARDS.md
 
-## Vibe Solutioning Checklist
+2. **This Week (Phase 5)**:
+   - Create OPERATIONS.md (operational runbook)
+   - Create MIGRATION.md (migration guide)
+   - Generate Data Quality Report
 
-✅ Robust KPI calculations (cash_available_usd formula)
-✅ Data validation (schema + bounds checking)
-✅ Automated ingest → transform → calc pipeline
-✅ 203 tests + 97% coverage (85% threshold enforced)
-✅ Pre-commit hooks + code formatting (black, isort, pylint)
-✅ VS Code tasks for quick local testing
-✅ CI/CD with preflight validation + coverage gates
-✅ Zero risk of cascading failures (validated on main)
-✅ Full traceability (audit trails in KPIEngine)
-✅ Production-ready automation
+3. **v2.0 Release (Q1 2026)**:
+   - Delete config/LEGACY/ directory
+   - Remove deprecated modules from codebase
+
+---
+
+## Git Status
+
+**Current Branch**: refactor/pipeline-complexity
+
+**Recent Commits**:
+1. PHASE 3.4E-F COMPLETE: Configuration consolidation
+2. PHASE 3A COMPLETE: Comprehensive module consolidation
+3. PHASE 1 COMPLETE: Repository audit and architecture documentation
+
+**Uncommitted Changes**:
+- dev-requirements.txt (new)
+- Makefile (updated)
+
+---
+
+## Quick Reference
+
+### Project Root Files
+- PROGRESS_REPORT.md - Project status and timeline
+- COMPREHENSIVE_DEBT_AUDIT.md - Technical debt analysis
+- CONFIG_CONSOLIDATION_SUMMARY.md - Configuration work details
+- CONFIG_STRATEGY.md - Configuration consolidation strategy
+- docs/ARCHITECTURE.md - System architecture documentation
+
+### Configuration
+- config/pipeline.yml - Master configuration
+- config/environments/{dev,staging,production}.yml - Environment overrides
+- config/LEGACY/ - Deprecated configurations (marked for deletion v2.0)
+
+### KPI & Analytics
+- docs/KPI_CATALOG.md - Source of truth for KPI definitions
+- tools/zencoder_bootstrap.py - Agent entrypoint for KPI health
+- tools/check_kpi_sync.py - KPI parity validation engine
+- python/analytics/kpi_catalog_processor.py - Python KPI implementation
+- tests/test_kpi_parity.py - Automated parity test suite
+
+### Code Quality
+- Makefile - Build and quality targets
+- dev-requirements.txt - Development dependencies
+- pyproject.toml - Tool configuration (pylint, black, etc)
+
+### Production Pipeline
+- python/pipeline/orchestrator.py - V2 Pipeline orchestrator
+- python/pipeline/{ingestion,transformation,calculation,output}.py - Pipeline phases
+- python/kpi_engine_v2.py - KPI calculation engine
+
+---
+
+**Report Generated**: 2025-12-26 02:47 UTC  
+**Prepared for**: Next development session

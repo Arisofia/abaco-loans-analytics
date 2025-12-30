@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   processedAnalyticsToCSV,
   processedAnalyticsToJSON,
@@ -29,7 +30,46 @@ function download(name: string, data: string, mime: string) {
 }
 
 export function ExportControls({ analytics }: Props) {
+  const [error, setError] = useState<string | null>(null)
   const hasLoans = analytics.loans.length > 0
+
+  const handleExport = (format: 'csv' | 'json' | 'markdown') => {
+    setError(null)
+    try {
+      let content = ''
+      let filename = ''
+      let mime = ''
+
+      switch (format) {
+        case 'csv':
+          content = processedAnalyticsToCSV(analytics)
+          filename = 'analytics.csv'
+          mime = 'text/csv'
+          break
+        case 'json':
+          content = processedAnalyticsToJSON(analytics)
+          filename = 'analytics.json'
+          mime = 'application/json'
+          break
+        case 'markdown':
+          content = processedAnalyticsToMarkdown(analytics)
+          filename = 'analytics.md'
+          mime = 'text/markdown'
+          break
+      }
+
+      if (!content || content.length === 0) {
+        throw new Error(`Export generated empty ${format} file`)
+      }
+
+      download(filename, content, mime)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      const msg = `Export failed: ${errorMessage}`
+      setError(msg)
+      console.error('Export error:', errorMessage, { format, loanCount: analytics.loans.length })
+    }
+  }
 
   return (
     <section className={styles.section}>
@@ -39,11 +79,16 @@ export function ExportControls({ analytics }: Props) {
           Download CSV, JSON, or markdown so slides and docs stay synced with Copilot.
         </p>
       </div>
+      {error && (
+        <div className={styles.errorBox} role="alert" style={{ color: 'red', marginBottom: 16 }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
       <div className={styles.exportButtons}>
         <button
           className={styles.primaryButton}
           type="button"
-          onClick={() => download('analytics.csv', processedAnalyticsToCSV(analytics), 'text/csv')}
+          onClick={() => handleExport('csv')}
           disabled={!hasLoans}
         >
           Download CSV
@@ -51,9 +96,7 @@ export function ExportControls({ analytics }: Props) {
         <button
           className={styles.secondaryButton}
           type="button"
-          onClick={() =>
-            download('analytics.json', processedAnalyticsToJSON(analytics), 'application/json')
-          }
+          onClick={() => handleExport('json')}
           disabled={!hasLoans}
         >
           Download JSON
@@ -61,9 +104,7 @@ export function ExportControls({ analytics }: Props) {
         <button
           className={styles.secondaryButton}
           type="button"
-          onClick={() =>
-            download('analytics.md', processedAnalyticsToMarkdown(analytics), 'text/markdown')
-          }
+          onClick={() => handleExport('markdown')}
           disabled={!hasLoans}
         >
           Download Markdown

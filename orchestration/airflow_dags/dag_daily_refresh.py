@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
 import hashlib
 import json
 import logging
-from typing import Dict, Any
+from datetime import datetime, timedelta
+from typing import Any, Dict
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -14,7 +14,7 @@ def _hash_payload(payload: Dict[str, Any]) -> str:
 
 def download_cascade_exports(**context):
     logging.info("Downloading Cascade exports")
-    payload = {"source": "cascade", "date": context['ds']}
+    payload = {"source": "cascade", "date": context["ds"]}
     context["ti"].xcom_push(key="ingest_payload_hash", value=_hash_payload(payload))
 
 
@@ -55,11 +55,11 @@ def build_refresh_dag():
         start_date=datetime(2024, 1, 1),
         catchup=False,
         tags=["kpi", "contracts", "agents"],
+    ) as dag:
         download = PythonOperator(
             task_id="download_cascade_exports",
             python_callable=download_cascade_exports,
         )
-
 
         validate = PythonOperator(
             task_id="validate_raw_data",

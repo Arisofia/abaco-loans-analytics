@@ -1,11 +1,7 @@
-"""Standalone engine orchestrating AI clients with prompt safety guards."""
-
-from __future__ import annotations
-
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
-from scripts.clients import GeminiClient, GrokClient
+from scripts.clients import AIResponse, GeminiClient, GrokClient
 
 
 class StandaloneAIEngine:
@@ -29,19 +25,21 @@ class StandaloneAIEngine:
             return payload[: self.max_prompt_chars] + "... [TRUNCATED]"
         return payload
 
-    def _select_client(self, payload: str):
+    def _select_client(self, payload: str) -> Union[GrokClient, GeminiClient]:
         """Route to Gemini for larger contexts or Grok for smaller prompts."""
 
         if len(payload) > self.max_prompt_chars // 2:
             return self.gemini_client
         return self.grok_client
 
-    def generate_response(self, personality: str, context: Dict[str, Any], data: Dict[str, Any]) -> str:
+    def generate_response(
+        self, personality: str, context: Dict[str, Any], data: Dict[str, Any]
+    ) -> str:
         """Generate a response after sanitizing the payload size."""
 
         sanitized_payload = self._truncate_payload(data)
         prompt = f"Persona: {personality}\nContext: {context}\nData: {sanitized_payload}"
 
         client = self._select_client(sanitized_payload)
-        result = client.generate_text(prompt, context)
+        result: AIResponse = client.generate_text(prompt, context)
         return result.text

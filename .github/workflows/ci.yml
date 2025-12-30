@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        with:
+          projectBaseDir: .
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install
+        run: |
+          cd apps/web
+          pnpm install --frozen-lockfile
+      - name: Lint
+        run: |
+          cd apps/web
+          pnpm lint
+      - name: Build
+        run: |
+          cd apps/web
+          pnpm build
+      - name: Type-check
+        run: |
+          cd apps/web
+          pnpm type-check
+
+  analytics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          cd apps/analytics
+          pip install -r requirements.txt
+      - name: Validate
+        run: |
+          python -c "import pandas as pd; print('Environment ready. Pandas version:', pd.__version__)"
+      - name: Tests and coverage
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          cd apps/analytics
+          pytest --cov=. --cov-report=xml:../coverage-python.xml
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: analytics-coverage
+          path: apps/coverage-python.xml

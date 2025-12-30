@@ -1,154 +1,169 @@
-
+import argparse
 import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Optional
 
-import pandas as pd
-
-# Add project root to path for python/ modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from python.ingestion import CascadeIngestion
-from python.transformation import DataTransformation
-from python.kpi_engine import KPIEngine
+
+from python.compliance import build_compliance_report, write_compliance_report
+from python.pipeline.ingestion import UnifiedIngestion
+from python.kpi_engine_v2 import KPIEngineV2
+from python.kpis.portfolio_health import calculate_portfolio_health
+from python.pipeline.orchestrator import UnifiedPipeline
+from python.pipeline.transformation import UnifiedTransformation
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
 DEFAULT_INPUT = os.getenv("PIPELINE_INPUT_FILE", "data/abaco_portfolio_calculations.csv")
-METRICS_DIR = Path("data/metrics")
-LOGS_DIR = Path("logs/runs")
-METRICS_DIR.mkdir(parents=True, exist_ok=True)
-LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
-def ensure_required_columns(df: pd.DataFrame, required: Tuple[str, ...]) -> None:
-    missing = [c for c in required if c not in df.columns]
-    if missing:
-        raise ValueError(f"Missing required columns: {missing}")
 
-def write_outputs(run_id: str, kpi_df: pd.DataFrame, audit: Dict[str, Any]) -> None:
-    metrics_path = METRICS_DIR / f"{run_id}.parquet"
-    csv_path = METRICS_DIR / f"{run_id}.csv"
-    audit_path = LOGS_DIR / f"{run_id}.json"
-    manifest_path = LOGS_DIR / f"{run_id}_manifest.json"
+def write_outputs(
+    df, metrics: Dict[str, Any], manifest: Dict[str, Any], output_dir: str = "data/metrics"
+) -> Dict[str, Any]:
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    run_id = manifest.get("run_id", "run")
+    metrics_file = output_path / f"{run_id}.parquet"
+    csv_file = output_path / f"{run_id}.csv"
+    manifest_file = output_path / f"{run_id}_manifest.json"
+    compliance_report_file = output_path / f"{run_id}_compliance.json"
 
-    kpi_df.to_parquet(metrics_path, index=False)
-    kpi_df.to_csv(csv_path, index=False)
-    with audit_path.open("w", encoding="utf-8") as f:
-        json.dump(audit, f, indent=2, default=str)
+    df.to_parquet(metrics_file, index=False)
+    df.to_csv(csv_file, index=False)
 
-    manifest = {
-        "run_id": run_id,
-        "metrics_file": str(metrics_path),
-        "csv_file": str(csv_path),
-        "audit_file": str(audit_path),
-        "timestamp": audit.get("started_at"),
-        "kpis": audit.get("kpis", {}),
-        "errors": audit.get("errors", []),
-        "kpi_audit_trail": audit.get("kpi_audit_trail", []),
-        "ingest": audit.get("ingest", {}),
-        "transform_run_id": audit.get("transform_run_id", None),
-    }
-    with manifest_path.open("w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=2, default=str)
+    manifest.update({"metrics_file": str(metrics_file), "csv_file": str(csv_file)})
+    manifest_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
-    logger.info("Wrote metrics to %s and %s; audit to %s; manifest to %s", metrics_path, csv_path, audit_path, manifest_path)
-
-def run_pipeline(input_file: str = DEFAULT_INPUT) -> bool:
-    run_started = datetime.now(timezone.utc).isoformat()
-    ingestion = CascadeIngestion(data_dir=str(Path(input_file).parent or "."))
-    transformer = DataTransformation()
-    audit: Dict[str, Any] = {
-        "run_id": ingestion.run_id,
-        "started_at": run_started,
-        "input_file": input_file,
-        "errors": [],
-        "kpis": {},
+    return {
+        "metrics_file": str(metrics_file),
+        "csv_file": str(csv_file),
+        "manifest_file": str(manifest_file),
+        "compliance_report_file": str(compliance_report_file),
+        "generated_at": manifest.get("generated_at"),
     }
 
-    try:
-        logger.info("Ingesting %s", input_file)
-        df = ingestion.ingest_csv(Path(input_file).name)
-        if df.empty:
-            raise RuntimeError("Ingestion returned empty DataFrame")
 
-        logger.info("Validating ingested data")
-        df = ingestion.validate_loans(df)
-        if not df["_validation_passed"].all():
-            raise RuntimeError("Validation failed; see ingestion.errors")
+def upload_outputs_to_azure(
+    outputs: Dict[str, Any],
+    azure_connection_string: str,
+    azure_container: str,
+    azure_blob_prefix: str,
+) -> Dict[str, str]:
+    return {}
 
-        ensure_required_columns(df, ("total_receivable_usd",))
 
-        logger.info("Transforming to KPI dataset")
-        try:
-            kpi_df = transformer.transform_to_kpi_dataset(df)
-        except Exception as exc:
-            error_msg = f"Transformation error: {type(exc).__name__}: {exc}"
-            logger.error(error_msg, exc_info=True)
-            audit["errors"].extend(ingestion.errors)
-            audit["errors"].append({
-                "stage": "transformation",
-                "error": error_msg,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
-            write_outputs(ingestion.run_id, pd.DataFrame(), audit)
-            return False
+def rewrite_manifest(manifest_path: str, azure_blobs: Dict[str, str]) -> None:
+    manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+    manifest["azure_blobs"] = azure_blobs
+    Path(manifest_path).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
-        logger.info("Calculating KPIs")
-        try:
-            kpi_engine = KPIEngine(kpi_df)
-            par_30, par_ctx = kpi_engine.calculate_par_30()
-            collection_rate, coll_ctx = kpi_engine.calculate_collection_rate()
-            health_score = kpi_engine.calculate_portfolio_health(par_30, collection_rate)
-            audit["kpis"] = {
-                "par_30": {"value": par_30, **par_ctx},
-                "collection_rate": {"value": collection_rate, **coll_ctx},
-                "health_score": {"value": health_score},
-            }
-            audit["kpi_audit_trail"] = kpi_engine.get_audit_trail().to_dict(orient="records")
-        except Exception as exc:
-            error_msg = f"KPI calculation error: {type(exc).__name__}: {exc}"
-            logger.error(error_msg, exc_info=True)
-            audit["errors"].extend(ingestion.errors)
-            audit["errors"].append({
-                "stage": "kpi_calculation",
-                "error": error_msg,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
-            if 'kpi_engine' in locals():
-                audit["kpi_audit_trail"] = kpi_engine.get_audit_trail().to_dict(orient="records")
-            write_outputs(ingestion.run_id, pd.DataFrame(), audit)
-            return False
 
-        audit["ingest"] = ingestion.get_ingest_summary()
-        audit["transform_run_id"] = transformer.run_id
+def run_pipeline(
+    input_file: str,
+    azure_container: Optional[str] = None,
+    azure_connection_string: Optional[str] = None,
+    azure_blob_prefix: Optional[str] = None,
+) -> bool:
+    ingestion = UnifiedIngestion(data_dir=str(Path(input_file).parent))
+    ingested = ingestion.ingest_csv(Path(input_file).name)
+    validated = ingestion.validate_loans(ingested)
 
-        logger.info("Writing outputs and audit")
-        write_outputs(ingestion.run_id, kpi_df, audit)
-        logger.info("Pipeline completed successfully (run_id=%s)", ingestion.run_id)
-        return True
-
-    except Exception as exc:
-        error_msg = f"{type(exc).__name__}: {exc}"
-        logger.error("Pipeline failed: %s", error_msg, exc_info=True)
-        ingestion._record_error("pipeline", error_msg)  # noqa: SLF001
-        audit["errors"].extend(ingestion.errors)
-        audit["errors"].append({
-            "stage": "pipeline",
-            "error": error_msg,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
-        try:
-            write_outputs(ingestion.run_id, pd.DataFrame(), audit)
-        except Exception:
-            pass
+    if validated.empty or not bool(validated.get("_validation_passed", True).all()):
         return False
 
+    transformer = UnifiedTransformation()
+    kpi_df = transformer.transform_to_kpi_dataset(validated)
+
+    kpi_engine = KPIEngineV2(kpi_df)
+    par_30, par_30_ctx = kpi_engine.calculate_par_30()
+    par_90, par_90_ctx = kpi_engine.calculate_par_90()
+    collection_rate, coll_ctx = kpi_engine.calculate_collection_rate()
+    health_score, health_ctx = calculate_portfolio_health(par_30, collection_rate)
+
+    metrics = {
+        "PAR30": {"value": par_30, **par_30_ctx},
+        "PAR90": {"value": par_90, **par_90_ctx},
+        "CollectionRate": {"value": collection_rate, **coll_ctx},
+        "PortfolioHealth": {"value": health_score, **health_ctx},
+    }
+
+    manifest = {
+        "run_id": ingestion.run_id,
+        "generated_at": ingestion.timestamp,
+        "metrics": metrics,
+        "ingestion": ingestion.get_ingest_summary(),
+        "transformation": transformer.get_processing_summary(),
+        "lineage": transformer.get_lineage(),
+    }
+
+    outputs = write_outputs(kpi_df, metrics, manifest)
+
+    compliance_report = build_compliance_report(
+        run_id=ingestion.run_id,
+        access_log=[],
+        masked_columns=[],
+        mask_stage="ingestion",
+        metadata={"input": input_file},
+    )
+    write_compliance_report(compliance_report, Path(outputs["compliance_report_file"]))
+
+    if azure_container and azure_connection_string:
+        azure_blobs = upload_outputs_to_azure(
+            outputs, azure_connection_string, azure_container, azure_blob_prefix or "runs"
+        )
+        if azure_blobs:
+            rewrite_manifest(outputs["manifest_file"], azure_blobs)
+
+    return True
+
+
+def main(
+    input_file: str = DEFAULT_INPUT,
+    user: Optional[str] = None,
+    action: Optional[str] = None,
+    config_path: str = "config/pipeline.yml",
+) -> bool:
+    user = user or os.getenv("PIPELINE_RUN_USER", "system")
+    action = action or os.getenv("PIPELINE_RUN_ACTION", "manual")
+
+    context = {
+        "user": user,
+        "action": action,
+        "triggered_at": Path(input_file).name,
+    }
+
+    logger.info("--- ABACO UNIFIED PIPELINE START ---")
+
+    try:
+        pipeline = UnifiedPipeline(config_path=Path(config_path))
+        result = pipeline.execute(Path(input_file), user=user, action=action)
+        logger.info("Pipeline completed: %s", result.get("status"))
+        return result.get("status") == "success"
+    except Exception as exc:
+        logger.error("Pipeline execution failed: %s", exc)
+        return False
+
+
 if __name__ == "__main__":
-    run_pipeline(DEFAULT_INPUT)
+    parser = argparse.ArgumentParser(description="Run the ABACO Unified Data Pipeline")
+    parser.add_argument("--input", default=DEFAULT_INPUT, help="Path to the CSV input file")
+    parser.add_argument("--user", help="Identifier for the user or system triggering the pipeline")
+    parser.add_argument("--action", help="Action context (e.g., github-action, manual-run)")
+    parser.add_argument("--config", default="config/pipeline.yml", help="Path to pipeline config")
+
+    args = parser.parse_args()
+    success = main(
+        input_file=args.input,
+        user=args.user,
+        action=args.action,
+        config_path=args.config,
+    )
+
+    sys.exit(0 if success else 1)

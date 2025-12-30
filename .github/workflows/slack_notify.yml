@@ -1,22 +1,33 @@
 name: Slack Notification
 on:
   workflow_run:
-    workflows: ["Run KPI regression and statistical tests"]
+    workflows: ['CI']
     types:
       - completed
+
 jobs:
   notify:
     runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        continue-on-error: true
         uses: slackapi/slack-github-action@v1.24.0
-        with:
-          slack-message: |
-            *KPI Regression & Statistical Tests Completed*
-            Repository: ${{ github.repository }}
-            Workflow: ${{ github.workflow }}
-            Status: ${{ github.event.workflow_run.conclusion }}
-            Run: ${{ github.run_id }}
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          payload: |
+            {
+              "text": "CI Workflow ${{ github.event.workflow_run.conclusion }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*CI Workflow Completed*\n*Status:* ${{ github.event.workflow_run.conclusion }}\n*Repository:* ${{ github.repository }}\n*Workflow:* ${{ github.event.workflow_run.name }}\n*Run ID:* ${{ github.event.workflow_run.id }}\n<${{ github.event.workflow_run.html_url }}|View Details>"
+                  }
+                }
+              ]
+            }
