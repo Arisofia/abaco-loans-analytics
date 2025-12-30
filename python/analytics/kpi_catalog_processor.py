@@ -17,34 +17,50 @@ class KPICatalogProcessor:
         
     def _clean_df(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
+        # Normalize column names
         df.columns = [c.strip().lower().replace(" ", "_").replace("(", "").replace(")", "") for c in df.columns]
-        
-        # Standardize main columns
+
+        # Candidate columns for key fields (aligned with actual CSV headers)
+        # Disbursement date: 'disburse_date', 'disbursement_date', 'Disbursement Date'
+        # Payment date: 'true_payment_date', 'payment_date', 'True Payment Date'
+        # Payment amount: 'true_total_payment', 'payment_amount', 'True Total Payment', 'amount'
+        # Disbursement amount: 'disburse_principal', 'disbursement_amount', 'Disbursement Amount'
+
         mapping = {
+            # Disbursement date
             "disburse_date": "disbursement_date",
+            "disbursement date": "disbursement_date",
+            # Disbursement amount
             "disburse_principal": "disbursement_amount",
+            "disbursement amount": "disbursement_amount",
+            # Payment date
+            "true payment date": "true_payment_date",
+            "payment_date": "true_payment_date",
+            # Payment amount
+            "true_total_payment": "true_total_payment",
+            "payment_amount": "true_total_payment",
+            "true total payment": "true_total_payment",
+            "amount": "true_total_payment",
+            # Other mappings
             "outstanding_balance": "outstanding_loan_value",
             "interest_rate": "interest_rate_apr",
             "maturity_date": "loan_end_date",
             "days_in_default": "days_past_due",
-            "dpd": "days_past_due",
-            "payment_date": "true_payment_date",
-            "payment_amount": "true_total_payment",
-            "amount": "true_total_payment"
+            "dpd": "days_past_due"
         }
         for old, new in mapping.items():
             if old in df.columns and new not in df.columns:
                 df[new] = df[old]
-        
-        # If true_principal_payment is missing, estimate it from total payment (simplified)
+
+        # If true_principal_payment is missing, estimate it from total payment (synthetic fallback)
         if "true_total_payment" in df.columns and "true_principal_payment" not in df.columns:
-            df["true_principal_payment"] = df["true_total_payment"] * 0.9 # heuristic for synthetic data
-        
-        # Date conversion
+            df["true_principal_payment"] = df["true_total_payment"] * 0.9
+
+        # Date conversion for all columns containing 'date' or 'fecha'
         date_cols = [col for col in df.columns if any(x in col for x in ["date", "fecha"])]
         for col in date_cols:
             df[col] = pd.to_datetime(df[col], errors="coerce")
-            
+
         return df
 
     # 0. Base extracts (building blocks)

@@ -22,14 +22,19 @@ class TestFeatureEngineering(unittest.TestCase):
         self.sparse_data = pd.DataFrame({"revenue": [40000, 80000, 120000]})
 
     def test_enrichment_adds_all_columns(self):
-        """Test that enrichment adds utilization, dpd_bucket, and segment columns."""
+        """
+        Test that enrichment adds utilization, dpd_bucket, and segment columns.
+        """
         enriched_df = FeatureEngineer.enrich_portfolio(self.sample_data)
         self.assertIn("utilization", enriched_df.columns)
         self.assertIn("dpd_bucket", enriched_df.columns)
         self.assertIn("segment", enriched_df.columns)
 
     def test_enrichment_values_are_correct(self):
-        """Test that sample rows map to expected segment, bucket, and utilization values."""
+        """
+        Test that sample rows map to expected segment, bucket,
+        and utilization values.
+        """
         enriched_df = FeatureEngineer.enrich_portfolio(self.sample_data)
 
         # Test utilization
@@ -48,7 +53,9 @@ class TestFeatureEngineering(unittest.TestCase):
         self.assertEqual(enriched_df.loc[2, "segment"], "Gold")
 
     def test_enrichment_graceful_with_sparse_inputs(self):
-        """Test that enrichment only adds segment when other columns are missing."""
+        """
+        Test that enrichment only adds segment when other columns are missing.
+        """
         enriched_df = FeatureEngineer.enrich_portfolio(self.sparse_data)
         self.assertIn("segment", enriched_df.columns)
         self.assertNotIn("utilization", enriched_df.columns)
