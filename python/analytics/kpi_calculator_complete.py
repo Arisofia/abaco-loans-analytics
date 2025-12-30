@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 class ABACOKPICalculator:
     """Comprehensive KPI calculator for ABACO loan portfolio."""
-    
-    def __init__(self, loans_df: pd.DataFrame, payments_df: pd.DataFrame, customers_df: pd.DataFrame):
+
+    def __init__(self, loans_df: pd.DataFrame, payments_df: pd.DataFrame,
+                 customers_df: pd.DataFrame):
         """Initialize with loan, payment, and customer data."""
         self.loans = self._clean_dataframe(loans_df)
         self.payments = self._clean_dataframe(payments_df)
@@ -23,7 +24,7 @@ class ABACOKPICalculator:
             len(self.loans),
             len(self.payments),
         )
-    
+
     @staticmethod
     def _clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         """Clean column names and convert dates."""
@@ -39,36 +40,38 @@ class ABACOKPICalculator:
                 df[col] = pd.to_datetime(df[col], errors="coerce")
 
         return df
-    
+
     # === PORTFOLIO FUNDAMENTALS ===
-    
+
     def get_active_clients(self) -> int:
         """Count unique active customers."""
         return self.loans["customer_id"].nunique()
-    
+
     def get_total_aum(self) -> float:
         """Total Assets Under Management (Outstanding Balance)."""
-        balance_col = self._find_column(["outstanding_loan_value", "outstanding_balance", "current_balance", "saldo"])
+        aliases = ["outstanding_loan_value", "outstanding_balance",
+                   "current_balance", "saldo"]
+        balance_col = self._find_column(aliases)
         if balance_col and balance_col in self.loans.columns:
             return pd.to_numeric(self.loans[balance_col], errors="coerce").sum()
         return 0.0
-    
+
     def get_aum_by_customer_type(self) -> pd.DataFrame:
         """AUM breakdown by customer type."""
         balance_col = self._find_column(["outstanding_loan_value", "outstanding_balance"])
-        
+
         merged = self.loans.merge(
             self.customers[["customer_id", "customer_type"]],
             on="customer_id",
             how="left",
         )
-        
+
         if balance_col and balance_col in merged.columns:
             return merged.groupby("customer_type", dropna=False)[balance_col].sum().reset_index()
         return pd.DataFrame()
-    
+
     # === REPLINES & PRODUCT MOMENTUM ===
-    
+
     def get_replines_percentage(self) -> float:
         """
         Replines % = (Disbursements Current Month) / (Matured Loans Current Month) * 100
@@ -77,14 +80,14 @@ class ABACOKPICalculator:
         disb_col = self._find_column(["disbursement_date", "disburse_date"])
         end_col = self._find_column(["loan_end_date", "maturity_date"])
         amount_col = self._find_column(["loan_amount", "disburse_principal"])
-        
+
         if not all([disb_col, end_col, amount_col]):
             logger.warning("Cannot calculate replines: missing date or amount columns")
             return 0.0
-        
+
         try:
             current_month = pd.Timestamp.now().to_period("M")
-            
+
             # Disbursements in current month
             disb_df = self.loans[
                 self.loans[disb_col].dt.to_period("M") == current_month
@@ -102,18 +105,18 @@ class ABACOKPICalculator:
         except Exception as e:
             logger.error("Error calculating replines: %s", e)
             return 0.0
-    
+
     # === REVENUE METRICS ===
-    
+
     def get_monthly_revenue(self) -> float:
         """Total payment/revenue in current month."""
         payment_col = self._find_column(["payment_amount", "amount", "monto_pago"], self.payments)
         date_col = self._find_column(["payment_date", "fecha_pago"], self.payments)
-        
+
         if not payment_col or payment_col not in self.payments.columns:
             logger.warning("Cannot calculate monthly revenue: missing payment column")
             return 0.0
-        
+
         try:
             current_month = pd.Timestamp.now().to_period("M")
             monthly = self.payments[
@@ -123,83 +126,84 @@ class ABACOKPICalculator:
         except Exception as e:
             logger.error("Error calculating monthly revenue: %s", e)
             return 0.0
-    
+
     def get_revenue_by_month(self) -> pd.Series:
         """Monthly revenue trend."""
         payment_col = self._find_column(["payment_amount", "amount"], self.payments)
         date_col = self._find_column(["payment_date", "fecha_pago"], self.payments)
-        
+
         if not payment_col:
             return pd.Series()
-        
+
         self.payments["month"] = self.payments[date_col].dt.to_period("M")
         return self.payments.groupby("month")[payment_col].sum()
-    
+
     # === GROWTH METRICS ===
-    
+
     def get_mom_growth_pct(self) -> float:
         """Month-over-Month growth percentage."""
         balance_col = self._find_column(["outstanding_loan_value", "outstanding_balance"])
         disb_date_col = self._find_column(["disbursement_date", "disburse_date"])
         if not balance_col or not disb_date_col:
             return 0.0
-        
+
         try:
             self.loans["month"] = self.loans[disb_date_col].dt.to_period("M")
             aum_by_month = (
                 self.loans.groupby("month")[balance_col].sum().sort_index()
             )
-            
+
             if len(aum_by_month) < 2:
                 return 0.0
-            
+
             mom = aum_by_month.pct_change().iloc[-1] * 100
             return float(mom) if not np.isnan(mom) else 0.0
         except Exception as e:
             logger.error("Error calculating MoM: %s", e)
             return 0.0
-    
+
     def get_yoy_growth_pct(self) -> float:
         """Year-over-Year growth percentage."""
         balance_col = self._find_column(["outstanding_loan_value", "outstanding_balance"])
         disb_date_col = self._find_column(["disbursement_date", "disburse_date"])
         if not balance_col or not disb_date_col:
             return 0.0
-        
+
         try:
             self.loans["month"] = self.loans[disb_date_col].dt.to_period("M")
             aum_by_month = (
                 self.loans.groupby("month")[balance_col].sum().sort_index()
             )
-            
+
             if len(aum_by_month) < 13:
                 logger.warning("Insufficient data for YoY calculation (need 13+ months)")
                 return 0.0
-            
-            yoy = ((aum_by_month.iloc[-1] - aum_by_month.iloc[-13]) / aum_by_month.iloc[-13]) * 100
+
+            yoy = ((aum_by_month.iloc[-1] - aum_by_month.iloc[-13]) /
+                   aum_by_month.iloc[-13]) * 100
             return float(yoy) if not np.isnan(yoy) else 0.0
         except Exception as e:
             logger.error("Error calculating YoY: %s", e)
             return 0.0
-    
+
     # === REVENUE PER CLIENT ===
-    
+
     def get_revenue_per_active_client(self) -> float:
         """Monthly revenue divided by active clients."""
         active_clients = self.get_active_clients()
         monthly_revenue = self.get_monthly_revenue()
-        
+
         if active_clients == 0:
             return 0.0
-        
+
         return monthly_revenue / active_clients
-    
+
     def get_annual_revenue_per_client(self) -> float:
         """Annualized revenue per client."""
         return self.get_revenue_per_active_client() * 12
-    
+
     # === CAC & LTV / CAC RATIO ===
-    
+
     def get_ltv_cac_ratio(self, cac_usd: float = 350.0) -> float:
         """
         LTV / CAC Ratio = (Annual Revenue per Client) / CAC
@@ -207,36 +211,36 @@ class ABACOKPICalculator:
         Healthy ratio: > 3.0x
         """
         annual_revenue = self.get_annual_revenue_per_client()
-        
+
         if cac_usd <= 0:
             logger.warning("Invalid CAC value provided")
             return 0.0
-        
+
         ratio = annual_revenue / cac_usd
         return float(ratio)
-    
+
     # === DELINQUENCY METRICS ===
-    
+
     def get_delinquency_rate(self, dpd_threshold: int = 30) -> float:
         """Percentage of loans with Days Past Due >= threshold."""
         dpd_col = self._find_column(["dpd", "days_past_due", "diasvencidos"])
-        
+
         if not dpd_col or dpd_col not in self.loans.columns:
             return 0.0
-        
+
         delinquent = (pd.to_numeric(self.loans[dpd_col], errors="coerce") >= dpd_threshold).sum()
         total = len(self.loans)
-        
+
         return (delinquent / total * 100) if total > 0 else 0.0
-    
+
     def get_par_90_ratio(self) -> float:
         """Portfolio at Risk (90+DPD) as % of outstanding balance."""
         dpd_col = self._find_column(["dpd", "days_past_due"])
         balance_col = self._find_column(["outstanding_loan_value", "outstanding_balance"])
-        
+
         if not all([dpd_col, balance_col]):
             return 0.0
-        
+
         loans_at_risk = self.loans[
             pd.to_numeric(self.loans[dpd_col], errors="coerce") >= 90
         ]
@@ -246,38 +250,38 @@ class ABACOKPICalculator:
         total_balance = pd.to_numeric(
             self.loans[balance_col], errors="coerce"
         ).sum()
-        
+
         return (balance_at_risk / total_balance * 100) if total_balance > 0 else 0.0
-    
+
     # === PORTFOLIO COMPOSITION ===
-    
+
     def get_portfolio_by_product(self) -> pd.DataFrame:
         """Loan count and AUM by product type."""
         product_col = self._find_column(["product_type", "product"])
         balance_col = self._find_column(["outstanding_loan_value", "outstanding_balance"])
-        
+
         if not product_col:
             return pd.DataFrame()
-        
+
         result = (
             self.loans.groupby(product_col, dropna=False)
             .agg({"loan_id": "count", balance_col: "sum"})
             .rename(columns={"loan_id": "loan_count", balance_col: "aum"})
         )
-        
+
         return result.reset_index()
-    
+
     def get_portfolio_by_status(self) -> pd.DataFrame:
         """Loan distribution by status."""
         status_col = self._find_column(["loan_status", "status", "estado"])
-        
+
         if not status_col:
             return pd.DataFrame()
-        
+
         return self.loans[status_col].value_counts().reset_index()
-    
+
     # === COMPREHENSIVE DASHBOARD ===
-    
+
     def get_complete_kpi_dashboard(self, cac_usd: float = 350.0) -> Dict:
         """Generate complete KPI dashboard."""
         dashboard = {
@@ -319,15 +323,14 @@ class ABACOKPICalculator:
                 if not self.get_portfolio_by_status().empty else []
             ),
         }
-        
+
         return dashboard
-    
+
     # === HELPER METHODS ===
-    
-    
+
     def _find_column(self, aliases: list, dataframe=None) -> Optional[str]:
         """Find actual column name from list of aliases.
-        
+
         Args:
             aliases: List of column name aliases to search for
             dataframe: Optional dataframe to search in. Defaults to self.loans.
@@ -345,7 +348,7 @@ def main():
     """Example usage and demonstration."""
     # === MOCK DATA EXAMPLE ===
     np.random.seed(42)
-    
+
     loans_data = {
         "loan_id": [f"L{i:05d}" for i in range(100)],
         "customer_id": [f"C{np.random.randint(1, 51):04d}" for i in range(100)],
@@ -354,30 +357,31 @@ def main():
         "loan_amount": np.random.uniform(1000, 50000, 100),
         "outstanding_loan_value": np.random.uniform(500, 45000, 100),
         "dpd": np.random.choice([0, 15, 45, 90], 100, p=[0.7, 0.15, 0.1, 0.05]),
-        "loan_status": np.random.choice(["Active", "Completed", "Defaulted"], 100, p=[0.6, 0.3, 0.1]),
+        "loan_status": np.random.choice(["Active", "Completed", "Defaulted"], 100,
+                                         p=[0.6, 0.3, 0.1]),
         "product_type": np.random.choice(["Factoring", "LOC", "Term Loan"], 100),
     }
-    
+
     payments_data = {
         "payment_id": [f"P{i:06d}" for i in range(200)],
         "loan_id": np.random.choice(loans_data["loan_id"], 200),
         "payment_date": pd.date_range("2023-01-01", periods=200, freq="2D"),
         "payment_amount": np.random.uniform(100, 5000, 200),
     }
-    
+
     customers_data = {
         "customer_id": [f"C{i:04d}" for i in range(1, 51)],
         "customer_type": np.random.choice(["SME", "Corporate", "Individual"], 50),
     }
-    
+
     loans_df = pd.DataFrame(loans_data)
     payments_df = pd.DataFrame(payments_data)
     customers_df = pd.DataFrame(customers_data)
-    
+
     # === RUN CALCULATOR ===
     calc = ABACOKPICalculator(loans_df, payments_df, customers_df)
     dashboard = calc.get_complete_kpi_dashboard(cac_usd=350)
-    
+
     # === DISPLAY RESULTS ===
     print("\n" + "=" * 70)
     print("\uD83D\uDCCA ABACO COMPLETE KPI DASHBOARD")
@@ -398,25 +402,6 @@ def main():
     print(
         f"  Revenue/Client (Monthly): ${dashboard['revenue_per_active_client_monthly']:,.2f}"
     )
-    print(
-        f"  Revenue/Client (Annual): ${dashboard['revenue_per_active_client_annual']:,.2f}\n"
-    )
-
-    print("\uD83D\uDCCA GROWTH")
-    print(f"  MoM Growth: {dashboard['mom_growth_pct']:.2f}%")
-    print(f"  YoY Growth: {dashboard['yoy_growth_pct']:.2f}%\n")
-
-    print("\u26A1 EFFICIENCY")
-    print(f"  LTV/CAC Ratio: {dashboard['ltv_cac_ratio']:.2f}x")
-    print(f"  CAC: ${dashboard['cac_usd']:.2f}\n")
-
-    print("\u26A0\uFE0F RISK METRICS")
-    print(f"  30+ DPD Rate: {dashboard['delinquency_rate_30_pct']:.2f}%")
-    print(f"  90+ DPD Rate: {dashboard['delinquency_rate_90_pct']:.2f}%")
-    print(f"  PAR 90 Ratio: {dashboard['par_90_ratio_pct']:.2f}%")
-    print("=" * 70 + "\n")
-    
-    return dashboard
 
 
 if __name__ == "__main__":
