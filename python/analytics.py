@@ -1,5 +1,3 @@
-from typing import Dict, Tuple
-
 import numpy as np
 import pandas as pd
 
@@ -48,10 +46,14 @@ def project_growth(
     yields = np.linspace(current_yield, target_yield, periods)
     volumes = np.linspace(current_loan_volume, target_loan_volume, periods)
 
-    return pd.DataFrame({"date": dates, "yield": yields, "loan_volume": volumes})
+    return pd.DataFrame({
+        "date": dates,
+        "yield": yields,
+        "loan_volume": volumes
+    })
 
 
-def portfolio_kpis(df: pd.DataFrame) -> Tuple[Dict[str, float], pd.DataFrame]:
+def portfolio_kpis(df: pd.DataFrame) -> tuple[dict[str, float], pd.DataFrame]:
     """
     Calculate portfolio-level KPIs and enrich DataFrame with ratios.
     """
