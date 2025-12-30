@@ -36,7 +36,7 @@ htmlcov/
 logs/
 demo_bak*/
 
-# App Folders
+# App Folders (agents/ is explicitly excluded from this list and WILL be deployed)
 apps/
 node/
 services/

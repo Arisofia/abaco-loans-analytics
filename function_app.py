@@ -52,13 +52,11 @@ def _initialize_and_run_agent(trigger_type: str, user_id: str,
 
 
 @app.schedule(
-    schedule="0 0 8 * * *",  # Daily at 8:00 AM UTC
+    schedule="0 0 8 * * *",
     arg_name="timer",
-    run_on_startup=False,
-    use_monitor=True
+    run_on_startup=False
 )
-@app.function_name(name="hubspot_daily_segment")
-def hubspot_daily_segment_trigger(timer: func.TimerRequest) -> None:
+def hubspot_daily_segment(timer: func.TimerRequest) -> None:
     """Timer-triggered function for daily HubSpot segment creation."""
     timestamp = datetime.utcnow().isoformat()
     if timer.past_due:
@@ -106,8 +104,7 @@ def hubspot_daily_segment_trigger(timer: func.TimerRequest) -> None:
     methods=["POST"],
     auth_level=func.AuthLevel.FUNCTION
 )
-@app.function_name(name="HttpTriggerManualSegment")
-def manual_segment_creation_trigger(
+def http_trigger_manual_segment(
     req: func.HttpRequest
 ) -> func.HttpResponse:
     """HTTP-triggered function for manual segment creation."""
