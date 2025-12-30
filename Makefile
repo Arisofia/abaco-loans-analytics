@@ -50,6 +50,29 @@ run-dashboard:
 check-maturity:
 	python repo_maturity_summary.py
 
+# Python environment management
+env-clean:
+	rm -rf .venv .venv-1
+
+venv:
+	make env-clean
+	python3 -m venv .venv
+	@echo "Activate with: source .venv/bin/activate"
+
+venv-install: venv
+	source .venv/bin/activate && pip install --upgrade pip
+	source .venv/bin/activate && pip install -r requirements.txt
+
+# KPI parity test
+test-kpi-parity:
+	source .venv/bin/activate && pytest -q tests/test_kpi_parity.py
+
+# Gradle build with JAVA_HOME
+# Usage: make gradle-build JAVA_HOME=/path/to/java21
+gradle-build:
+	@echo "Running Gradle build with JAVA_HOME=$$JAVA_HOME"
+	JAVA_HOME=$$JAVA_HOME PATH=$$JAVA_HOME/bin:$$PATH ./gradlew clean build
+
 # Cleanup
 clean:
 	rm -rf __pycache__ .pytest_cache
