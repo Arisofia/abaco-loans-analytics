@@ -80,12 +80,14 @@ def find_repo_root(start: Path) -> Path:
 
 
 def run_command(cmd: List[str], cwd: Path) -> CommandResult:
+    # Use argument list, never shell=True, and do not interpolate untrusted input
     proc = subprocess.Popen(
         cmd,
         cwd=str(cwd),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        shell=False
     )
     stdout, stderr = proc.communicate()
     return CommandResult(

@@ -85,12 +85,14 @@ def run_check_kpi_sync(repo_root: Path) -> Dict[str, Any]:
     if not script.is_file():
         raise FileNotFoundError(f"Missing tools/check_kpi_sync.py at {script}")
 
+    # Use argument list, never shell=True, and do not interpolate untrusted input
     proc = subprocess.Popen(
         [sys.executable, str(script), "--print-json"],
         cwd=str(repo_root),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        shell=False
     )
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:

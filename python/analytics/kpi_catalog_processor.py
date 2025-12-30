@@ -67,7 +67,7 @@ class KPICatalogProcessor:
     def build_loan_month(self, start_date: str = "2024-01-01", end_date: Optional[str] = None) -> pd.DataFrame:
         """
         Builds a monthly loan snapshot with outstanding principal and days past due.
-        Optimized version using vectorized operations.
+        Aggregates multiple disbursements per loan_id correctly.
         """
         if end_date is None:
             end_date = datetime.now().strftime("%Y-%m-%d")
@@ -75,63 +75,58 @@ class KPICatalogProcessor:
         # Create month-end series
         month_ends = pd.date_range(start=start_date, end=end_date, freq="ME")
         
-        # Prepare principal cumulative payments at each month end
         if "true_payment_date" not in self.payments.columns:
-            # Fallback if no payments found
             self.loan_month = pd.DataFrame()
             return self.loan_month
             
-        payments = self.payments.sort_values(["loan_id", "true_payment_date"])
+        # 1. Representative metadata per loan_id
+        loan_meta = self.loans.groupby("loan_id").agg({
+            "customer_id": "max",
+            "interest_rate_apr": "max",
+            "origination_fee": "max",
+            "origination_fee_taxes": "max",
+            "days_past_due": "max"
+        }).reset_index()
+
+        # 2. Cumulative disbursements per loan_id and month_end
+        disbursements = self.loans[["loan_id", "disbursement_date", "disbursement_amount"]].copy()
         
-        # Standardize columns to avoid missing keys
-        cols_needed = [
-            "loan_id", "customer_id", "disbursement_amount", "disbursement_date",
-            "interest_rate_apr", "origination_fee", "origination_fee_taxes", "days_past_due"
-        ]
-        for col in cols_needed:
-            if col not in self.loans.columns:
-                self.loans[col] = 0
-                
-        loans_base = self.loans[cols_needed].copy()
-        
-        # Create a dataframe of all (loan_id, month_end) pairs where loan was disbursed
-        grid = []
+        grid_disb = []
         for me in month_ends:
-            temp = loans_base[loans_base["disbursement_date"] <= me].copy()
-            temp["month_end"] = me
-            grid.append(temp)
+            temp = disbursements[disbursements["disbursement_date"] <= me].copy()
+            if not temp.empty:
+                agg = temp.groupby("loan_id")["disbursement_amount"].sum().reset_index()
+                agg["month_end"] = me
+                grid_disb.append(agg)
         
-        if not grid:
-            self.loan_month = pd.DataFrame(columns=cols_needed + ["month_end", "outstanding", "cum_principal"])
+        if not grid_disb:
+            self.loan_month = pd.DataFrame()
             return self.loan_month
             
-        df_grid = pd.concat(grid)
+        df_disb = pd.concat(grid_disb)
         
-        # Calculate cumulative principal paid for each loan up to each month end
-        # 1. Get all payments, assign them to the month they occurred in
-        payments["month_end_pay"] = payments["true_payment_date"].dt.to_period("M").dt.to_timestamp() + pd.offsets.MonthEnd(0)
+        # 3. Cumulative payments per loan_id and month_end
+        payments = self.payments[["loan_id", "true_payment_date", "true_principal_payment"]].copy()
         
-        # 2. Sum principal by loan and month
-        monthly_payments = payments.groupby(["loan_id", "month_end_pay"])["true_principal_payment"].sum().reset_index()
-        monthly_payments.rename(columns={"month_end_pay": "month_end"}, inplace=True)
+        grid_pay = []
+        for me in month_ends:
+            temp = payments[payments["true_payment_date"] <= me].copy()
+            if not temp.empty:
+                agg = temp.groupby("loan_id")["true_principal_payment"].sum().reset_index(name="cum_principal")
+                agg["month_end"] = me
+                grid_pay.append(agg)
         
-        # 3. For each loan, get cumulative sum across months
-        monthly_payments = monthly_payments.sort_values(["loan_id", "month_end"])
-        monthly_payments["cum_principal"] = monthly_payments.groupby("loan_id")["true_principal_payment"].cumsum()
+        df_pay = pd.concat(grid_pay) if grid_pay else pd.DataFrame(columns=["loan_id", "month_end", "cum_principal"])
         
-        # 4. Join grid with monthly_payments to get cum_principal at each month end
-        df_grid = df_grid.merge(
-            monthly_payments[["loan_id", "month_end", "cum_principal"]],
-            on=["loan_id", "month_end"],
-            how="left"
-        )
-        df_grid = df_grid.sort_values(["loan_id", "month_end"])
-        df_grid["cum_principal"] = df_grid.groupby("loan_id")["cum_principal"].ffill().fillna(0)
+        # 4. Final Merge
+        df_final = df_disb.merge(df_pay, on=["loan_id", "month_end"], how="left")
+        df_final["cum_principal"] = df_final["cum_principal"].fillna(0)
+        df_final["outstanding"] = (df_final["disbursement_amount"] - df_final["cum_principal"]).clip(lower=0)
         
-        # Calculate outstanding
-        df_grid["outstanding"] = (df_grid["disbursement_amount"] - df_grid["cum_principal"]).clip(lower=0)
+        # Add metadata
+        df_final = df_final.merge(loan_meta, on="loan_id", how="left")
         
-        self.loan_month = df_grid
+        self.loan_month = df_final
         return self.loan_month
 
     # 1. Customer Model & Growth

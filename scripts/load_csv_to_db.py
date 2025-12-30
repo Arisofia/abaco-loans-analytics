@@ -57,10 +57,12 @@ def load_data():
             
             # Insert
             cols = list(df_cust_mapped.columns)
-            query = f"INSERT INTO customer_data ({', '.join(cols)}) VALUES ({', '.join(['%s'] * len(cols))})"
-            for i, row in enumerate(df_cust_mapped.itertuples(index=False)):
+            col_names = ', '.join(cols)
+            param_names = ', '.join([f":{col}" for col in cols])
+            query = sqlalchemy.text(f"INSERT INTO customer_data ({col_names}) VALUES ({param_names})")
+            for i, row in enumerate(df_cust_mapped.itertuples(index=False, name=None)):
                 try:
-                    cur.execute(query, row)
+                    cur.execute(query, {col: val for col, val in zip(cols, row)})
                 except Exception as e:
                     print(f"Failed at row {i}: {row}")
                     raise e
@@ -71,7 +73,7 @@ def load_data():
             print(f"Loading {loan_file.name}...")
             df_loan = pd.read_csv(loan_file)
             
-            loan_mapping = {
+            df_loan_mapping = {
                 'Loan ID': 'loan_id',
                 'Customer ID': 'customer_id',
                 'Product Type': 'product_type',
@@ -89,10 +91,7 @@ def load_data():
                 'Loan Status': 'loan_status'
             }
             
-            df_loan_mapped = df_loan[list(loan_mapping.keys())].rename(columns=loan_mapping)
-            
-            # Deduplicate loans
-            df_loan_mapped = df_loan_mapped.drop_duplicates(subset=['loan_id'])
+            df_loan_mapped = df_loan[list(df_loan_mapping.keys())].rename(columns=df_loan_mapping)
             
             # Filter loans where customer_id exists in customer_data
             valid_customer_ids = set(df_cust_mapped['customer_id'])
@@ -106,10 +105,12 @@ def load_data():
             
             # Insert
             cols = list(df_loan_mapped.columns)
-            query = f"INSERT INTO loan_data ({', '.join(cols)}) VALUES ({', '.join(['%s'] * len(cols))})"
-            for i, row in enumerate(df_loan_mapped.itertuples(index=False)):
+            col_names = ', '.join(cols)
+            param_names = ', '.join([f":{col}" for col in cols])
+            query = sqlalchemy.text(f"INSERT INTO loan_data ({col_names}) VALUES ({param_names})")
+            for i, row in enumerate(df_loan_mapped.itertuples(index=False, name=None)):
                 try:
-                    cur.execute(query, row)
+                    cur.execute(query, {col: val for col, val in zip(cols, row)})
                 except Exception as e:
                     print(f"Failed at row {i}: {row}")
                     raise e
@@ -146,10 +147,12 @@ def load_data():
             
             # Insert
             cols = list(df_pay_mapped.columns)
-            query = f"INSERT INTO real_payment ({', '.join(cols)}) VALUES ({', '.join(['%s'] * len(cols))})"
-            for i, row in enumerate(df_pay_mapped.itertuples(index=False)):
+            col_names = ', '.join(cols)
+            param_names = ', '.join([f":{col}" for col in cols])
+            query = sqlalchemy.text(f"INSERT INTO real_payment ({col_names}) VALUES ({param_names})")
+            for i, row in enumerate(df_pay_mapped.itertuples(index=False, name=None)):
                 try:
-                    cur.execute(query, row)
+                    cur.execute(query, {col: val for col, val in zip(cols, row)})
                 except Exception as e:
                     print(f"Failed at row {i}: {row}")
                     raise e

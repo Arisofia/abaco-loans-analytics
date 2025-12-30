@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS customer_data (
 
 -- Loan Data
 CREATE TABLE IF NOT EXISTS loan_data (
-    loan_id TEXT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    loan_id TEXT NOT NULL,
     customer_id TEXT NOT NULL REFERENCES customer_data(customer_id),
     product_type TEXT,
     disbursement_date DATE NOT NULL,
@@ -43,7 +44,7 @@ CREATE TABLE IF NOT EXISTS loan_data (
 -- Payment Data
 CREATE TABLE IF NOT EXISTS real_payment (
     payment_id SERIAL PRIMARY KEY,
-    loan_id TEXT NOT NULL REFERENCES loan_data(loan_id),
+    loan_id TEXT NOT NULL,
     true_payment_date DATE NOT NULL,
     true_principal_payment NUMERIC DEFAULT 0,
     true_interest_payment NUMERIC DEFAULT 0,
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS real_payment (
     true_rebates NUMERIC DEFAULT 0
 );
 
+CREATE INDEX idx_loan_data_loan_id ON loan_data(loan_id);
 CREATE INDEX idx_loan_data_customer_id ON loan_data(customer_id);
 CREATE INDEX idx_real_payment_loan_id ON real_payment(loan_id);
 

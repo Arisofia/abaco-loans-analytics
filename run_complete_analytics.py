@@ -72,8 +72,8 @@ def load_real_data():
             if old in loans_df.columns:
                 loans_df = loans_df.rename(columns={old: new})
         
-        # Deduplicate loans
-        loans_df = loans_df.drop_duplicates(subset=["loan_id"])
+        # NOTE: Do NOT deduplicate loans here as Loan ID may have multiple disbursements
+        # and we need all of them for historical reconstruction.
     
     # Try to find payment data
     payment_files = [

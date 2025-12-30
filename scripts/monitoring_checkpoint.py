@@ -54,6 +54,7 @@ class MonitoringCheckpoint:
     def run_validation(self) -> dict:
         """Execute production validation script"""
         try:
+            # Use argument list, never shell=True, and do not interpolate untrusted input
             result = subprocess.run(
                 [
                     sys.executable,
@@ -61,9 +62,9 @@ class MonitoringCheckpoint:
                 ],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
+                shell=False
             )
-            
             validation_report_path = Path("production_validation_report.json")
             if validation_report_path.exists():
                 with open(validation_report_path) as f:

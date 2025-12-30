@@ -51,34 +51,49 @@ WITH month_ends AS (
         (date_trunc('month', d) + INTERVAL '1 month - 1 day')::date AS month_end
     FROM generate_series('2024-01-01'::date, '2025-12-31'::date, INTERVAL '1 month') AS d
 ),
-principal_cum AS (
-    SELECT
+loan_meta AS (
+    -- Representative metadata for each loan ID
+    SELECT 
         loan_id,
-        true_payment_date::date AS pay_date,
-        SUM(true_principal_payment) OVER (PARTITION BY loan_id ORDER BY true_payment_date) AS cum_principal
-    FROM real_payment
+        MAX(customer_id) as customer_id,
+        MAX(interest_rate_apr) as interest_rate_apr,
+        MAX(origination_fee) as origination_fee,
+        MAX(origination_fee_taxes) as origination_fee_taxes,
+        MAX(days_past_due) as days_past_due
+    FROM loan_data
+    GROUP BY loan_id
 ),
-loan_month AS (
+cum_disb AS (
     SELECT
         m.month_end,
-        l.loan_id AS loan_id,
-        l.customer_id AS customer_id,
-        l.disbursement_amount AS disbursement_amount,
-        l.interest_rate_apr AS interest_rate_apr,
-        l.origination_fee AS origination_fee,
-        l.origination_fee_taxes AS origination_fee_taxes,
-        l.disbursement_date::date AS disbursement_date,
-                (l.disbursement_amount - COALESCE(
-                    (SELECT pc.cum_principal 
-                     FROM principal_cum pc 
-                     WHERE pc.loan_id = l.loan_id AND pc.pay_date <= m.month_end 
-                     ORDER BY pc.pay_date DESC LIMIT 1), 0)
-                ) AS outstanding,
-                l.days_past_due AS days_past_due
-        FROM month_ends m
-        JOIN loan_data l ON m.month_end >= l.disbursement_date::date
+        l.loan_id,
+        SUM(l.disbursement_amount) AS total_disbursed
+    FROM month_ends m
+    JOIN loan_data l ON m.month_end >= l.disbursement_date
+    GROUP BY 1, 2
+),
+cum_pay AS (
+    SELECT
+        m.month_end,
+        p.loan_id,
+        SUM(p.true_principal_payment) AS total_paid
+    FROM month_ends m
+    JOIN real_payment p ON m.month_end >= p.true_payment_date
+    GROUP BY 1, 2
 )
-SELECT * FROM loan_month;
+SELECT
+    cd.month_end,
+    cd.loan_id,
+    lm.customer_id,
+    cd.total_disbursed as disbursement_amount, -- for pricing view compatibility
+    lm.interest_rate_apr,
+    lm.origination_fee,
+    lm.origination_fee_taxes,
+    GREATEST(cd.total_disbursed - COALESCE(cp.total_paid, 0), 0) AS outstanding,
+    lm.days_past_due
+FROM cum_disb cd
+JOIN loan_meta lm ON lm.loan_id = cd.loan_id
+LEFT JOIN cum_pay cp ON cd.loan_id = cp.loan_id AND cd.month_end = cp.month_end;
 
 -- ---------------------------------------------------------------------
 -- 3. PRICING KPI VIEW
