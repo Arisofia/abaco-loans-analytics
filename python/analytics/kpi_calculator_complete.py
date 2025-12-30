@@ -13,16 +13,20 @@ logger = logging.getLogger(__name__)
 class ABACOKPICalculator:
     """Comprehensive KPI calculator for ABACO loan portfolio."""
 
-    def __init__(self, loans_df: pd.DataFrame, payments_df: pd.DataFrame,
-                 customers_df: pd.DataFrame):
+    def __init__(
+        self,
+        loans_df: pd.DataFrame,
+        payments_df: pd.DataFrame,
+        customers_df: pd.DataFrame
+    ):
         """Initialize with loan, payment, and customer data."""
         self.loans = self._clean_dataframe(loans_df)
         self.payments = self._clean_dataframe(payments_df)
         self.customers = self._clean_dataframe(customers_df)
         logger.info(
             "Initialized with %d loans, %d payments",
-            len(self.loans),
-            len(self.payments),
+            builtins.len(self.loans),
+            builtins.len(self.payments),
         )
 
     @staticmethod
@@ -153,7 +157,7 @@ class ABACOKPICalculator:
                 self.loans.groupby("month")[balance_col].sum().sort_index()
             )
 
-            if len(aum_by_month) < 2:
+            if builtins.len(aum_by_month) < 2:
                 return 0.0
 
             mom = aum_by_month.pct_change().iloc[-1] * 100
@@ -175,12 +179,14 @@ class ABACOKPICalculator:
                 self.loans.groupby("month")[balance_col].sum().sort_index()
             )
 
-            if len(aum_by_month) < 13:
+            if builtins.len(aum_by_month) < 13:
                 logger.warning("Insufficient data for YoY calculation (need 13+ months)")
                 return 0.0
 
-            yoy = ((aum_by_month.iloc[-1] - aum_by_month.iloc[-13]) /
-                   aum_by_month.iloc[-13]) * 100
+            yoy = (
+                (aum_by_month.iloc[-1] - aum_by_month.iloc[-13]) /
+                aum_by_month.iloc[-13]
+            ) * 100
             return float(yoy) if not np.isnan(yoy) else 0.0
         except Exception as e:
             logger.error("Error calculating YoY: %s", e)
@@ -229,7 +235,7 @@ class ABACOKPICalculator:
             return 0.0
 
         delinquent = (pd.to_numeric(self.loans[dpd_col], errors="coerce") >= dpd_threshold).sum()
-        total = len(self.loans)
+        total = builtins.len(self.loans)
 
         return (delinquent / total * 100) if total > 0 else 0.0
 
@@ -238,7 +244,7 @@ class ABACOKPICalculator:
         dpd_col = self._find_column(["dpd", "days_past_due"])
         balance_col = self._find_column(["outstanding_loan_value", "outstanding_balance"])
 
-        if not all([dpd_col, balance_col]):
+        if not builtins.all([dpd_col, balance_col]):
             return 0.0
 
         loans_at_risk = self.loans[
