@@ -105,7 +105,7 @@ class OpenAIProvider(BaseLLMProvider):
 class AnthropicProvider(BaseLLMProvider):
     """Anthropic Claude provider."""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-opus-20240229"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-5-haiku-20241022"):
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         self.model = model
         if ANTHROPIC_AVAILABLE and self.api_key:
