@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       # 🛠️ Local Build Section (Optional)
       # The following section in your workflow is designed to catch build issues early on the client side, before deployment. This can be helpful for debugging and validation. However, if this step significantly increases deployment time and early detection is not critical for your workflow, you may remove this section to streamline the deployment process.
@@ -31,8 +31,8 @@ jobs:
           python -m venv antenv
           source antenv/bin/activate
           pip install -r requirements.txt
-                
-      # By default, when you enable GitHub CI/CD integration through the Azure portal, the platform automatically sets the SCM_DO_BUILD_DURING_DEPLOYMENT application setting to true. This triggers the use of Oryx, a build engine that handles application compilation and dependency installation (e.g., pip install) directly on the platform during deployment. Hence, we exclude the antenv virtual environment directory from the deployment artifact to reduce the payload size. 
+
+      # By default, when you enable GitHub CI/CD integration through the Azure portal, the platform automatically sets the SCM_DO_BUILD_DURING_DEPLOYMENT application setting to true. This triggers the use of Oryx, a build engine that handles application compilation and dependency installation (e.g., pip install) directly on the platform during deployment. Hence, we exclude the antenv virtual environment directory from the deployment artifact to reduce the payload size.
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
@@ -45,7 +45,6 @@ jobs:
       # If you prefer to disable the Oryx build process during deployment, follow these steps:
       # 1. Remove the SCM_DO_BUILD_DURING_DEPLOYMENT app setting from your Azure App Service Environment variables.
       # 2. Refer to sample workflows for alternative deployment strategies: https://github.com/Azure/actions-workflow-samples/tree/master/AppService
-      
 
   deploy:
     runs-on: ubuntu-latest
@@ -59,7 +58,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: python-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -67,10 +66,33 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FF801DB858DD4428ABE049BF2452D93B }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FD78785242884080BF16F5557FBAA911 }}
 
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
+      - name: Deploy to Azure Web App with retry
         id: deploy-to-webapp
-        with:
-          app-name: 'abaco-analytics-dashboard'
-          slot-name: 'Production'
-          
+        run: |
+          for i in {1..3}; do
+            npx azure-webapps-deploy \
+              --app-name abaco-analytics-dashboard \
+              --slot-name Production \
+              --package ./python-app && break
+            echo "Intento $i fallido, reintentando en 30s..."
+            sleep 30
+          done
+          # Verifica si el último intento falló
+          if [ "$i" = "3" ]; then
+            echo "El despliegue falló tras 3 intentos."
+            exit 1
+          fi
+
+      - name: Health Check
+        run: |
+          for i in {1..10}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" https://abaco-analytics-dashboard-gbbjege0gxcbhyg9.canadacentral-01.azurewebsites.net)
+            if [ "$response" -eq 200 ]; then
+              echo "✅ App is healthy!"
+              exit 0
+            fi
+            echo "Waiting for app to be ready... ($i/10)"
+            sleep 30
+          done
+          echo "❌ Health check failed"
+          exit 1
