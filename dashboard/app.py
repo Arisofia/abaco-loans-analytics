@@ -24,7 +24,8 @@ except Exception as tracing_err:  # pragma: no cover - defensive
 
 # Health check page - responds to /?page=health
 query_params = st.query_params
-if query_params.get("page") == ["health"]:
+page = query_params.get("page")
+if page == "health" or page == ["health"] or (isinstance(page, list) and "health" in page):
     st.write("ok")
     st.stop()
 
