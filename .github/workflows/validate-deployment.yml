@@ -2,7 +2,8 @@ name: Validate Deployment Health
 
 on:
     workflow_run:
-        workflows: ["Deploy Abaco Analytics Dashboard to Azure Web App"]
+        workflows:
+            - "Deploy Abaco Analytics Dashboard to Azure Web App"
         types: [completed]
     workflow_dispatch:
         inputs:

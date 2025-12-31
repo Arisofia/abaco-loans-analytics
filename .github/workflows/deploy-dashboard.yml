@@ -30,13 +30,15 @@ jobs:
 
       - name: Assert root requirements exists
         run: |
-          test -f requirements.txt
-          grep -n "^-r dashboard/requirements.txt" requirements.txt
+          test -f dashboard/requirements.txt
+          test -f dashboard/app.py
+          test -f dashboard/startup.sh
+          test -f dashboard/tracing_setup.py
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r dashboard/requirements.txt
 
       - name: Azure login (for health check path)
         if: ${{ secrets.AZURE_CREDENTIALS != '' }}
@@ -53,5 +55,5 @@ jobs:
         with:
           app-name: ${{ env.WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: ./dashboard
           startup-command: ${{ env.STARTUP_CMD }}

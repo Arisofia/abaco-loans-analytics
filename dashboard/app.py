@@ -15,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize tracing early; tolerate missing exporters in dev
 try:
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    from python.tracing_setup import init_tracing, enable_auto_instrumentation
+    from tracing_setup import init_tracing, enable_auto_instrumentation
     init_tracing(service_name="abaco-dashboard")
     enable_auto_instrumentation()
 except Exception as tracing_err:  # pragma: no cover - defensive
@@ -33,6 +32,8 @@ if page == "health" or page == ["health"] or (isinstance(page, list) and "health
 def load_loan_data():
     """Load real loan data from CSV files."""
     data_path = Path(__file__).parent.parent / "data" / "raw" / "looker_exports" / "loans.csv"
+    if not data_path.exists():
+        data_path = Path(__file__).parent / "data" / "raw" / "looker_exports" / "loans.csv"
     
     if not data_path.exists():
         st.error(f"Data file not found: {data_path}")

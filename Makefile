@@ -1,6 +1,7 @@
 .PHONY: install install-dev test test-cov run-pipeline run-dashboard clean check-maturity \
         lint format type-check audit-code quality env-clean venv venv-install \
-        test-kpi-parity analytics-sync analytics-run gradle-build upgrade-gradle vscode-envfile-info help
+	test-kpi-parity analytics-sync analytics-run gradle-build upgrade-gradle vscode-envfile-info \
+	audit-dry-run audit-write help
 
 # ------------------------------------------------------------------------------
 # Installation targets
@@ -59,6 +60,16 @@ run-pipeline:
 
 run-dashboard:
 	streamlit run streamlit_app.py
+
+# ------------------------------------------------------------------------------
+# Audit / Lineage (Supabase)
+# ------------------------------------------------------------------------------
+
+audit-dry-run:
+	python -m python.abaco_pipeline.main --config config/pipeline.yml write-audit --kpis-config config/kpis.yml --payload config/audit_payload.example.json --dry-run
+
+audit-write:
+	python -m python.abaco_pipeline.main --config config/pipeline.yml write-audit --kpis-config config/kpis.yml --payload config/audit_payload.example.json
 
 check-maturity:
 	python repo_maturity_summary.py
@@ -149,6 +160,8 @@ help:
 	@echo "  make test-kpi-parity  - Run KPI parity tests (Python vs SQL)"
 	@echo "  make analytics-run    - Run complete analytics pipeline"
 	@echo "  make analytics-sync   - Validate KPI sync and health"
+	@echo "  make audit-dry-run    - Print enriched audit payload (no Supabase write)"
+	@echo "  make audit-write      - Write audit/lineage rows to Supabase (requires env vars)"
 	@echo "  make gradle-build     - Run Gradle build with provided JAVA_HOME"
 	@echo "  make upgrade-gradle   - Upgrade Gradle wrapper to 9.1.0"
 	@echo "  make clean            - Clean up temporary files"

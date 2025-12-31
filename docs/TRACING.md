@@ -182,7 +182,8 @@ The following are auto-instrumented via `opentelemetry-instrumentation-*`:
 Wrap your own code with spans:
 
 ```python
-from python.tracing_setup import get_tracer
+from tracing_setup import get_tracer  # dashboard (dashboard/tracing_setup.py)
+# from python.tracing_setup import get_tracer  # pipeline modules
 
 tracer = get_tracer(__name__)
 
