@@ -1,7 +1,6 @@
 import io
 import re
 from typing import Optional
-import logging
 
 import pandas as pd
 
@@ -12,17 +11,6 @@ except ImportError as e:
         "plotly.express could not be imported. Ensure 'plotly' is installed in your environment."
     ) from e
 import streamlit as st
-
-# Initialize tracing early
-try:
-    from python.azure_tracing import setup_azure_tracing
-    logger, tracer = setup_azure_tracing()
-    logger.info("Azure tracing initialized for streamlit_app")
-except (ImportError, Exception) as tracing_err:
-    # Fallback to basic logging if tracing setup fails
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 from src.analytics_metrics import (
     calculate_quality_score,
