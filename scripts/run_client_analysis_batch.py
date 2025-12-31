@@ -16,17 +16,6 @@ import numpy as np
 import requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-# Optional: Azure Application Insights tracing
-try:
-    from python.azure_tracing import setup_azure_tracing, trace_analytics_job
-    AZURE_TRACING_ENABLED = True
-except ImportError:
-    AZURE_TRACING_ENABLED = False
-    def trace_analytics_job(job_name: str, client_id: str, run_id: str):
-        def decorator(func):
-            return func
-        return decorator
-
 # -----------------
 # Logging
 # -----------------
@@ -34,14 +23,6 @@ def _setup_logger(level: str) -> logging.Logger:
 	logger = logging.getLogger("client_analysis_batch")
 	if logger.handlers:
 		return logger
-	
-	# Add Azure Application Insights handler if enabled
-	if AZURE_TRACING_ENABLED:
-		try:
-			setup_azure_tracing()
-		except Exception as e:
-			print(f"[WARN] Azure tracing setup failed: {e}")
-	
 	logger.setLevel(getattr(logging, level.upper(), logging.INFO))
 	h = logging.StreamHandler()
 	h.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
