@@ -10,8 +10,19 @@ from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 import logging
 
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
-logger = logging.getLogger(__name__)
+# Initialize tracing early
+try:
+    from python.azure_tracing import setup_azure_tracing
+    logger, tracer = setup_azure_tracing()
+    logger.info("Azure tracing initialized for validate_azure_connection")
+except (ImportError, Exception) as tracing_err:
+    # Fallback to basic logging if tracing setup fails
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[%(levelname)s] %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 
 @dataclass

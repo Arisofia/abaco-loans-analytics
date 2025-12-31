@@ -1,9 +1,25 @@
 import os
+import sys
+import logging
 import pandas as pd
 import psycopg
 from pathlib import Path
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 DB_DSN = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
+
+# Initialize tracing early
+try:
+    from python.azure_tracing import setup_azure_tracing
+    logger, tracer = setup_azure_tracing()
+    logger.info("Azure tracing initialized for load_csv_to_db")
+except (ImportError, Exception) as tracing_err:
+    # Fallback to basic logging if tracing setup fails
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 def load_data():
     project_root = Path(__file__).parent.parent

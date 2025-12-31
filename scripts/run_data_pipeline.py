@@ -15,11 +15,19 @@ from python.kpis.portfolio_health import calculate_portfolio_health
 from python.pipeline.orchestrator import UnifiedPipeline
 from python.pipeline.transformation import UnifiedTransformation
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+# Initialize tracing early
+try:
+    from python.azure_tracing import setup_azure_tracing
+    logger, tracer = setup_azure_tracing()
+    logger.info("Azure tracing initialized for run_data_pipeline")
+except (ImportError, Exception) as tracing_err:
+    # Fallback to basic logging if tracing setup fails
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 DEFAULT_INPUT = os.getenv("PIPELINE_INPUT_FILE", "data/abaco_portfolio_calculations.csv")
 

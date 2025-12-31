@@ -6,6 +6,22 @@ import numpy as np
 from datetime import datetime
 from pathlib import Path
 import json
+import sys
+import logging
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+# Initialize tracing early
+try:
+    from python.azure_tracing import setup_azure_tracing
+    logger, tracer = setup_azure_tracing()
+    logger.info("Azure tracing initialized for generate_executive_report")
+except (ImportError, Exception) as tracing_err:
+    # Fallback to basic logging if tracing setup fails
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 def load_and_analyze_loans():
     """Load loan data and generate comprehensive analysis."""

@@ -16,11 +16,19 @@ from typing import Dict, Any
 
 from python.kpi_engine_v2 import KPIEngineV2
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Initialize tracing early
+try:
+    from python.azure_tracing import setup_azure_tracing
+    logger, tracer = setup_azure_tracing()
+    logger.info("Azure tracing initialized for production_validation")
+except (ImportError, Exception) as tracing_err:
+    # Fallback to basic logging if tracing setup fails
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 
 class ProductionValidator:
