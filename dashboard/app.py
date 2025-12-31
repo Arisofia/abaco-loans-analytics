@@ -6,8 +6,17 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime
 from pathlib import Path
+import logging
 
 st.set_page_config(layout="wide", page_title="Abaco Loans Analytics - Executive Dashboard")
+
+logger = logging.getLogger(__name__)
+
+# Initialize tracing early; tolerate missing exporters in dev
+try:
+    import python.tracing_setup  # type: ignore
+except Exception as tracing_err:  # pragma: no cover - defensive
+    logger.warning("Tracing not initialized: %s", tracing_err)
 
 @st.cache_data
 def load_loan_data():
