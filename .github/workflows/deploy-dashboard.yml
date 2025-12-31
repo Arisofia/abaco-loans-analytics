@@ -14,7 +14,7 @@ env:
   WEBAPP_NAME: abaco-analytics-dashboard
   RESOURCE_GROUP: AI-MultiAgent-Ecosystem-RG
   HEALTH_CHECK_PATH: /?page=health
-  STARTUP_CMD: python -m streamlit run dashboard/app.py --server.port=8000 --server.address=0.0.0.0 --server.headless=true
+  STARTUP_CMD: bash startup.sh
 
 jobs:
   build-and-deploy:
@@ -27,6 +27,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Assert root requirements exists
+        run: |
+          test -f requirements.txt
+          grep -n "^-r dashboard/requirements.txt" requirements.txt
 
       - name: Install dependencies
         run: |

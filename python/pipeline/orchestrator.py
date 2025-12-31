@@ -152,6 +152,25 @@ class UnifiedPipeline:
                 headers = {"Authorization": f"Bearer {token_value}"} if token_value else {}
                 url = f"{base_url}{endpoint}"
                 ingestion_result = ingestion.ingest_http(url, headers=headers)
+            elif ingest_source == "looker":
+                looker_cfg = ingest_cfg.get("looker", {}) or {}
+                loans_par_path = looker_cfg.get("loans_par_path")
+                loans_fallback_path = looker_cfg.get("loans_path")
+                selected_path = None
+                if loans_par_path:
+                    candidate = Path(loans_par_path)
+                    if candidate.exists():
+                        selected_path = candidate
+                if selected_path is None and loans_fallback_path:
+                    selected_path = Path(loans_fallback_path)
+                if selected_path is None:
+                    selected_path = input_file
+                financials_path = looker_cfg.get("financials_path")
+                ingestion_result = ingestion.ingest_looker(
+                    selected_path,
+                    financials_path=Path(financials_path) if financials_path else None,
+                    archive_dir=raw_archive_dir,
+                )
             else:
                 ingestion_result = ingestion.ingest_file(input_file, archive_dir=raw_archive_dir)
 

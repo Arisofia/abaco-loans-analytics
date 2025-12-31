@@ -15,15 +15,21 @@ cascade:
 pipeline:
   phases:
     ingestion:
-      file:
-        default_path: data/raw/test/loan_tape_test.csv
+      source: looker
+      looker:
+        loans_par_path: data/raw/looker_exports/loan_par_balances.csv
+        loans_path: data/raw/looker_exports/loans.csv
+        financials_path: data/raw/financial_statements
       validation:
-        strict: false
+        strict: true
     outputs:
       storage:
         local_dir: data/metrics/dev
       supabase:
         enabled: false
+
+run:
+  raw_archive_dir: data/raw/looker_exports/archive
 
 observability:
   logging:

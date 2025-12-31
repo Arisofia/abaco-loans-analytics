@@ -27,16 +27,19 @@ python3.11 -m venv .venv
 ### 2.2 Activate venv
 
 **macOS/Linux**:
+
 ```bash
 source .venv/bin/activate
 ```
 
 **Windows**:
+
 ```bash
 .venv\Scripts\activate
 ```
 
 **Verify activation** (should show `.venv` in prompt):
+
 ```bash
 which python  # or: where python (Windows)
 ```
@@ -53,6 +56,7 @@ pip install -r requirements.txt
 ```
 
 **What this installs**:
+
 - Streamlit (dashboard framework)
 - Pandas, Numpy, Altair (data processing & visualization)
 - Azure SDK (credentials, storage, Key Vault)
@@ -103,6 +107,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=https://eastus.in.applicationinsights.azure.com/open
 ```
 
 **Getting Supabase credentials**:
+
 1. Go to [supabase.com](https://supabase.com)
 2. Project Settings → API
 3. Copy `URL` → `SUPABASE_URL`
@@ -110,6 +115,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=https://eastus.in.applicationinsights.azure.com/open
 5. Copy `service_role secret` → `SUPABASE_SERVICE_ROLE_KEY`
 
 **Optional: Getting LLM keys**:
+
 - **Anthropic**: [https://console.anthropic.com](https://console.anthropic.com) → API Keys
 - **OpenAI**: [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 - **Google**: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
@@ -143,6 +149,7 @@ streamlit run dashboard/app.py
 ```
 
 **Expected output**:
+
 ```
   You can now view your Streamlit app in your browser.
 
@@ -214,6 +221,7 @@ docker run -d \
 ```
 
 **Verify Jaeger is running**:
+
 ```bash
 curl http://localhost:16686/api/services
 # Expected: {"services":["jaeger-query"]}
@@ -251,6 +259,7 @@ Terminal should show:
 4. View distributed traces for HTTP requests, database queries
 
 **Example traces**:
+
 - HTTP calls to Supabase API (with query details)
 - Streamlit page renders
 - Custom spans from dashboard code
@@ -267,12 +276,14 @@ docker rm jaeger
 ### Issue: "Module not found: streamlit"
 
 **Solution**: Verify venv is activated:
+
 ```bash
 which python  # Should show .venv path
 python -m pip list | grep streamlit
 ```
 
 If not found, reinstall:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -280,12 +291,14 @@ pip install -r requirements.txt
 ### Issue: "SUPABASE_URL not set"
 
 **Solution**: Ensure `.env` file exists with correct values:
+
 ```bash
 ls -la .env
 grep SUPABASE_URL .env
 ```
 
 If missing, copy and edit:
+
 ```bash
 cp .env.example .env
 nano .env  # Add your credentials
@@ -294,11 +307,13 @@ nano .env  # Add your credentials
 ### Issue: "Connection refused: Supabase"
 
 **Causes**:
+
 1. Invalid SUPABASE_URL (typo or project deleted)
 2. Network/firewall blocking HTTPS
 3. Supabase project is paused
 
 **Solution**:
+
 ```bash
 # Test connectivity
 curl -H "apikey: $SUPABASE_ANON_KEY" \
@@ -309,11 +324,13 @@ curl -H "apikey: $SUPABASE_ANON_KEY" \
 ### Issue: "Streamlit port 8501 already in use"
 
 **Solution**: Use alternate port:
+
 ```bash
 streamlit run dashboard/app.py --server.port 8502
 ```
 
 Or kill existing process:
+
 ```bash
 pkill -f "streamlit run"
 sleep 2

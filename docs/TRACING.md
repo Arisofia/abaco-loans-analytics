@@ -150,6 +150,7 @@ az webapp config appsettings set \
 ```
 
 Or via **Azure Portal**:
+
 1. Go to **App Service** > **Configuration** > **Application settings**
 2. Add new settings:
    - `APPLICATIONINSIGHTS_CONNECTION_STRING` = (from above)
@@ -166,11 +167,13 @@ Or via **Azure Portal**:
 The following are auto-instrumented via `opentelemetry-instrumentation-*`:
 
 ### HTTP Clients
+
 - **httpx** — async HTTP client
 - **requests** — synchronous HTTP client
 - **urllib3** — low-level HTTP library
 
 ### Database Drivers
+
 - **psycopg2/psycopg** — PostgreSQL (Supabase)
 - **sqlite3** — SQLite (local databases)
 
@@ -226,23 +229,27 @@ init_tracing(
 ### Spans not appearing
 
 1. **Check OTEL endpoint is reachable**:
+
    ```bash
    curl -i http://localhost:4318/v1/traces
    # Expected: 400 Bad Request (OTEL expects POST with body)
    ```
 
 2. **Verify tracing initialization**:
+
    ```bash
    python -c "from python.tracing_setup import init_tracing; init_tracing(); print('OK')"
    ```
 
 3. **Enable debug logging**:
+
    ```bash
    export OTEL_LOG_LEVEL=DEBUG
    python -m streamlit run dashboard/app.py
    ```
 
 4. **Check firewall/network**:
+
    ```bash
    # If using Azure, verify App Service can reach Application Insights
    curl -i https://your-app-insights-endpoint/opentelemetry/v1/traces
@@ -264,6 +271,7 @@ processor = BatchSpanProcessor(exporter, max_queue_size=100, max_export_batch_si
 If HTTP or database calls aren't traced:
 
 1. Ensure the library is installed:
+
    ```bash
    pip install opentelemetry-instrumentation-httpx
    ```
@@ -271,6 +279,7 @@ If HTTP or database calls aren't traced:
 2. Verify `enable_auto_instrumentation()` is called in `dashboard/app.py`
 
 3. Check that imports happen **after** instrumentation:
+
    ```python
    from python.tracing_setup import init_tracing, enable_auto_instrumentation
    init_tracing()
@@ -301,8 +310,9 @@ async def fetch_cascade_data():
 ```
 
 The HTTP call will be automatically instrumented with attributes like:
+
 - `http.method` = GET
-- `http.url` = https://api.cascadedebt.com/data
+- `http.url` = <https://api.cascadedebt.com/data>
 - `http.status_code` = 200
 - `http.duration_ms` = 145
 
@@ -328,6 +338,7 @@ def fetch_kpi_values():
 ```
 
 The query will be automatically traced with:
+
 - `db.system` = postgresql
 - `db.statement` = SELECT ...
 - `db.client.connections.usage` = 1
@@ -338,6 +349,7 @@ The query will be automatically traced with:
 1. **Use meaningful span names**: `process_loan_data` not `do_stuff`
 2. **Add semantic attributes**: `loan.id`, `borrower.name`, etc.
 3. **Set status on errors**:
+
    ```python
    from opentelemetry.trace import Status, StatusCode
    
@@ -348,6 +360,7 @@ The query will be automatically traced with:
        span.record_exception(e)
        raise
    ```
+
 4. **Use context propagation** for distributed traces across services
 5. **Sample high-volume traces** in production (by default, all are sampled)
 

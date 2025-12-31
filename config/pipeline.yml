@@ -43,6 +43,82 @@ pipeline:
       source: file
       file:
         default_path: data/raw/cascade/loan_tape.csv
+      looker:
+        loans_par_path: data/raw/looker_exports/loan_par_balances.csv
+        loans_path: data/raw/looker_exports/loans.csv
+        financials_path: data/raw/financial_statements
+        measurement_date_strategy: today
+        measurement_date_column: null
+        financials_format: auto
+        financials_default_date_strategy: file_mtime
+        financials_date_column_candidates:
+          - reporting_date
+          - as_of_date
+          - date
+          - fecha
+          - fecha_corte
+        financials_metric_column_candidates:
+          - metric
+          - account
+          - line_item
+          - concept
+          - concepto
+          - cuenta
+          - name
+        financials_value_column_candidates:
+          - value
+          - amount
+          - balance
+          - saldo
+          - total
+          - monto
+          - usd
+        financials_metrics:
+          cash_balance_usd:
+            - cash_balance_usd
+            - cash_balance
+            - cash_usd
+            - cash
+            - cash_on_hand
+            - efectivo
+            - caja
+          total_assets_usd:
+            - total_assets_usd
+            - total_assets
+            - assets_total
+            - total_activos
+            - activos_totales
+          total_liabilities_usd:
+            - total_liabilities_usd
+            - total_liabilities
+            - liabilities_total
+            - total_pasivos
+            - pasivos_totales
+          net_worth_usd:
+            - net_worth_usd
+            - net_worth
+            - equity
+            - total_equity
+            - equity_total
+            - patrimonio
+            - patrimonio_total
+          net_income_usd:
+            - net_income_usd
+            - net_income
+            - net_profit
+            - utilidad_neta
+            - utilidad
+            - resultado_neto
+          runway_months:
+            - runway_months
+            - runway
+            - months_of_runway
+            - meses_runway
+          debt_to_equity_ratio:
+            - debt_to_equity_ratio
+            - debt_equity_ratio
+            - debt_to_equity
+            - deuda_patrimonio
       validation:
         strict: true
         schema_path: config/data_schemas/loan_tape.json

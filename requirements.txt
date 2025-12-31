@@ -1,4 +1,4 @@
-# Dashboard & shared runtime
+# Dashboard & shared runtime (authoritative for App Service)
 -r dashboard/requirements.txt
 
 # Azure Functions Core
@@ -7,6 +7,7 @@ azure-functions>=1.18.0
 # Azure SDK for Key Vault Integration
 azure-identity>=1.12.0
 azure-keyvault-secrets>=4.7.0
+azure-storage-blob>=12.27.0
 
 # Agent & LLM Dependencies
 openai>=1.3.0
@@ -26,11 +27,6 @@ psycopg[binary]>=3.1.0
 plotly>=6.0.0
 
 # Observability / Tracing
-opencensus-ext-azure==1.1.10
-opencensus-ext-logging==0.8.4
-opentelemetry-api>=1.20.0
-opentelemetry-sdk>=1.20.0
-opentelemetry-exporter-azure==1.2.0
 opentelemetry-exporter-otlp>=0.40.0
 opentelemetry-instrumentation-httpx>=0.40.0
 opentelemetry-instrumentation-requests>=0.40.0

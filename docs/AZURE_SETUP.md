@@ -126,6 +126,18 @@ pip install azure-identity azure-storage-blob azure-keyvault-secrets azure-mgmt-
 python scripts/validate_azure_connection.py
 ```
 
+## App Service Startup (Required for Python)
+
+Azure App Service expects `requirements.txt` at the repository root. This repo uses a root `requirements.txt` that delegates to `dashboard/requirements.txt`.
+
+If you deploy the dashboard, set the App Service startup command to:
+
+```bash
+bash startup.sh
+```
+
+This script launches Streamlit with the port provided by App Service.
+
 ## Managed Identity Setup (Recommended for Production)
 
 ### Enable System-Assigned Managed Identity on App Service
