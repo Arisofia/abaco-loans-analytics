@@ -95,17 +95,31 @@ def run_check_kpi_sync(repo_root: Path) -> Dict[str, Any]:
         shell=False
     )
     stdout, stderr = proc.communicate()
-    if proc.returncode != 0:
-        raise RuntimeError(
-            f"check_kpi_sync failed with code {proc.returncode}:\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
-        )
-
     try:
         report = json.loads(stdout)
     except json.JSONDecodeError as e:
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"check_kpi_sync failed with code {proc.returncode}:\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
+            )
         raise RuntimeError(f"Failed to parse JSON from check_kpi_sync: {e}\nRaw output:\n{stdout}") from e
 
     return report
+
+
+def _pytest_was_skipped(result: Optional[CommandResult]) -> bool:
+    """Return True when check_kpi_sync ran pytest but no tests were collected.
+
+    In this repo, KPI parity tests are opt-in and may be entirely skipped,
+    which pytest reports as return code 5.
+    """
+
+    if not result:
+        return False
+    if result.returncode != 5:
+        return False
+    text = (result.stdout or "") + "\n" + (result.stderr or "")
+    return "skipped" in text.lower()
 
 
 def _as_git_status(data: Dict[str, Any]) -> GitStatus:
@@ -218,7 +232,10 @@ def print_high_level_summary(report: KpiSyncReport) -> None:
         p = report.pytest_result
         print("\n[Parity Tests]")
         print(f"  - command: {p.command}")
-        print(f"  - success: {p.success}")
+        if _pytest_was_skipped(p):
+            print("  - success: skipped (opt-in)")
+        else:
+            print(f"  - success: {p.success}")
         print(f"  - returncode: {p.returncode}")
         if p.stderr:
             print(f"  - stderr (truncated):\n{p.stderr[:500]}")
@@ -229,8 +246,11 @@ def print_high_level_summary(report: KpiSyncReport) -> None:
         print("  - Priority files: docs/KPI_CATALOG.md, migration SQL, kpi_catalog_processor, parity tests, JSON export.")
     elif not report.json_check.valid_json or not report.json_check.has_extended_kpis:
         print("  - JSON export is missing or malformed. Re-run run_complete_analytics.py and re-check.")
+    elif report.pytest_result and _pytest_was_skipped(report.pytest_result):
+        print("  - KPI parity tests are opt-in and were skipped.")
+        print("  - To run them: set RUN_KPI_PARITY_TESTS=1 (and provide DATABASE_URL if needed).")
     elif report.pytest_result and not report.pytest_result.success:
-        print("  - KPI parity tests are failing. Investigate test_kpi_parity.py and SQL views in analytics.*.")
+        print("  - KPI parity tests are failing. Investigate tests/test_kpi_parity.py and SQL views in analytics.*.")
     else:
         print("  - All KPI governance checks are passing.")
         print("  - Safe next steps for the agent:")
@@ -262,6 +282,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         print_high_level_summary(report)
 
     # Exit code mirrors parity status if available
+    if report.pytest_result and _pytest_was_skipped(report.pytest_result):
+        return 0
     if report.pytest_result and not report.pytest_result.success:
         return 1
     return 0
