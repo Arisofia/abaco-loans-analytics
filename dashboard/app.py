@@ -13,7 +13,7 @@ st.set_page_config(layout="wide", page_title="Abaco Loans Analytics - Executive 
 # Initialize tracing early
 try:
     from python.azure_tracing import setup_azure_tracing
-    logger, tracer = setup_azure_tracing()
+    logger, _ = setup_azure_tracing()
     logger.info("Azure tracing initialized for dashboard/app")
 except (ImportError, Exception) as tracing_err:
     # Fallback to basic logging if tracing setup fails
