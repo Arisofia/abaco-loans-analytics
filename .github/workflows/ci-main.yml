@@ -37,13 +37,24 @@ jobs:
         run: pnpm build
 
   update-figma-slides:
-    if: secrets.FIGMA_TOKEN != '' && secrets.FIGMA_FILE_KEY != '' && secrets.ANALYTICS_URL != ''
+    # Note: secrets context not available in job-level if; always run and check secrets in steps
     runs-on: ubuntu-latest
     steps:
+      - name: Check secrets availability
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.FIGMA_TOKEN }}" ] && [ -n "${{ secrets.FIGMA_FILE_KEY }}" ] && [ -n "${{ secrets.ANALYTICS_URL }}" ]; then
+            echo "secrets_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "secrets_available=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout code
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/checkout@v4
 
       - name: Set up Node.js
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -51,15 +62,17 @@ jobs:
           cache-dependency-path: apps/web/pnpm-lock.yaml
 
       - name: Set up pnpm
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: pnpm/action-setup@v3
         with:
           version: 10
 
       - name: Install dependencies
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Update Figma Slides
-        if: hashFiles('scripts/update_figma_slides.js') != ''
+        if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/update_figma_slides.js') != ''
         run: node scripts/update_figma_slides.js
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}

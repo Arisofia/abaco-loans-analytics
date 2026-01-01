@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 # Third-Party Imports
+import numpy as np
 import pandas as pd
 import requests
 
@@ -35,6 +36,7 @@ def _setup_logger(level: str) -> logging.Logger:
     if logger.handlers:
         return logger
     
+    # Add Azure Application Insights handler if enabled
     if AZURE_TRACING_ENABLED:
         try:
             setup_azure_tracing()
@@ -160,6 +162,7 @@ def main() -> None:
     logger = _setup_logger(args.log_level)
     run_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
 
+    # Record run header in DB
     _rest_upsert("analytics.batch_runs", [{
         "run_id": run_id,
         "started_at_utc": datetime.utcnow().isoformat(),
@@ -193,6 +196,7 @@ def main() -> None:
                 if rr.status != "success":
                     logger.error("FAILED client=%s: %s", rr.client_id, rr.error)
 
+    # Finalize run row in DB
     failures = [r for r in results if r.status != "success"]
     _rest_upsert("analytics.batch_runs", [{
         "run_id": run_id,
@@ -203,6 +207,7 @@ def main() -> None:
         "results_json": [asdict(r) for r in sorted(results, key=lambda x: x.client_id)],
     }], on_conflict="run_id")
 
+    # Emit summary to stdout for CI
     print(json.dumps({
         "run_id": run_id,
         "total_clients": len(results),
