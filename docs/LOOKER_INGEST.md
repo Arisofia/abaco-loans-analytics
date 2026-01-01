@@ -14,11 +14,11 @@ The ingestion layer converts Looker PAR balances into the loan tape schema expec
 
 - `reporting_date` → `measurement_date`
 - `outstanding_balance_usd` → `total_receivable_usd`
-- `PAR_90_balance_usd` → `dpd_90_plus_usd`
-- `PAR_60_balance_usd` → `dpd_60_90_usd` (net of PAR90)
-- `PAR_30_balance_usd` → `dpd_30_60_usd` (net of PAR60)
-- `PAR_7_balance_usd` → `dpd_7_30_usd` (net of PAR30)
-- `total_receivable_usd` - `PAR_7_balance_usd` → `dpd_0_7_usd`
+- `par_90_balance_usd` → `dpd_90_plus_usd`
+- `par_60_balance_usd` → `dpd_60_90_usd` (net of PAR90)
+- `par_30_balance_usd` → `dpd_30_60_usd` (net of PAR60)
+- `par_7_balance_usd` → `dpd_7_30_usd` (net of PAR30)
+- `total_receivable_usd` - `par_7_balance_usd` → `dpd_0_7_usd`
 
 Optional financial statements can provide a `cash_balance` column (see `config/pipeline.yml` for candidate column names). If unavailable, `cash_available_usd` defaults to `0`.
 
