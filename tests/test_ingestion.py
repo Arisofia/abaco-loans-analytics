@@ -84,7 +84,8 @@ def test_validate_loans():
 
 def test_validate_loans_missing_field():
     df = pd.DataFrame({"period": ["2025Q4"], "measurement_date": ["2025-12-01"]})
-    ingestion = UnifiedIngestion()
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     validated = ingestion.validate_loans(df)
     assert "_validation_passed" in validated.columns
     assert bool(validated["_validation_passed"].iloc[0]) is False
@@ -101,7 +102,8 @@ def test_validate_loans_invalid_numeric():
             "total_receivable_usd": ["invalid"],
         }
     )
-    ingestion = UnifiedIngestion()
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     validated = ingestion.validate_loans(df)
     assert "_validation_passed" in validated.columns
     assert bool(validated["_validation_passed"].iloc[0]) is False
@@ -114,7 +116,8 @@ def test_validate_loans_invalid_numeric():
 
 
 def test_get_ingest_summary():
-    ingestion = UnifiedIngestion()
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     summary = ingestion.get_ingest_summary()
     for key in ["run_id", "timestamp", "total_errors", "errors"]:
         assert key in summary
@@ -125,7 +128,8 @@ def test_get_ingest_summary():
 
 
 def test_update_summary_tracks_counts():
-    ingestion = UnifiedIngestion()
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     ingestion._update_summary(10, "file1.csv")
     ingestion._update_summary(5, "file2.csv")
     ingestion._update_summary(20)  # No filename (e.g. dataframe ingest)
