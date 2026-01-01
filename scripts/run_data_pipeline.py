@@ -9,8 +9,21 @@ from typing import Any, Dict, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Initialize tracing early in the application lifecycle
-from python.tracing_setup import configure_tracing
-configure_tracing(service_name="abaco-data-pipeline")
+try:
+    from python.tracing_setup import configure_tracing
+except ImportError:
+    logging.getLogger(__name__).warning(
+        "Tracing is disabled: failed to import 'configure_tracing' from 'python.tracing_setup'.",
+        exc_info=True,
+    )
+else:
+    try:
+        configure_tracing(service_name="abaco-data-pipeline")
+    except Exception:
+        logging.getLogger(__name__).warning(
+            "Tracing is disabled: configure_tracing() raised an exception.",
+            exc_info=True,
+        )
 
 from python.compliance import build_compliance_report, write_compliance_report
 from python.pipeline.ingestion import UnifiedIngestion
