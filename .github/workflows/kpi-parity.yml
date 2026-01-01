@@ -50,7 +50,15 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260101_analytics_kpi_views.sql
 
       - name: Run KPI parity tests (Python vs SQL)
+        if: env.DATABASE_URL != ''
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
+          RUN_KPI_PARITY_TESTS: "1"
         run: |
           pytest -q tests/test_kpi_parity.py
+
+      - name: Skip KPI parity tests (no database configured)
+        if: env.DATABASE_URL == ''
+        run: |
+          echo "::warning::DATABASE_URL secret not configured - skipping KPI parity tests"
+          echo "To enable these tests, add DATABASE_URL to repository secrets"
