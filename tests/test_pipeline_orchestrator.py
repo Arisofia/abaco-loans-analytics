@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 import tempfile
 import pandas as pd
+import yaml
 from python.pipeline.orchestrator import UnifiedPipeline, PipelineConfig
 
 
@@ -100,7 +101,6 @@ class TestUnifiedPipeline:
         
         # Write config to temporary file
         config_file = tmp_path / "looker_config.yml"
-        import yaml
         with open(config_file, 'w') as f:
             yaml.dump(config_dict, f)
         
