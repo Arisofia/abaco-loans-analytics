@@ -168,13 +168,14 @@ traces
 
 - Check if tracing was initialized before the operation
 - Verify span context is being propagated correctly
-- Review sampling settings in `host.json` (for Azure Functions)
+- For Azure Functions, review sampling settings in `host.json`; for other Python components (including Streamlit dashboards), review the OpenTelemetry SDK sampling configuration in `python/tracing_setup.py` or related setup code
 
 ### Performance Impact
 
-- Default sampling rate is configured in `host.json` (20 items/second)
-- Adjust sampling rate based on workload
-- Use adaptive sampling for production environments
+- For Azure Functions, the default sampling rate can be configured in `host.json` (for example, 20 items/second)
+- For other Python services using OpenTelemetry, configure sampling (e.g., parent-based or trace-id ratio samplers) via the OpenTelemetry SDK or Azure Monitor OpenTelemetry Distro settings
+- Adjust sampling rate based on workload and environment
+- Use adaptive or rate-limited sampling strategies for production environments
 
 ## Security Considerations
 
