@@ -5,6 +5,7 @@ pyarrow>=14.0
 polars>=0.20
 PyYAML>=6.0
 requests>=2.31.0
+scipy>=1.11.0
 
 # Cloud integrations
 azure-storage-blob>=12.0
