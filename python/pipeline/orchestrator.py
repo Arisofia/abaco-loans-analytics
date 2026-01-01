@@ -168,11 +168,11 @@ class UnifiedPipeline:
                 span.set_attribute("ingestion.row_count", len(ingestion_result.df))
                 run_dir = ensure_dir(artifacts_dir / self.run_id)
 
-                with tracer.start_as_current_span("pipeline.transformation"):
+                with tracer.start_as_current_span("pipeline.transformation") as transformation_span:
                     transformation = UnifiedTransformation(self.config.config, run_id=self.run_id)
                     transformation_result = transformation.transform(ingestion_result.df, user=user)
-                    span.set_attribute("transformation.row_count", len(transformation_result.df))
-                    span.set_attribute("transformation.masked_columns", len(transformation_result.masked_columns))
+                    transformation_span.set_attribute("transformation.row_count", len(transformation_result.df))
+                    transformation_span.set_attribute("transformation.masked_columns", len(transformation_result.masked_columns))
 
                 baseline_metrics = self._load_previous_metrics(artifacts_dir, self.run_id)
                 
