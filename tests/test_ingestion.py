@@ -8,7 +8,8 @@ def test_ingest_csv(tmp_path):
     csv_content = "period,measurement_date,total_receivable_usd,dpd_0_7_usd,dpd_7_30_usd,dpd_30_60_usd,dpd_60_90_usd,dpd_90_plus_usd,total_eligible_usd,discounted_balance_usd,cash_available_usd\n2025Q4,2025-12-01,1000.0,100,100,100,100,100,800,700,500\n2025Q4,2025-12-02,2000.0,200,200,200,200,200,1600,1400,1000"
     csv_file = tmp_path / "sample.csv"
     csv_file.write_text(csv_content)
-    ingestion = UnifiedIngestion(data_dir=tmp_path)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     df = ingestion.ingest_csv("sample.csv")
     assert not df.empty
     for col in [
@@ -30,7 +31,8 @@ def test_ingest_csv(tmp_path):
 
 
 def test_ingest_csv_error(tmp_path):
-    ingestion = UnifiedIngestion(data_dir=tmp_path)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     df = ingestion.ingest_csv("nonexistent.csv")
     assert df.empty
     assert len(ingestion.errors) == 1
@@ -44,7 +46,8 @@ def test_ingest_csv_error(tmp_path):
 def test_ingest_csv_empty_file(tmp_path):
     csv_file = tmp_path / "empty.csv"
     csv_file.touch()
-    ingestion = UnifiedIngestion(data_dir=tmp_path)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     df = ingestion.ingest_csv("empty.csv")
     assert df.empty
     assert len(ingestion.errors) == 1
@@ -55,7 +58,8 @@ def test_ingest_csv_strict_schema_failure(tmp_path):
     csv_content = "period,measurement_date,total_receivable_usd\n2025Q4,2025-12-01,1000.0"
     csv_file = tmp_path / "sample.csv"
     csv_file.write_text(csv_content)
-    ingestion = UnifiedIngestion(data_dir=tmp_path, strict_validation=True)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     df = ingestion.ingest_csv("sample.csv")
     assert df.empty  # strict mode aborts on schema issues
     assert ingestion.errors
@@ -68,7 +72,8 @@ def test_validate_loans():
     df = pd.DataFrame(
         {"period": ["2025Q4"], "measurement_date": ["2025-12-01"], "total_receivable_usd": [1000.0]}
     )
-    ingestion = UnifiedIngestion(data_dir=".")
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     validated = ingestion.validate_loans(df)
     assert "_validation_passed" in validated.columns
     # With hardened required fields, minimal rows fail validation
@@ -139,7 +144,8 @@ def test_looker_par_balances_to_loan_tape(tmp_path):
     csv_file = tmp_path / "par_balances.csv"
     csv_file.write_text(par_csv)
     
-    ingestion = UnifiedIngestion(data_dir=tmp_path)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     df = pd.read_csv(csv_file)
     cash_by_date = {}
     result = ingestion._looker_par_balances_to_loan_tape(df, cash_by_date)
@@ -171,7 +177,8 @@ def test_looker_dpd_to_loan_tape(tmp_path):
     csv_file = tmp_path / "loans_dpd.csv"
     csv_file.write_text(dpd_csv)
     
-    ingestion = UnifiedIngestion(data_dir=tmp_path)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     df = pd.read_csv(csv_file)
     cash_by_date = {}
     result = ingestion._looker_dpd_to_loan_tape(df, cash_by_date)
@@ -201,7 +208,8 @@ def test_ingest_looker_with_par_balances(tmp_path):
     loans_file = tmp_path / "par_balances.csv"
     loans_file.write_text(par_csv)
     
-    ingestion = UnifiedIngestion(data_dir=tmp_path)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     result = ingestion.ingest_looker(loans_file)
     
     assert isinstance(result.df, pd.DataFrame)
@@ -219,7 +227,8 @@ def test_ingest_looker_with_dpd_data(tmp_path):
     loans_file = tmp_path / "loans_dpd.csv"
     loans_file.write_text(dpd_csv)
     
-    ingestion = UnifiedIngestion(data_dir=tmp_path)
+    config = {"pipeline": {"phases": {"ingestion": {}}}}
+    ingestion = UnifiedIngestion(config)
     result = ingestion.ingest_looker(loans_file)
     
     assert isinstance(result.df, pd.DataFrame)
