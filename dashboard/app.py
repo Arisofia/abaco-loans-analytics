@@ -1,9 +1,23 @@
 """Streamlit dashboard for Abaco Loans Analytics - Real Data Dashboard."""
 
+import streamlit as st
+
+# FAST HEALTH CHECK - MUST BE FIRST
+# This allows Azure App Service health checks to pass even if initialization takes time
+try:
+    query_params = st.query_params
+except AttributeError:
+    query_params = st.experimental_get_query_params()
+
+page = query_params.get("page")
+if page == "health" or page == ["health"] or (isinstance(page, list) and "health" in page):
+    st.write("ok")
+    st.stop()
+
+# HEAVY IMPORTS AND INITIALIZATION AFTER HEALTH CHECK
 import altair as alt
 import numpy as np
 import pandas as pd
-import streamlit as st
 from datetime import datetime
 from pathlib import Path
 import logging
@@ -20,17 +34,6 @@ try:
     enable_auto_instrumentation()
 except Exception as tracing_err:  # pragma: no cover - defensive
     logger.warning("Tracing not initialized: %s", tracing_err)
-
-# Health check page - responds to /?page=health
-try:
-    query_params = st.query_params
-except AttributeError:
-    query_params = st.experimental_get_query_params()
-
-page = query_params.get("page")
-if page == "health" or page == ["health"] or (isinstance(page, list) and "health" in page):
-    st.write("ok")
-    st.stop()
 
 @st.cache_data
 def load_loan_data():

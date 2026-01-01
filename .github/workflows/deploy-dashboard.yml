@@ -80,16 +80,14 @@ jobs:
           fi
 
       - name: Deploy to Azure Web App
-        if: steps.check_publish_profile.outputs.has_publish_profile == 'true'
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./dashboard
           startup-command: ${{ env.STARTUP_CMD }}
 
       - name: Post-deployment health check
-        if: always() && steps.check_publish_profile.outputs.has_publish_profile == 'true'
+        if: always()
         run: |
           echo "Deployment completed. Monitoring health check..."
           host_name="${{ steps.resolve_host.outputs.host_name }}"
