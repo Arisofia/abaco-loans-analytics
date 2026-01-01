@@ -40,13 +40,6 @@ from python.kpis.par_30 import calculate_par_30
 from python.kpis.par_90 import calculate_par_90
 from python.kpis.portfolio_health import calculate_portfolio_health
 
-warnings.warn(
-    "KPIEngine (v1) is deprecated and will be removed in v2.0 (2026-02-01). "
-    "Use KPIEngineV2 from python.kpi_engine_v2 instead.",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
 
 class KPIEngine:
     """
@@ -58,6 +51,12 @@ class KPIEngine:
 
     def __init__(self, df: pd.DataFrame):
         """Initialize with a DataFrame."""
+        warnings.warn(
+            "KPIEngine (v1) is deprecated and will be removed in v2.0 (2026-02-01). "
+            "Use KPIEngineV2 from python.kpi_engine_v2 instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.df = df
         self.audit_trail: list[dict[str, Any]] = []
 
