@@ -66,7 +66,12 @@ jobs:
 
       - name: Configure App Service health check path
         if: steps.check_creds.outputs.has_creds == 'true'
-        run: az webapp config set --resource-group $RESOURCE_GROUP --name $WEBAPP_NAME --health-check-path $HEALTH_CHECK_PATH
+        run: |
+          az resource update \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --resource-type "Microsoft.Web/sites" \
+            --set properties.siteConfig.healthCheckPath="$HEALTH_CHECK_PATH"
 
       - name: Resolve App Service hostname
         if: steps.check_creds.outputs.has_creds == 'true'
