@@ -6,7 +6,7 @@ from typing import Dict, Iterable
 import numpy as np
 import pandas as pd
 
-from python.validation import (
+from python.pipeline.data_validation import (
     ANALYTICS_NUMERIC_COLUMNS,
     REQUIRED_ANALYTICS_COLUMNS,
     safe_numeric,

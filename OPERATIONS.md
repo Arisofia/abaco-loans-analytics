@@ -116,7 +116,7 @@ head logs/runs/latest/pipeline_summary.json
 # - All 29 tests passing
 # - Pipeline latency < 10 minutes
 # - All KPIs calculated
-# - Outputs persisted to Supabase
+# - Outputs persisted to Supabase (audit/lineage tables)
 # - No error logs in logs/runs/latest/*.log
 
 # 5. Continue monitoring (24 hours)
@@ -139,6 +139,55 @@ python scripts/run_data_pipeline.py
 
 ---
 
+## Audit & Lineage (Supabase)
+
+This repo supports audit-ready KPI provenance via Supabase tables.
+
+### 1) Apply the migration
+
+Migration file:
+
+- `supabase/migrations/20251231_pipeline_audit_tables.sql`
+
+Apply it using your preferred Supabase workflow (Supabase CLI / SQL editor). It creates:
+
+- `analytics.pipeline_runs`
+- `analytics.raw_artifacts`
+- `analytics.kpi_values`
+- `analytics.data_quality_results`
+
+### 2) Configure environment
+
+Required:
+
+```bash
+export SUPABASE_URL="https://<project>.supabase.co"
+export SUPABASE_SERVICE_ROLE="<service_role_key>"
+export SUPABASE_SERVICE_ROLE_KEY="<service_role_key>"
+```
+
+### 3) Dry-run (safe validation)
+
+Prints the enriched payload and exits without writing anything:
+
+```bash
+make audit-dry-run
+```
+
+### 4) Write audit rows (end-to-end)
+
+Writes `pipeline_runs`, `raw_artifacts`, `kpi_values`, `data_quality_results` to Supabase:
+
+```bash
+make audit-write
+```
+
+Reference doc:
+
+- `docs/AUDIT_LINEAGE.md`
+
+---
+
 ## Monitoring & Alerts
 
 ### Key Metrics to Monitor
@@ -156,12 +205,14 @@ python scripts/run_data_pipeline.py
 ### Slack Alerting
 
 **Channels**:
+
 - `#risk-monitoring` - Risk alerts (PAR_90, RDR_90, Collection Rate)
 - `#compliance-team` - Compliance alerts (audit flags, data quality)
 - `#fintech-reports` - Daily summary report
 - `#executive-briefing` - C-level alerts (critical issues only)
 
 **Alert Rules**:
+
 ```
 PAR_90 > 5.0%         → Critical alert to #executive-briefing + @cfo
 Collection Rate < 1%  → Warning to #risk-monitoring
@@ -186,6 +237,7 @@ integrations:
 ### Dashboard Monitoring
 
 Dashboard refresh schedules:
+
 - **KPI Dashboard**: Updated every 30 minutes
 - **Risk Dashboard**: Updated every 15 minutes
 - **Executive Dashboard**: Updated hourly (Mondays at 8 AM)
@@ -201,6 +253,7 @@ Dashboard refresh schedules:
 **Symptoms**: Pipeline runs longer than 15 minutes
 
 **Investigation**:
+
 ```bash
 # 1. Check latest run logs
 tail -200 logs/runs/latest/pipeline_*.log | grep -i "phase\|error"
@@ -213,6 +266,7 @@ python scripts/performance_stress_test.py --phase <phase-name>
 ```
 
 **Solutions**:
+
 - **Ingestion slow?** Check Cascade API response times and rate limits
 - **Transformation slow?** Check for memory issues on large datasets
 - **Calculation slow?** Profile KPI computation with `--profile` flag
@@ -223,6 +277,7 @@ python scripts/performance_stress_test.py --phase <phase-name>
 **Symptoms**: Pipeline crashes or runs slowly after startup
 
 **Investigation**:
+
 ```bash
 # Monitor process memory
 watch -n 1 'ps aux | grep run_data_pipeline | grep -v grep'
@@ -232,6 +287,7 @@ du -sh data/raw/cascade/loan_tape.csv
 ```
 
 **Solutions**:
+
 - Increase system RAM if dataset > 10GB
 - Implement chunked processing for large files
 - Archive old raw data to reduce disk I/O
@@ -241,6 +297,7 @@ du -sh data/raw/cascade/loan_tape.csv
 **Symptoms**: Validation errors in transformation phase
 
 **Investigation**:
+
 ```bash
 # Check validation logs
 grep -i "validation\|error" logs/runs/latest/pipeline_*.log
@@ -250,6 +307,7 @@ python -c "import json; print(json.load(open('logs/runs/latest/validation_report
 ```
 
 **Solutions**:
+
 - Check source data quality from Cascade
 - Verify schema hasn't changed: `config/data_schemas/loan_tape.json`
 - Review and update validation rules if needed
@@ -259,6 +317,7 @@ python -c "import json; print(json.load(open('logs/runs/latest/validation_report
 **Symptoms**: Outputs not persisted, connection timeouts
 
 **Investigation**:
+
 ```bash
 # Test Supabase connection
 python -c "
@@ -273,6 +332,7 @@ ping api.supabase.com
 ```
 
 **Solutions**:
+
 - Verify Supabase credentials in environment variables
 - Check VPN/network connection
 - Increase connection timeout in config
@@ -337,6 +397,7 @@ ping api.supabase.com
 ### Weekly Maintenance Tasks
 
 **Monday 2 AM UTC** (off-peak):
+
 ```bash
 # Clean up old logs (older than 30 days)
 find logs/runs -type d -mtime +30 -exec rm -rf {} \;
@@ -351,6 +412,7 @@ make audit-code
 ### Monthly Maintenance Tasks
 
 **First Monday of month, 2 AM UTC**:
+
 ```bash
 # Generate compliance report
 python scripts/generate_compliance_report.py
@@ -372,6 +434,7 @@ make quality  # Ensure no breaking changes
 ### Quarterly Maintenance Tasks
 
 **First day of quarter, 2 AM UTC**:
+
 ```bash
 # Full system audit (ENGINEERING_STANDARDS.md quarterly checklist)
 make install-dev
@@ -393,6 +456,7 @@ python scripts/performance_stress_test.py
 ### Annual Tasks
 
 **Every January 1st**:
+
 ```bash
 # Delete deprecated code from v1.x
 # - Remove config/LEGACY/ directory

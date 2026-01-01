@@ -2,7 +2,6 @@ import io
 import re
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 try:
@@ -15,50 +14,28 @@ import streamlit as st
 
 from src.analytics_metrics import (
     calculate_quality_score,
-    portfolio_kpis,
-    project_growth,
-    standardize_numeric,
-)
+    import pandas as pd
+    import streamlit as st
+    from src.analytics_metrics import get_kpi_metrics
+    from streamlit_app.utils.ingestion import parse_uploaded_file
+    from streamlit_app.utils.business_rules import apply_business_rules, engineer_features
 
-REQUIRED_COLUMNS = [
-    "loan_amount",
-    "appraised_value",
-    "borrower_income",
-    "monthly_debt",
-    "loan_status",
-    "interest_rate",
-    "principal_balance",
-]
-
-
-def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Lowercase and snake-case incoming column names."""
-
-    clean = df.rename(columns=lambda col: re.sub(r"[^a-z0-9_]+", "_", col.strip().lower()))
-    return clean.loc[:, ~clean.columns.duplicated()]
-
-
-def parse_uploaded_file(uploaded) -> pd.DataFrame:
-    if uploaded is None:
-        return pd.DataFrame()
-
-    name = uploaded.name.lower()
-    content = uploaded.read()
-    buffer = io.BytesIO(content)
-
-    try:
-        if name.endswith(".csv"):
-            df = pd.read_csv(buffer)
-        elif name.endswith((".xls", ".xlsx")):
-            df = pd.read_excel(buffer)
+    def main():
+        st.title("Abaco Loans Analytics Dashboard")
+        uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+        df = parse_uploaded_file(uploaded_file)
+        if df is not None:
+            st.write("Raw Data", df.head())
+            df_clean = apply_business_rules(df)
+            df_features = engineer_features(df_clean)
+            st.write("Processed Data", df_features.head())
+            kpi_metrics = get_kpi_metrics(df_features)
+            st.write("KPI Metrics", kpi_metrics)
         else:
-            st.warning("Unsupported file type. Please upload CSV or Excel.")
-            return pd.DataFrame()
-    except Exception as exc:  # pragma: no cover - streamlit UI message
-        st.error(f"Unable to read file: {exc}")
-        return pd.DataFrame()
+            st.info("Please upload a CSV file to begin.")
 
-    return normalize_columns(df)
+    if __name__ == "__main__":
+        main()
 
 
 def ensure_required_columns(df: pd.DataFrame) -> Optional[pd.DataFrame]:

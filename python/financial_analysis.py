@@ -6,7 +6,7 @@ from typing import Callable, List, Optional
 import numpy as np
 import pandas as pd
 
-from python.validation import find_column
+from python.pipeline.data_validation import find_column
 
 logger = logging.getLogger(__name__)
 

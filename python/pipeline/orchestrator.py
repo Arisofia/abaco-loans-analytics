@@ -6,11 +6,12 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from python.compliance import build_compliance_report, write_compliance_report
-from python.pipeline.calculation import UnifiedCalculationV2
-from python.pipeline.ingestion import UnifiedIngestion
+from python.pipeline.kpi_calculation import UnifiedCalculationV2
+from python.pipeline.data_ingestion import UnifiedIngestion
 from python.pipeline.output import UnifiedOutput
-from python.pipeline.transformation import UnifiedTransformation
+from python.pipeline.data_transformation import UnifiedTransformation
 from python.pipeline.utils import ensure_dir, load_yaml, resolve_placeholders, utc_now, write_json
+from python.agents.tools import send_slack_notification
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +131,34 @@ class UnifiedPipeline:
                 continue
         return None
 
+    def _handle_alerts(self, ingestion_summary: Dict[str, Any], calculation_result: Any) -> None:
+        """Evaluate DQ and KPI statuses to trigger alerts."""
+        alerts = []
+        
+        # 1. Data Quality Alerts
+        dq = ingestion_summary.get("data_quality", {})
+        dq_score = dq.get("data_quality_score", 100)
+        dq_threshold = 95 # Could be moved to config
+        
+        if dq_score < dq_threshold:
+            alerts.append(f"🔴 *Data Quality Alert*: Score is {dq_score}% (Threshold: {dq_threshold}%)")
+            
+        # 2. KPI Threshold Alerts
+        for name, metric in calculation_result.metrics.items():
+            status = metric.get("status")
+            val = metric.get("value")
+            disp = metric.get("display_name", name)
+            
+            if status == "critical":
+                alerts.append(f"🚨 *Critical KPI Alert*: {disp} is {val} (Status: CRITICAL)")
+            elif status == "warning":
+                alerts.append(f"⚠️ *KPI Warning*: {disp} is {val} (Status: WARNING)")
+                
+        if alerts:
+            message = f"📢 *Pipeline Alert - Run {self.run_id}*\n\n" + "\n".join(alerts)
+            logger.warning("Triggering Slack alerts: %s", alerts)
+            send_slack_notification(message, channel="kpi-compliance")
+
     def execute(
         self, input_file: Path, user: str = "system", action: str = "manual"
     ) -> Dict[str, Any]:
@@ -152,6 +181,25 @@ class UnifiedPipeline:
                 headers = {"Authorization": f"Bearer {token_value}"} if token_value else {}
                 url = f"{base_url}{endpoint}"
                 ingestion_result = ingestion.ingest_http(url, headers=headers)
+            elif ingest_source == "looker":
+                looker_cfg = ingest_cfg.get("looker", {}) or {}
+                loans_par_path = looker_cfg.get("loans_par_path")
+                loans_fallback_path = looker_cfg.get("loans_path")
+                selected_path = None
+                if loans_par_path:
+                    candidate = Path(loans_par_path)
+                    if candidate.exists():
+                        selected_path = candidate
+                if selected_path is None and loans_fallback_path:
+                    selected_path = Path(loans_fallback_path)
+                if selected_path is None:
+                    selected_path = input_file
+                financials_path = looker_cfg.get("financials_path")
+                ingestion_result = ingestion.ingest_looker(
+                    selected_path,
+                    financials_path=Path(financials_path) if financials_path else None,
+                    archive_dir=raw_archive_dir,
+                )
             else:
                 ingestion_result = ingestion.ingest_file(input_file, archive_dir=raw_archive_dir)
 
@@ -164,6 +212,9 @@ class UnifiedPipeline:
             baseline_metrics = self._load_previous_metrics(artifacts_dir, self.run_id)
             calculation = UnifiedCalculationV2(self.config.config, run_id=self.run_id)
             calculation_result = calculation.calculate(transformation_result.df, baseline_metrics)
+
+            # Evaluate alerts
+            self._handle_alerts(ingestion.get_ingest_summary(), calculation_result)
 
             compliance_report = build_compliance_report(
                 run_id=self.run_id,

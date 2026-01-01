@@ -18,8 +18,8 @@ class AgentConfig:
     """Configuration for base agent."""
     name: str
     description: str
-    llm_provider: LLMProvider = LLMProvider.OPENAI
-    model: str = "gpt-4"
+    llm_provider: LLMProvider = LLMProvider.ANTHROPIC
+    model: str = "claude-3-5-haiku-20241022"
     temperature: float = 0.7
     max_iterations: int = 10
     timeout: int = 300
@@ -67,7 +67,9 @@ class BaseAgent(ABC):
             llm_manager=self.llm_manager,
             provider=config.llm_provider,
             model=config.model,
-            max_iterations=config.max_iterations
+            max_iterations=config.max_iterations,
+            temperature=config.temperature,
+            name=config.name
         )
         
         # Agent state

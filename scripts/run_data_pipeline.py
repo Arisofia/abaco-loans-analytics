@@ -9,11 +9,17 @@ from typing import Any, Dict, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from python.compliance import build_compliance_report, write_compliance_report
-from python.pipeline.ingestion import UnifiedIngestion
-from python.kpi_engine_v2 import KPIEngineV2
-from python.kpis.portfolio_health import calculate_portfolio_health
+from python.pipeline.data_ingestion import UnifiedIngestion
+from python.kpi_engine import KPIEngine as KPIEngineLegacy
 from python.pipeline.orchestrator import UnifiedPipeline
-from python.pipeline.transformation import UnifiedTransformation
+from python.pipeline.data_transformation import UnifiedTransformation
+
+# Legacy aliases for backward compatibility with tests/patching
+CascadeIngestion = UnifiedIngestion
+DataTransformation = UnifiedTransformation
+
+# Legacy patch target used by unit tests
+KPIEngine = KPIEngineLegacy
 
 logging.basicConfig(
     level=logging.INFO,
@@ -71,21 +77,21 @@ def run_pipeline(
     azure_connection_string: Optional[str] = None,
     azure_blob_prefix: Optional[str] = None,
 ) -> bool:
-    ingestion = UnifiedIngestion(data_dir=str(Path(input_file).parent))
+    ingestion = CascadeIngestion(data_dir=str(Path(input_file).parent))
     ingested = ingestion.ingest_csv(Path(input_file).name)
     validated = ingestion.validate_loans(ingested)
 
     if validated.empty or not bool(validated.get("_validation_passed", True).all()):
         return False
 
-    transformer = UnifiedTransformation()
+    transformer = DataTransformation()
     kpi_df = transformer.transform_to_kpi_dataset(validated)
 
-    kpi_engine = KPIEngineV2(kpi_df)
+    kpi_engine = KPIEngine(kpi_df)
     par_30, par_30_ctx = kpi_engine.calculate_par_30()
     par_90, par_90_ctx = kpi_engine.calculate_par_90()
     collection_rate, coll_ctx = kpi_engine.calculate_collection_rate()
-    health_score, health_ctx = calculate_portfolio_health(par_30, collection_rate)
+    health_score, health_ctx = kpi_engine.calculate_portfolio_health(par_30, collection_rate)
 
     metrics = {
         "PAR30": {"value": par_30, **par_30_ctx},

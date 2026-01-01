@@ -1,0 +1,29 @@
+name: Product Analytics
+on:
+    schedule:
+        - cron: "0 11 * * *" # 12:00 PM CET daily
+    workflow_dispatch:
+
+env:
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+
+jobs:
+    product-analytics:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+            - name: Setup Python Environment
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - name: Install Dependencies
+              run: |
+                  pip install -r requirements.txt
+            - name: Run Product Analytics
+              run: |
+                  python scripts/product_analytics.py
+            - name: Post to Figma
+              run: |
+                  python scripts/post_to_figma.py

@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from python.validation import (
+from python.pipeline.data_validation import (
     ANALYTICS_NUMERIC_COLUMNS,
     NUMERIC_COLUMNS,
     REQUIRED_ANALYTICS_COLUMNS,
@@ -113,7 +113,7 @@ def test_find_column_edge_cases():
 
 def test_safe_numeric_empty():
     """Test safe_numeric with empty input."""
-    from python.validation import safe_numeric
+    from python.pipeline.data_validation import safe_numeric
 
     s = pd.Series([], dtype=object)
     res = safe_numeric(s)
@@ -121,7 +121,7 @@ def test_safe_numeric_empty():
 
 
 def test_validate_percentage_bounds():
-    from python.validation import validate_percentage_bounds
+    from python.pipeline.data_validation import validate_percentage_bounds
 
     df = pd.DataFrame(
         {
@@ -141,7 +141,7 @@ def test_validate_percentage_bounds():
 
 
 def test_validate_iso8601_dates():
-    from python.validation import validate_iso8601_dates
+    from python.pipeline.data_validation import validate_iso8601_dates
 
     df = pd.DataFrame(
         {

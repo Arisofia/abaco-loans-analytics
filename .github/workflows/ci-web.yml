@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'apps/web/**'
+      - "apps/web/**"
   pull_request:
     branches: [main]
     paths:
-      - 'apps/web/**'
+      - "apps/web/**"
 
 jobs:
   assignee-check:
@@ -28,10 +28,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
           cache-dependency-path: apps/web/pnpm-lock.yaml
       - name: Install pnpm
         run: npm install -g pnpm
@@ -62,10 +62,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
           cache-dependency-path: apps/web/pnpm-lock.yaml
       - name: Install pnpm
         run: npm install -g pnpm

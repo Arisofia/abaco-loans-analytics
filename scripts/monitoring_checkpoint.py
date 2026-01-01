@@ -5,11 +5,9 @@ Executes validation and records metrics for each checkpoint
 """
 
 import sys
-import os
 import json
 import subprocess
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, '/Users/jenineferderas/Documents/abaco-loans-analytics')
@@ -56,6 +54,7 @@ class MonitoringCheckpoint:
     def run_validation(self) -> dict:
         """Execute production validation script"""
         try:
+            # Use argument list, never shell=True, and do not interpolate untrusted input
             result = subprocess.run(
                 [
                     sys.executable,
@@ -63,9 +62,9 @@ class MonitoringCheckpoint:
                 ],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
+                shell=False
             )
-            
             validation_report_path = Path("production_validation_report.json")
             if validation_report_path.exists():
                 with open(validation_report_path) as f:
@@ -135,7 +134,7 @@ class MonitoringCheckpoint:
         
         if self.metrics['validation'].get('checks', {}).get('performance'):
             perf = self.metrics['validation']['checks']['performance'].get('metrics', {})
-            print(f"\nPerformance:")
+            print("\nPerformance:")
             print(f"  Latency: {perf.get('latency_ms', 'N/A')} ms (threshold: 100 ms)")
             print(f"  Throughput: {perf.get('throughput_rows_per_sec', 'N/A')} rows/sec")
         

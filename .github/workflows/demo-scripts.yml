@@ -4,21 +4,21 @@ on:
   push:
     branches: [main]
     paths:
-      - 'scripts/**'
-      - 'python/**'
-      - '.github/workflows/demo-scripts.yml'
+      - "scripts/**"
+      - "python/**"
+      - ".github/workflows/demo-scripts.yml"
   pull_request:
     branches: [main]
     paths:
-      - 'scripts/**'
-      - 'python/**'
-      - '.github/workflows/demo-scripts.yml'
+      - "scripts/**"
+      - "python/**"
+      - ".github/workflows/demo-scripts.yml"
   workflow_dispatch:
     inputs:
       DATA_FILE:
-        description: 'Path to CSV data file (relative to repo root)'
+        description: "Path to CSV data file (relative to repo root)"
         required: false
-        default: ''
+        default: ""
 
 permissions:
   contents: read
@@ -27,17 +27,20 @@ permissions:
 jobs:
   run-demos:
     runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run Financial Analysis Demo
+        id: run_demo
         continue-on-error: true
         env:
           DATA_FILE: ${{ inputs.DATA_FILE }}
@@ -51,14 +54,21 @@ jobs:
             ARGS=""
           fi
           python scripts/demo_financial_analysis.py $ARGS > demo_output.txt || true
+          if [ -s demo_output.txt ]; then
+            echo "has_output=true" >> $GITHUB_OUTPUT
+          fi
       - name: Generate Report
-        if: always() && ([ -f demo_output.txt ] && [ -s demo_output.txt ])
+        if: always()
         continue-on-error: true
         run: |
-          python scripts/generate_markdown_report.py \
-            --text demo_output.txt \
-            --images dpd_distribution.png exposure_distribution.png \
-            || echo "Report generation skipped"
+          if [ -f demo_output.txt ] && [ -s demo_output.txt ]; then
+            python scripts/generate_markdown_report.py \
+              --text demo_output.txt \
+              --images dpd_distribution.png exposure_distribution.png \
+              || echo "Report generation skipped"
+          else
+            echo "demo_output.txt missing or empty, skipping report generation"
+          fi
       - name: Upload Demo Output
         if: always()
         continue-on-error: true
@@ -70,7 +80,7 @@ jobs:
             demo_report.md
           if-no-files-found: ignore
       - name: Notify Slack on Failure
-        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
         uses: slackapi/slack-github-action@v1.24.0
         env:

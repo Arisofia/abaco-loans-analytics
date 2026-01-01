@@ -23,6 +23,14 @@ function normalizeUserPath(userPath: string): string {
   if (path.isAbsolute(userPath)) {
     throw new Error('Absolute paths are not allowed')
   }
+  // Reject any .. segments
+  if (userPath.split(path.sep).includes('..')) {
+    throw new Error('Path contains parent directory (..) segment')
+  }
+  // Reject unsafe characters (basic set)
+  if (/[~*?<>|"\r\n]/.test(userPath)) {
+    throw new Error('Path contains unsafe characters')
+  }
   const resolved = path.resolve(repoRoot, userPath)
   const relative = path.relative(repoRoot, resolved)
   if (relative === '..' || relative.startsWith('..' + path.sep)) {
@@ -67,7 +75,8 @@ function parseArgs(args: string[]) {
           const normalized = normalizeUserPath(extraPath)
           options.extras.push({ label, path: normalized })
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'invalid path argument'
+          const message =
+            error instanceof Error ? error.message : 'invalid path argument'
           console.error(`Invalid --path value "${extraPath}": ${message}`)
           process.exit(1)
         }

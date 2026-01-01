@@ -40,7 +40,7 @@ class PAR90Calculator(KPICalculator):
                 reason="Zero total receivable",
             )
 
-        value = round((dpd / total_receivable) * 100.0, 2)
+        value = (dpd / total_receivable) * 100.0
         return value, create_context(
             self.METADATA.formula,
             rows_processed=len(df),

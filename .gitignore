@@ -20,6 +20,7 @@ venv/
 data/metrics/
 data_samples/*.csv
 logs/
+exports/
 
 # Build / tooling
 .next/
@@ -57,3 +58,15 @@ nvm/
 
 # Other
 failed_workflows.csv
+scripts/test_hubspot_simple.py
+
+.env
+
+# Python virtual environments
+.venv/
+.venv-1/
+
+# Azurite local storage state
+AzuriteConfig
+__azurite_db_*.json
+__azurite_db_*_extent__.json

@@ -1,0 +1,6 @@
+# Azure Tracing & Observability Requirements
+opencensus-ext-azure==1.1.10
+opencensus-ext-logging==0.8.4
+opentelemetry-api==1.20.0
+opentelemetry-sdk==1.20.0
+opentelemetry-exporter-azure==1.2.0

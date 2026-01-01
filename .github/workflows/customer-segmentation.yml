@@ -1,0 +1,30 @@
+name: Customer Segmentation
+on:
+    schedule:
+        - cron: "0 10 * * *" # 11:00 AM CET daily
+    workflow_dispatch:
+
+env:
+    CLAUDE_ROCKET_TOKEN: ${{ secrets.CLAUDE_ROCKET_TOKEN }}
+    SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+jobs:
+    customer-segmentation:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+            - name: Setup Python Environment
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - name: Install Dependencies
+              run: |
+                  pip install -r requirements.txt
+            - name: Run Segmentation Analysis
+              run: |
+                  python scripts/customer_segmentation.py
+            - name: Post to Notion
+              run: |
+                  python scripts/post_to_notion.py

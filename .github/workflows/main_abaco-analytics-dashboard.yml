@@ -1,0 +1,14 @@
+name: DEPRECATED - use deploy-dashboard.yml
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deprecated:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deprecated
+        run: |
+          echo "This workflow is deprecated. Use 'Deploy Abaco Analytics Dashboard to Azure Web App' (.github/workflows/deploy-dashboard.yml)."
+          exit 1
+

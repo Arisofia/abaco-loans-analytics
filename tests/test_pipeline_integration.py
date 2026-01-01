@@ -1,9 +1,8 @@
 import pandas as pd
 import pytest
 
-from python.pipeline.ingestion import UnifiedIngestion
-from python.kpi_engine import KPIEngine
-from python.pipeline.transformation import UnifiedTransformation
+from python.pipeline.data_ingestion import UnifiedIngestion
+from python.pipeline.data_transformation import UnifiedTransformation
 
 
 def test_pipeline_missing_required_column():

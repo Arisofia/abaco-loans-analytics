@@ -15,6 +15,8 @@ jobs:
   evaluate-models:
     name: Evaluate ML Models
     runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - uses: actions/checkout@v4
@@ -129,7 +131,7 @@ jobs:
             }
 
       - name: Send Slack notification on failure
-        if: ${{ failure() && secrets.SLACK_WEBHOOK_URL != '' }}
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
         uses: slackapi/slack-github-action@v1.24.0
         env:

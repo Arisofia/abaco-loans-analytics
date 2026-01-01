@@ -118,22 +118,18 @@ class LoanAnalyticsEngine:
         return dti_series
 
     def compute_delinquency_rate(self) -> float:
-        """Computes the overall portfolio delinquency rate."""
-        delinquent_statuses = ['30-59 days past due', '60-89 days past due', '90+ days past due']
-        delinquent_count = self.loan_data['loan_status'].isin(delinquent_statuses).sum()
-        total_loans = len(self.loan_data)
-        return (delinquent_count / total_loans) * 100 if total_loans > 0 else 0.0
+        """Computes the portfolio delinquency rate using KPIEngineV2."""
+        from python.kpi_engine_v2 import KPIEngineV2  # pylint: disable=import-outside-toplevel
+        engine_v2 = KPIEngineV2(self.loan_data, actor="enterprise_engine")
+        val, _ = engine_v2.calculate_par_30()
+        return float(val)
 
     def compute_portfolio_yield(self) -> float:
-        """Computes the weighted average portfolio yield."""
-        total_principal = self.loan_data['principal_balance'].sum()
-        if total_principal == 0:
-            return 0.0
-
-        weighted_interest = (
-            self.loan_data['interest_rate'] * self.loan_data['principal_balance']
-        ).sum()
-        return (weighted_interest / total_principal) * 100
+        """Computes the weighted average portfolio yield using KPIEngineV2."""
+        from python.kpi_engine_v2 import KPIEngineV2  # pylint: disable=import-outside-toplevel
+        engine_v2 = KPIEngineV2(self.loan_data, actor="enterprise_engine")
+        val, _ = engine_v2.calculate_portfolio_yield()
+        return float(val)
 
     def data_quality_profile(self) -> Dict[str, float]:
         """
@@ -224,19 +220,18 @@ class LoanAnalyticsEngine:
     def run_full_analysis(self) -> Dict[str, float]:
         """
         Runs a comprehensive analysis and returns a portfolio-level KPIs dict.
-
-        Ensures all keys from portfolio_kpis are included in the output.
+        Delegates core computations to KPIEngineV2 for consistency.
         """
-        if "ltv_ratio" not in self.loan_data.columns:
-            self.compute_loan_to_value()
-        if "dti_ratio" not in self.loan_data.columns:
-            self.compute_debt_to_income()
+        from python.kpi_engine_v2 import KPIEngineV2  # pylint: disable=import-outside-toplevel
+
+        engine_v2 = KPIEngineV2(self.loan_data, actor="enterprise_engine")
+        results = engine_v2.calculate_all()
 
         dashboard = {
-            "portfolio_delinquency_rate_percent": self.compute_delinquency_rate(),
-            "portfolio_yield_percent": self.compute_portfolio_yield(),
-            "average_ltv_ratio_percent": self.loan_data["ltv_ratio"].mean(),
-            "average_dti_ratio_percent": self.loan_data["dti_ratio"].mean(),
+            "portfolio_delinquency_rate_percent": results.get("PAR30", {}).get("value", 0.0),
+            "portfolio_yield_percent": results.get("PortfolioYield", {}).get("value", 0.0),
+            "average_ltv_ratio_percent": results.get("LTV", {}).get("value", 0.0),
+            "average_dti_ratio_percent": results.get("DTI", {}).get("value", 0.0),
         }
 
         quality = self.data_quality_profile()
@@ -245,20 +240,6 @@ class LoanAnalyticsEngine:
             "average_null_ratio_percent": quality["average_null_ratio"],
             "invalid_numeric_ratio_percent": quality["invalid_numeric_ratio"],
         })
-
-        try:
-            from apps.analytics.src.metrics_utils import (  # pylint: disable=import-outside-toplevel
-                portfolio_kpis,
-            )
-        except ImportError:
-            from .metrics_utils import portfolio_kpis  # pylint: disable=import-outside-toplevel
-
-        try:
-            kpi_results = portfolio_kpis(self.loan_data)
-            dashboard.update(kpi_results)
-        except ValueError:
-            msg = "portfolio_kpis validation failed, using core metrics only"
-            logger.warning(msg)
 
         return dashboard
 

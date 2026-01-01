@@ -8,6 +8,10 @@ on:
 jobs:
   ingest-data:
     runs-on: ubuntu-latest
+    env:
+      CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
+      CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,7 +36,7 @@ jobs:
           playwright install chromium
       
       - name: Run Cascade scraper
-        if: ${{ secrets.CASCADE_USERNAME != '' && secrets.CASCADE_PASSWORD != '' }}
+        if: env.CASCADE_USERNAME != '' && env.CASCADE_PASSWORD != ''
         continue-on-error: true
         run: python scripts/scrape_cascade.py --loan-tape
         env:
@@ -44,7 +48,7 @@ jobs:
         run: |
           python scripts/run_data_pipeline.py
       - name: Notify Slack on Success
-        if: ${{ success() && secrets.SLACK_WEBHOOK_URL != '' }}
+        if: success() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
         uses: slackapi/slack-github-action@v1.24.0
         env:

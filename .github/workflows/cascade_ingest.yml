@@ -2,54 +2,123 @@ name: Cascade Ingest and KPI Extraction
 
 on:
   schedule:
-    - cron: '0 5,17 * * *'
+    # UTC times: 05:00 and 17:00 UTC = 06:00 and 18:00 CET (winter) / 07:00 and 19:00 CEST (summer)
+    - cron: "0 5,17 * * *"
   workflow_dispatch: {}
   push:
     paths:
-      - 'scripts/cascade_ingest.py'
-      - 'scripts/ingest_cascade.py'
-      - 'data/raw/*.xls*'
+      - "scripts/cascade_ingest.py"
+      - "scripts/ingest_cascade.py"
+      - "data/raw/*.xls*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cascade-ingest
+  cancel-in-progress: false
+
+env:
+  SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+  CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
+  CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
+  SLACK_WEBHOOK_OPS: ${{ secrets.SLACK_WEBHOOK_OPS }}
+  OPIK_TOKEN: ${{ secrets.OPIK_TOKEN }}
 
 jobs:
-  kpi-extraction:
+  validate-secrets:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate required secrets
+        run: |
+          python3 << 'VALIDATION'
+          import os, sys
+          required = ["SUPABASE_SERVICE_ROLE", "CASCADE_USERNAME", "CASCADE_PASSWORD"]
+          missing = [k for k in required if not os.getenv(k)]
+          if missing:
+              print(f"ERROR: Missing secrets: {', '.join(missing)}")
+              sys.exit(1)
+          print("✅ All required secrets present")
+          VALIDATION
+
+  kpi-extraction:
+    needs: validate-secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.11"
+          cache: "pip"
+
       - name: Install dependencies
         run: |
-          pip install pandas openpyxl
+          python -m pip install -U pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f pyproject.toml ]; then pip install .; fi
+
       - name: Run Cascade ingest and KPI extraction
-        continue-on-error: true
+        id: ingest
         run: |
+          set -euo pipefail
           python scripts/ingest_cascade.py
-      - name: Show extracted KPIs (if available)
-        continue-on-error: true
+
+      - name: Verify KPI output
+        if: success()
         run: |
           if [ -f exports/kpi_results.json ]; then
-            cat exports/kpi_results.json
+            echo "✅ KPI results generated"
+            head -20 exports/kpi_results.json
           else
-            echo "KPI results file not generated (no data processed)"
+            echo "⚠️  No KPI results file (may be expected if no data)"
           fi
-      - name: Notify Slack on completion
-        if: always() && env.SLACK_WEBHOOK_URL != ''
-        continue-on-error: true
+
+      - name: Upload KPI artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpi_results
+          path: exports/kpi_results.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Notify Ops on failure
+        if: failure() && env.SLACK_WEBHOOK_OPS != ''
         uses: slackapi/slack-github-action@v1.24.0
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_OPS }}
         with:
           payload: |
             {
-              "text": "Cascade Ingest Pipeline ${{ job.status }}",
+              "text": "🚨 Cascade ingest FAILED",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Cascade Ingest Workflow*\n*Status:* ${{ job.status }}\n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* `${{ github.sha }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                    "text": "*Cascade Ingest FAILED*\n*Workflow:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Run ${{ github.run_id }}>\n*Branch:* `${{ github.ref_name }}`\n*Commit:* `${{ github.sha }}`"
+                  }
+                }
+              ]
+            }
+
+      - name: Notify Ops on success
+        if: success() && env.SLACK_WEBHOOK_OPS != ''
+        uses: slackapi/slack-github-action@v1.24.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_OPS }}
+        with:
+          payload: |
+            {
+              "text": "✅ Cascade ingest completed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Cascade Ingest SUCCESS*\n*Workflow:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Run ${{ github.run_id }}>\n*Branch:* `${{ github.ref_name }}`"
                   }
                 }
               ]

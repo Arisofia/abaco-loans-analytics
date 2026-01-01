@@ -7,10 +7,13 @@ logic while providing minimal ergonomics for invoking Grok or Gemini models.
 import json
 import logging
 import os
+import warnings
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-import google.generativeai as genai
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)
+    import google.generativeai as genai
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry

@@ -5,12 +5,17 @@ enabling seamless switching and fallback capabilities for the multi-agent system
 """
 
 import os
-import json
 import logging
 from typing import Dict, List, Optional, Any, Literal
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-import time
+from enum import Enum
+
+
+class LLMProvider(Enum):
+    """Supported LLM providers."""
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
 
 try:
     import openai
@@ -59,11 +64,14 @@ class OpenAIProvider(BaseLLMProvider):
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4-turbo-preview"):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.model = model
-        if OPENAI_AVAILABLE:
-            openai.api_key = self.api_key
+        if OPENAI_AVAILABLE and self.api_key:
+            from openai import OpenAI
+            self.client = OpenAI(api_key=self.api_key)
+        else:
+            self.client = None
     
     def is_available(self) -> bool:
-        return OPENAI_AVAILABLE and self.api_key is not None
+        return OPENAI_AVAILABLE and self.client is not None
     
     def complete(self, messages: List[Dict], temperature: float = 0.7, **kwargs) -> LLMResponse:
         """Complete using OpenAI API."""
@@ -71,7 +79,7 @@ class OpenAIProvider(BaseLLMProvider):
             raise RuntimeError("OpenAI provider not available")
         
         try:
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=temperature,
@@ -97,7 +105,7 @@ class OpenAIProvider(BaseLLMProvider):
 class AnthropicProvider(BaseLLMProvider):
     """Anthropic Claude provider."""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-opus-20240229"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-5-haiku-20241022"):
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         self.model = model
         if ANTHROPIC_AVAILABLE and self.api_key:

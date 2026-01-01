@@ -6,11 +6,11 @@ on:
     branches:
       - main
     paths:
-      - 'apps/web/src/**'
-      - 'apps/web/public/**'
-      - 'apps/web/package.json'
-      - 'apps/web/next.config.js'
-      - 'package.json'
+      - "apps/web/src/**"
+      - "apps/web/public/**"
+      - "apps/web/package.json"
+      - "apps/web/next.config.js"
+      - "package.json"
 
 jobs:
   deploy:
@@ -20,10 +20,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
 
       - name: Check Vercel secrets
         id: vercel_secrets
@@ -49,7 +49,6 @@ jobs:
         if: steps.vercel_secrets.outputs.present == 'true'
         run: npx vercel pull --yes --environment=production --token "${{ secrets.VERCEL_TOKEN }}"
 
-
       - name: Build
         run: |
           pnpm build
@@ -72,8 +71,8 @@ jobs:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: 'us-east-1'
-          SOURCE_DIR: '.next'
+          AWS_REGION: "us-east-1"
+          SOURCE_DIR: ".next"
 
       - name: Deploy to Vercel
         if: steps.vercel_secrets.outputs.present == 'true'
@@ -82,7 +81,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          vercel-args: "--prod"
 
       - name: Skip deploy (missing Vercel secrets)
         if: steps.vercel_secrets.outputs.present != 'true'

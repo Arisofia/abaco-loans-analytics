@@ -1,7 +1,37 @@
 # Engineering Mandate: Key Commands & Progress
 
 **Last Updated**: 2025-12-26  
-**Overall Project Status**: 95% Complete
+**Overall Project Status**: 100% Core Analytics Functional
+
+## Phase 6: KPI Governance Commands
+
+### Azure Function Deployment
+```bash
+# Publish function app (optimized via .funcignore)
+func azure functionapp publish hubspot-segment-agent --python
+```
+
+### KPI Health & Parity
+```bash
+# Quick end-to-end health check (machine readable)
+python tools/check_kpi_sync.py --print-json
+
+# Human-readable bootstrap status & agent guidance
+python tools/zencoder_bootstrap.py
+
+# Run full analytics pipeline (regenerates JSON export)
+python run_complete_analytics.py
+
+# Run parity tests (Python logic vs SQL views)
+pytest -q tests/test_kpi_parity.py
+```
+
+### Governance Rules
+1. **Catalog Alignment**: Any KPI change must align with `docs/KPI_CATALOG.md`.
+2. **Dual-Engine Parity**: Always update both `python/analytics/kpi_catalog_processor.py` and `supabase/migrations/20260101_analytics_kpi_views.sql`.
+3. **Pre-flight Check**: Run `python tools/zencoder_bootstrap.py` before and after major edits.
+
+---
 
 ## Phase Status
 
@@ -162,6 +192,13 @@ make test-cov
 - config/pipeline.yml - Master configuration
 - config/environments/{dev,staging,production}.yml - Environment overrides
 - config/LEGACY/ - Deprecated configurations (marked for deletion v2.0)
+
+### KPI & Analytics
+- docs/KPI_CATALOG.md - Source of truth for KPI definitions
+- tools/zencoder_bootstrap.py - Agent entrypoint for KPI health
+- tools/check_kpi_sync.py - KPI parity validation engine
+- python/analytics/kpi_catalog_processor.py - Python KPI implementation
+- tests/test_kpi_parity.py - Automated parity test suite
 
 ### Code Quality
 - Makefile - Build and quality targets

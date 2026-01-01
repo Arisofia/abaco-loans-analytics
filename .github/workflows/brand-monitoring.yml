@@ -1,0 +1,30 @@
+name: Brand Monitoring
+on:
+    schedule:
+        - cron: "0 9 * * *" # 10:00 AM CET daily
+    workflow_dispatch:
+
+env:
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+    SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+jobs:
+    brand-monitoring:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+            - name: Setup Python Environment
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - name: Install Dependencies
+              run: |
+                  pip install -r requirements.txt
+            - name: Run Brand Monitoring
+              run: |
+                  python scripts/brand_monitoring.py
+            - name: Post to Slack
+              run: |
+                  python scripts/post_to_slack.py --channel "#brand-monitoring"

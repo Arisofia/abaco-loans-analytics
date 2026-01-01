@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from python.pipeline.transformation import UnifiedTransformation
+from python.pipeline.data_transformation import UnifiedTransformation
 
 
 def sample_df():

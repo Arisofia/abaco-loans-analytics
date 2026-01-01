@@ -27,7 +27,7 @@ jobs:
           # Necessary for SonarCloud to analyze history
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
       - name: Set up Python
@@ -37,8 +37,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
       - name: Install pnpm
         run: npm install -g pnpm
       - name: Install dependencies

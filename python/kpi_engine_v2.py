@@ -5,9 +5,12 @@ from typing import Any, Dict, List, Tuple
 import pandas as pd
 
 from python.kpis.collection_rate import calculate_collection_rate
+from python.kpis.dti import calculate_dti
+from python.kpis.ltv import calculate_ltv
 from python.kpis.par_30 import calculate_par_30
 from python.kpis.par_90 import calculate_par_90
 from python.kpis.portfolio_health import calculate_portfolio_health
+from python.kpis.portfolio_yield import calculate_portfolio_yield
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,9 @@ class KPIEngineV2:
         "PAR30": calculate_par_30,
         "PAR90": calculate_par_90,
         "CollectionRate": calculate_collection_rate,
+        "LTV": calculate_ltv,
+        "DTI": calculate_dti,
+        "PortfolioYield": calculate_portfolio_yield,
     }
 
     def __init__(self, df: pd.DataFrame, actor: str = "system", action: str = "kpi"):
@@ -80,11 +86,35 @@ class KPIEngineV2:
         """Calculate Collection Rate."""
         return calculate_collection_rate(self.df)
 
+    def calculate_ltv(self) -> Tuple[float, Dict[str, Any]]:
+        """Calculate LTV."""
+        return calculate_ltv(self.df)
+
+    def calculate_dti(self) -> Tuple[float, Dict[str, Any]]:
+        """Calculate DTI."""
+        return calculate_dti(self.df)
+
+    def calculate_portfolio_yield(self) -> Tuple[float, Dict[str, Any]]:
+        """Calculate Portfolio Yield."""
+        return calculate_portfolio_yield(self.df)
+
     def get_audit_trail(self) -> pd.DataFrame:
         """Return audit trail as DataFrame."""
         if not self.audit_trail:
             return pd.DataFrame()
         return pd.DataFrame(self.audit_trail)
+
+    def get_metric(self, name: str) -> float:
+        """Helper to get a single metric value by name."""
+        if name in self.metrics:
+            return self.metrics[name].get("value")
+        
+        # If not calculated, try to find in functions
+        if name in self.KPI_FUNCTIONS:
+            val, _ = self.KPI_FUNCTIONS[name](self.df)
+            return float(val) if val is not None else None
+            
+        raise ValueError(f"KPI '{name}' not supported by engine")
 
     def _log_event(self, event: str, status: str, **details: Any) -> None:
         entry = {
