@@ -176,10 +176,10 @@ class UnifiedPipeline:
 
                 baseline_metrics = self._load_previous_metrics(artifacts_dir, self.run_id)
                 
-                with tracer.start_as_current_span("pipeline.calculation"):
+                with tracer.start_as_current_span("pipeline.calculation") as calculation_span:
                     calculation = UnifiedCalculationV2(self.config.config, run_id=self.run_id)
                     calculation_result = calculation.calculate(transformation_result.df, baseline_metrics)
-                    span.set_attribute("calculation.metric_count", len(calculation_result.metrics))
+                    calculation_span.set_attribute("calculation.metric_count", len(calculation_result.metrics))
 
                 with tracer.start_as_current_span("pipeline.compliance"):
                     compliance_report = build_compliance_report(
