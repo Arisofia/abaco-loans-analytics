@@ -37,6 +37,11 @@ jobs:
         with:
           # Necessary for SonarCloud to analyze history
           fetch-depth: 0
+      - name: Set up pnpm
+        if: steps.check-secrets.outputs.secrets_available == 'true'
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
       - name: Setup Node
         if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/setup-node@v4
@@ -44,11 +49,6 @@ jobs:
           node-version: 20
           cache: pnpm
           cache-dependency-path: apps/web/pnpm-lock.yaml
-      - name: Set up pnpm
-        if: steps.check-secrets.outputs.secrets_available == 'true'
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
       - name: Set up Python
         if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/setup-python@v5
