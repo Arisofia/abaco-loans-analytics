@@ -45,7 +45,7 @@ run-pipeline:
 	python scripts/run_data_pipeline.py
 
 run-dashboard:
-	streamlit run streamlit_app.py
+	streamlit run streamlit_app/app.py
 
 check-maturity:
 	python repo_maturity_summary.py
