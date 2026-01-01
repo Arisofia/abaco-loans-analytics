@@ -9,23 +9,38 @@ The Looker Studio report contains comprehensive loan portfolio analytics:
 
 ## Files (To be uploaded)
 
-Three primary datasets should be placed in this directory:
+Three primary datasets should be placed in this directory using standardized filenames:
 
-### 1. Abaco-Loan-Tape_Loan-Data_Table-6.csv
+### 1. loan_data.csv
 - **Description**: Core loan tape data including loan amounts, rates, terms, and portfolio metrics
 - **Source**: Looker Studio - Loan Data Table
 - **Update Frequency**: Daily
 
-### 2. Abaco-Loan-Tape_Customer-Data_Table-6.csv
+### 2. customer_data.csv
 - **Description**: Customer information and demographics
 - **Source**: Looker Studio - Customer Data Table
 - **Update Frequency**: Daily
 
-### 3. Abaco-Loan-Tape_Historic-Real-Payment_Table-6.csv
+### 3. historic_payment_data.csv
 - **Description**: Historical payment records and transaction data
 - **Source**: Looker Studio - Historic Payment Table
 - **Update Frequency**: Daily
 
+### Looker Studio export filenames
+
+Looker Studio exports may use tool-generated filenames following the pattern:
+
+- `Abaco-Loan-Tape_[Category]_Table-6.csv`
+
+These export names are artifacts of Looker Studio and may change if the report is modified. The table below documents the mapping between the export filenames and the standardized filenames used in this repository:
+
+| Looker export filename                               | Standardized filename         |
+| ---------------------------------------------------- | ----------------------------- |
+| `Abaco-Loan-Tape_Loan-Data_Table-6.csv`              | `loan_data.csv`               |
+| `Abaco-Loan-Tape_Customer-Data_Table-6.csv`          | `customer_data.csv`           |
+| `Abaco-Loan-Tape_Historic-Real-Payment_Table-6.csv`  | `historic_payment_data.csv`   |
+
+When adding data to this directory, you may need to rename the exported CSVs from their Looker names to the standardized filenames above.
 ## Usage
 
 These datasets are used by:
