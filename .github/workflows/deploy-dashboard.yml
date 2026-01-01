@@ -113,7 +113,7 @@ jobs:
           echo "Skipping deployment: AZURE_WEBAPP_PUBLISH_PROFILE is not configured."
 
       - name: Notify on failure
-        if: failure()
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
