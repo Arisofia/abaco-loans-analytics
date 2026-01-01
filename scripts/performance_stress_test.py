@@ -66,7 +66,7 @@ class PerformanceStressTest:
             start_time = time.time()
             
             engine = KPIEngineV2(df)
-            metrics = engine.calculate_all(include_composite=True)
+            engine.calculate_all(include_composite=True)
             
             elapsed = time.time() - start_time
             end_mem = self.process.memory_info().rss / 1024 / 1024  # MB
@@ -111,7 +111,7 @@ class PerformanceStressTest:
             try:
                 iter_start = time.time()
                 engine = KPIEngineV2(df)
-                metrics = engine.calculate_all(include_composite=True)
+                engine.calculate_all(include_composite=True)
                 iter_time = time.time() - iter_start
                 
                 execution_times.append(iter_time)
@@ -167,12 +167,12 @@ class PerformanceStressTest:
         df = self.create_test_dataset(50000)
         
         # Measure CPU and memory during execution
-        start_cpu = sum(self.process.cpu_num() for _ in range(1)) / 1.0
+        sum(self.process.cpu_num() for _ in range(1)) / 1.0
         start_mem = self.process.memory_info().rss / 1024 / 1024
         
         start_time = time.time()
         engine = KPIEngineV2(df)
-        metrics = engine.calculate_all(include_composite=True)
+        engine.calculate_all(include_composite=True)
         elapsed = time.time() - start_time
         
         end_mem = self.process.memory_info().rss / 1024 / 1024
@@ -250,7 +250,7 @@ class PerformanceStressTest:
         if sustained.get("errors", 0) > 0:
             recs.append("Investigate errors in sustained load test")
         
-        if sustained.get("memory", {}).get("stable") == False:
+        if not sustained.get("memory", {}).get("stable"):
             recs.append("Memory usage is variable - monitor for leaks")
         
         load = self.results["tests"].get("load_scalability", {})

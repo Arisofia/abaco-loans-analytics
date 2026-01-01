@@ -133,7 +133,7 @@ class ProductionValidator:
             import time
             start = time.time()
             engine = KPIEngineV2(df)
-            metrics = engine.calculate_all(include_composite=True)
+            engine.calculate_all(include_composite=True)
             elapsed = (time.time() - start) * 1000
             
             thresholds = {
@@ -209,7 +209,7 @@ class ProductionValidator:
             })
             
             engine = KPIEngineV2(df)
-            metrics = engine.calculate_all()
+            engine.calculate_all()
             audit_df = engine.get_audit_trail()
             
             trail_complete = (

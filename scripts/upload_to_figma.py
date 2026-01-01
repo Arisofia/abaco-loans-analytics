@@ -9,11 +9,8 @@ UPLOAD_IMAGE_PATH = "exports/figma/growth_chart.png"
 
 def upload_image_to_figma(image_path, file_key, node_id, token):
     with open(image_path, "rb") as img_file:
-        image_data = img_file.read()
+        img_file.read()
 
-    headers = {
-        "X-Figma-Token": token,
-    }
 
     # Figma does not support direct image upload via API; workaround is to use the Images endpoint to link an image URL.
     # For demo, this will just print instructions. For production, upload to a public URL (S3, etc.) and patch the node.

@@ -32,7 +32,7 @@ def md_table_to_csv(md_path, csv_path):
             table_lines.append(line.strip())
     # Convert to CSV
     with open(csv_path, "w") as f:
-        for line in [l for l in table_lines if '---' not in l]:
+        for line in [row_line for row_line in table_lines if '---' not in row_line]:
             row = [col.strip() for col in line.strip("|").split("|")]
             f.write(",".join(row) + "\n")
     print(f"Exported KPI table to {csv_path}")

@@ -12,6 +12,7 @@ from python.compliance import build_compliance_report, write_compliance_report
 from python.pipeline.data_ingestion import UnifiedIngestion
 from python.pipeline.orchestrator import UnifiedPipeline
 from python.pipeline.data_transformation import UnifiedTransformation
+from python.kpi_engine_v2 import KPIEngineV2 as KPIEngine
 
 # Legacy aliases for backward compatibility with tests/patching
 CascadeIngestion = UnifiedIngestion
@@ -135,7 +136,7 @@ def main(
     user = user or os.getenv("PIPELINE_RUN_USER", "system")
     action = action or os.getenv("PIPELINE_RUN_ACTION", "manual")
 
-    context = {
+    {
         "user": user,
         "action": action,
         "triggered_at": Path(input_file).name,

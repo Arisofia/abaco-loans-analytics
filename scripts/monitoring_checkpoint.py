@@ -10,12 +10,12 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, '/Users/jenineferderas/Documents/abaco-loans-analytics')
+sys.path.insert(0, "/Users/jenineferderas/Documents/abaco-loans-analytics")
 
 
 class MonitoringCheckpoint:
     """Track and record checkpoint metrics"""
-    
+
     def __init__(self, checkpoint_hour: int = None):
         self.checkpoint_hour = checkpoint_hour or self._current_hour()
         self.start_time = datetime.now()
@@ -24,24 +24,24 @@ class MonitoringCheckpoint:
             "timestamp": self.start_time.isoformat(),
             "validation": None,
             "system_metrics": None,
-            "status": "PENDING"
+            "status": "PENDING",
         }
-    
+
     def _current_hour(self) -> int:
         """Calculate hours since cutover (01:58:46 UTC)"""
         cutover_time = datetime(2025, 12, 26, 1, 58, 46)
         now = datetime.utcnow()
         hours = int((now - cutover_time).total_seconds() / 3600)
         return max(0, hours)
-    
+
     def _get_system_metrics(self) -> dict:
         """Gather system resource metrics"""
         try:
             import psutil
-            
+
             process = psutil.Process()
             memory_info = process.memory_info()
-            
+
             return {
                 "memory_rss_mb": memory_info.rss / (1024 * 1024),
                 "memory_vms_mb": memory_info.vms / (1024 * 1024),
@@ -50,20 +50,17 @@ class MonitoringCheckpoint:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     def run_validation(self) -> dict:
         """Execute production validation script"""
         try:
             # Use argument list, never shell=True, and do not interpolate untrusted input
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    "scripts/production_validation.py"
-                ],
+            subprocess.run(
+                [sys.executable, "scripts/production_validation.py"],
                 capture_output=True,
                 text=True,
                 timeout=30,
-                shell=False
+                shell=False,
             )
             validation_report_path = Path("production_validation_report.json")
             if validation_report_path.exists():
@@ -71,75 +68,90 @@ class MonitoringCheckpoint:
                     return json.load(f)
             else:
                 return {"status": "FAIL", "error": "No validation report generated"}
-                
+
         except subprocess.TimeoutExpired:
             return {"status": "FAIL", "error": "Validation script timeout"}
         except Exception as e:
             return {"status": "FAIL", "error": str(e)}
-    
+
     def execute(self) -> dict:
         """Execute checkpoint validation and collect metrics"""
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"CHECKPOINT: Hour {self.checkpoint_hour}")
         print(f"Timestamp: {self.start_time.isoformat()}")
-        print(f"{'='*80}\n")
-        
+        print(f"{'=' * 80}\n")
+
         print("Running validation suite...")
         self.metrics["validation"] = self.run_validation()
         validation_status = self.metrics["validation"].get("status", "UNKNOWN")
         print(f"Validation Status: {validation_status}")
-        
+
         print("\nCollecting system metrics...")
         self.metrics["system_metrics"] = self._get_system_metrics()
         if "error" not in self.metrics["system_metrics"]:
             print(f"  Memory: {self.metrics['system_metrics']['memory_rss_mb']:.1f} MB")
             print(f"  CPU: {self.metrics['system_metrics']['cpu_percent']:.1f}%")
-        
+
         self.metrics["status"] = validation_status
-        self.metrics["duration_seconds"] = (datetime.now() - self.start_time).total_seconds()
-        
+        self.metrics["duration_seconds"] = (
+            datetime.now() - self.start_time
+        ).total_seconds()
+
         return self.metrics
-    
+
     def save_checkpoint(self, output_dir: str = "logs/monitoring") -> str:
         """Save checkpoint results to file"""
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        
-        checkpoint_file = output_path / f"checkpoint_hour_{self.checkpoint_hour:02d}.json"
-        with open(checkpoint_file, 'w') as f:
+
+        checkpoint_file = (
+            output_path / f"checkpoint_hour_{self.checkpoint_hour:02d}.json"
+        )
+        with open(checkpoint_file, "w") as f:
             json.dump(self.metrics, f, indent=2)
-        
+
         return str(checkpoint_file)
-    
+
     def print_summary(self):
         """Print checkpoint summary"""
-        print(f"\n{'─'*80}")
+        print(f"\n{'─' * 80}")
         print(f"CHECKPOINT SUMMARY - Hour {self.checkpoint_hour}")
-        print(f"{'─'*80}")
-        
-        print(f"\nValidation Status: {self.metrics['validation'].get('status', 'UNKNOWN')}")
-        
-        if self.metrics['validation'].get('checks'):
+        print(f"{'─' * 80}")
+
+        print(
+            f"\nValidation Status: {self.metrics['validation'].get('status', 'UNKNOWN')}"
+        )
+
+        if self.metrics["validation"].get("checks"):
             print("\nValidation Checks:")
-            for check_name, check_result in self.metrics['validation']['checks'].items():
-                status = check_result.get('status', 'UNKNOWN')
+            for check_name, check_result in self.metrics["validation"][
+                "checks"
+            ].items():
+                status = check_result.get("status", "UNKNOWN")
                 print(f"  ✓ {check_name}: {status}")
-        
-        if self.metrics['system_metrics'] and 'error' not in self.metrics['system_metrics']:
+
+        if (
+            self.metrics["system_metrics"]
+            and "error" not in self.metrics["system_metrics"]
+        ):
             print("\nSystem Metrics:")
-            metrics = self.metrics['system_metrics']
+            metrics = self.metrics["system_metrics"]
             print(f"  Memory: {metrics['memory_rss_mb']:.1f} MB (threshold: 200 MB)")
             print(f"  CPU: {metrics['cpu_percent']:.1f}% (threshold: 80%)")
             print(f"  Threads: {metrics['num_threads']}")
-        
-        if self.metrics['validation'].get('checks', {}).get('performance'):
-            perf = self.metrics['validation']['checks']['performance'].get('metrics', {})
+
+        if self.metrics["validation"].get("checks", {}).get("performance"):
+            perf = self.metrics["validation"]["checks"]["performance"].get(
+                "metrics", {}
+            )
             print("\nPerformance:")
             print(f"  Latency: {perf.get('latency_ms', 'N/A')} ms (threshold: 100 ms)")
-            print(f"  Throughput: {perf.get('throughput_rows_per_sec', 'N/A')} rows/sec")
-        
+            print(
+                f"  Throughput: {perf.get('throughput_rows_per_sec', 'N/A')} rows/sec"
+            )
+
         print(f"\nDuration: {self.metrics['duration_seconds']:.2f} seconds")
-        print(f"{'─'*80}\n")
+        print(f"{'─' * 80}\n")
 
 
 def main():
@@ -147,11 +159,11 @@ def main():
     results = checkpoint.execute()
     checkpoint_file = checkpoint.save_checkpoint()
     checkpoint.print_summary()
-    
+
     print(f"Checkpoint saved: {checkpoint_file}")
-    
-    return 0 if results['status'] == 'PASS' else 1
+
+    return 0 if results["status"] == "PASS" else 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
