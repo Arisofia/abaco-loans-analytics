@@ -14,11 +14,14 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import pandas as pd
 import polars as pl
+import pandera as pa
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from python.analytics.schema import LoanTapeSchema
 from python.pipeline.utils import CircuitBreaker, RateLimiter, RetryPolicy, hash_file, utc_now
 from python.pipeline.data_validation import validate_dataframe
+from python.agents.tools import send_slack_notification
 
 logger = logging.getLogger(__name__)
 
@@ -313,6 +316,15 @@ class UnifiedIngestion:
         except Exception as exc:
             self._record_error("archive", exc, file=str(file_path))
             return None
+
+    def _validate_schema_pandera(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
+        """Validate dataframe using Pandera schemas."""
+        try:
+            validated_df = LoanTapeSchema.validate(df)
+            return validated_df, []
+        except pa.errors.SchemaError as exc:
+            logger.error("Pandera schema validation failed: %s", exc)
+            return df, [str(exc)]
 
     def _validate_schema(self, df: pd.DataFrame) -> List[str]:
         errors: List[str] = []
@@ -756,10 +768,27 @@ class UnifiedIngestion:
             self._log_event("raw_read", "success", rows=len(df), checksum=checksum)
 
             schema_errors = self._validate_schema(df)
+            
+            # Pandera Strict Contract Validation (Engineering Excellence Mandate)
+            df, pandera_errors = self._validate_schema_pandera(df)
+            
             validated_df, record_errors = self._validate_records(df)
-            errors = schema_errors + record_errors
+            errors = schema_errors + pandera_errors + record_errors
+            
             if errors:
                 self._log_event("validation", "completed", error_count=len(errors))
+                
+                # Circuit Breaker: Halt on critical contract violations and alert via Slack
+                critical_violation = any("contract" in str(e).lower() or "not found" in str(e).lower() or "future" in str(e).lower() for e in errors)
+                if critical_violation:
+                    msg = f"🚨 CIRCUIT BREAKER: Critical data contract violation in {file_path.name}. Halting ingestion."
+                    logger.critical(msg)
+                    try:
+                        send_slack_notification(msg, channel="#data-engineering-alerts")
+                    except Exception as slack_err:
+                        logger.error("Failed to send Slack alert: %s", slack_err)
+                    return IngestionResult(pd.DataFrame(), self.run_id, {"status": "halted", "error": "critical_violation"})
+
 
             self._validate_dataframe(validated_df)
 

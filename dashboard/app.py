@@ -1,9 +1,8 @@
-"""Streamlit dashboard for Abaco Loans Analytics - Real Data Dashboard."""
+"""Streamlit dashboard for Abaco Loans Analytics - Engineering Excellence Edition."""
 
 import streamlit as st
 
 # FAST HEALTH CHECK - MUST BE FIRST
-# This allows Azure App Service health checks to pass even if initialization takes time
 try:
     query_params = st.query_params
 except AttributeError:
@@ -14,196 +13,244 @@ if page == "health" or page == ["health"] or (isinstance(page, list) and "health
     st.write("ok")
     st.stop()
 
-# HEAVY IMPORTS AND INITIALIZATION AFTER HEALTH CHECK
-import altair as alt
-import numpy as np
+# HEAVY IMPORTS AND INITIALIZATION
 import pandas as pd
-from datetime import datetime
-from pathlib import Path
+import plotly.express as px
+import numpy as np
 import logging
-import sys
+from datetime import datetime
 
-st.set_page_config(layout="wide", page_title="Abaco Loans Analytics - Executive Dashboard")
+# Theme definition (as per design system)
+ABACO_THEME = {
+    'colors': {
+        'primary_purple': '#C1A6FF',
+        'purple_dark': '#5F4896',
+        'dark_blue': '#0C2742',
+        'light_gray': '#CED4D9',
+        'medium_gray': '#9EA9B3',
+        'dark_gray': '#6D7D8E',
+        'white': '#FFFFFF',
+        'background': '#030E19',
+        'success': '#10B981',
+        'success_dark': '#059669',
+        'warning': '#FB923C',
+        'warning_dark': '#EA580C',
+        'error': '#DC2626',
+        'error_dark': '#991B1B',
+        'info': '#3B82F6',
+        'info_dark': '#1D4ED8'
+    },
+    'gradients': {
+        'title': 'linear-gradient(81.74deg, #C1A6FF 5.91%, #5F4896 79.73%)',
+        'card_primary': 'linear-gradient(135deg, rgba(193, 166, 255, 0.2) 0%, rgba(0, 0, 0, 0.5) 100%)',
+        'card_secondary': 'linear-gradient(135deg, rgba(34, 18, 72, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%)',
+        'card_highlight': 'linear-gradient(135deg, rgba(193, 166, 255, 0.25) 0%, rgba(0, 0, 0, 0.8) 100%)'
+    },
+    'typography': {
+        'primary_font': 'Lato',
+        'secondary_font': 'Poppins',
+        'title_size': '48px',
+        'metric_size': '48px',
+        'label_size': '16px',
+        'body_size': '14px',
+        'description_size': '12px'
+    }
+}
 
+st.set_page_config(page_title="ABACO Financial Intelligence Platform", page_icon="💰", layout="wide", initial_sidebar_state="expanded")
+
+# Utility functions
+def apply_theme(fig):
+    fig.update_layout(
+        plot_bgcolor=ABACO_THEME['colors']['background'],
+        paper_bgcolor=ABACO_THEME['colors']['background'],
+        font_color=ABACO_THEME['colors']['light_gray'],
+        title_font_color=ABACO_THEME['colors']['primary_purple'],
+        colorway=['#C1A6FF', '#5F4896', '#10B981', '#FB923C']
+    )
+    return fig
+
+def styled_df(df):
+    return df.style.set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', ABACO_THEME['colors']['medium_gray'])]}])
+
+def clean_numeric(col):
+    if col.dtype == 'object':
+        col = pd.to_numeric(col.astype(str).str.replace(r'[$,€%₡,]', '', regex=True), errors='coerce')
+    return col
+
+# Initialize tracing
 logger = logging.getLogger(__name__)
-
-# Initialize tracing early; tolerate missing exporters in dev
 try:
     from tracing_setup import init_tracing, enable_auto_instrumentation
     init_tracing(service_name="abaco-dashboard")
     enable_auto_instrumentation()
-except Exception as tracing_err:  # pragma: no cover - defensive
-    logger.warning("Tracing not initialized: %s", tracing_err)
+except Exception:
+    logger.warning("Tracing not initialized")
 
-@st.cache_data
-def load_loan_data():
-    """Load real loan data from CSV files."""
-    data_path = Path(__file__).parent.parent / "data" / "raw" / "looker_exports" / "loans.csv"
-    if not data_path.exists():
-        data_path = Path(__file__).parent / "data" / "raw" / "looker_exports" / "loans.csv"
-    
-    if not data_path.exists():
-        st.error(f"Data file not found: {data_path}")
-        return None
-    
-    df = pd.read_csv(data_path)
-    
-    # Clean and prepare data
-    df['outstanding_balance'] = pd.to_numeric(df['outstanding_balance'], errors='coerce').fillna(0)
-    df['disburse_principal'] = pd.to_numeric(df['disburse_principal'], errors='coerce').fillna(0)
-    df['interest_rate'] = pd.to_numeric(df['interest_rate'], errors='coerce').fillna(0)
-    df['dpd'] = pd.to_numeric(df['dpd'], errors='coerce').fillna(0)
-    df['term'] = pd.to_numeric(df['term'], errors='coerce').fillna(0)
-    
-    # Convert date columns
-    date_cols = ['application_date', 'disburse_date', 'maturity_date', 'pledge_date']
-    for col in date_cols:
-        df[col] = pd.to_datetime(df[col], errors='coerce')
-    
-    return df
+# Custom CSS
+st.markdown(f"""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&family=Poppins:wght@100;200;300;400;500;600;700&display=swap');
+    .main {{
+        background-color: {ABACO_THEME['colors']['background']};
+        color: {ABACO_THEME['colors']['white']};
+        font-family: '{ABACO_THEME['typography']['primary_font']}', sans-serif;
+    }}
+    .stMetric {{
+        background: {ABACO_THEME['gradients']['card_primary']};
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid {ABACO_THEME['colors']['purple_dark']};
+    }}
+</style>
+""", unsafe_allow_html=True)
 
-@st.cache_data
-def calculate_portfolio_metrics(df):
-    """Calculate key portfolio metrics."""
-    if df is None or df.empty:
-        return None
-    
-    metrics = {
-        'total_loans': len(df),
-        'active_loans': len(df[df['loan_status'] != 'Complete']),
-        'total_principal': df['disburse_principal'].sum(),
-        'outstanding_balance': df['outstanding_balance'].sum(),
-        'avg_interest_rate': df['interest_rate'].mean(),
-        'current_customers': df['customer_id'].nunique(),
-        'collection_rate': (1 - (df['outstanding_balance'].sum() / df['disburse_principal'].sum())) * 100 if df['disburse_principal'].sum() > 0 else 0,
-    }
-    
-    # Delinquency metrics
-    metrics['dpd_30_plus'] = len(df[df['dpd'] >= 30])
-    metrics['dpd_90_plus'] = len(df[df['dpd'] >= 90])
-    metrics['delinquency_rate_30'] = (metrics['dpd_30_plus'] / len(df)) * 100 if len(df) > 0 else 0
-    metrics['delinquency_rate_90'] = (metrics['dpd_90_plus'] / len(df)) * 100 if len(df) > 0 else 0
-    
-    # PAR (Portfolio at Risk) - loans with 90+ DPD
-    par_balance = df[df['dpd'] >= 90]['outstanding_balance'].sum()
-    metrics['par_90_amount'] = par_balance
-    metrics['par_90_ratio'] = (par_balance / metrics['outstanding_balance'] * 100) if metrics['outstanding_balance'] > 0 else 0
-    
-    return metrics
+# --- Ingestion Section ---
+if 'loaded' not in st.session_state:
+    st.session_state['loaded'] = False
 
+with st.sidebar:
+    st.title("Data Ingestion")
+    uploaded_files = st.file_uploader("Upload Loan Tape CSVs and Financial XLSX", accept_multiple_files=True, type=['csv', 'xlsx'])
+    
+    if st.button("Ingest Data") or uploaded_files:
+        dfs = {}
+        for file in uploaded_files:
+            if file.name.endswith('.csv'):
+                dfs[file.name] = pd.read_csv(file)
+            elif file.name.endswith('.xlsx'):
+                dfs[file.name] = pd.read_excel(file, sheet_name=None)
+        
+        if dfs:
+            for name, df in dfs.items():
+                if isinstance(df, dict):
+                    for sheet, sdf in df.items():
+                        sdf.columns = sdf.columns.str.lower().str.strip().str.replace(' ', '_').str.replace(r'[^a-z0-9_]', '', regex=True)
+                        for col in sdf.columns:
+                            sdf[col] = clean_numeric(sdf[col])
+                else:
+                    df.columns = df.columns.str.lower().str.strip().str.replace(' ', '_').str.replace(r'[^a-z0-9_]', '', regex=True)
+                    for col in df.columns:
+                        df[col] = clean_numeric(df[col])
+            
+            st.session_state['data'] = dfs
+            st.session_state['loaded'] = True
+            st.success("Data ingested successfully.")
 
-# --- Main Application ---
-st.markdown(f"**Report Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-st.title("💰 Abaco Loans Analytics - Executive Dashboard")
+    if st.button("Refresh Ingestion"):
+        st.session_state['loaded'] = False
+        st.rerun()
 
-# Load data
-loan_data = load_loan_data()
-if loan_data is None:
+    st.divider()
+    target_outstanding = st.number_input("Target Outstanding", value=8360500.0)
+    target_loans = st.number_input("Target Loans", value=1000)
+    st.session_state['target_outstanding'] = target_outstanding
+    st.session_state['target_loans'] = target_loans
+
+# --- Main Dashboard ---
+st.title("💰 ABACO Financial Intelligence")
+
+if not st.session_state['loaded']:
+    st.info("Please upload data files in the sidebar to begin analysis.")
     st.stop()
 
-metrics = calculate_portfolio_metrics(loan_data)
+data = st.session_state['data']
 
-# --- 1. PORTFOLIO OVERVIEW ---
-st.header("📊 Portfolio Overview")
-col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Total Loans", f"{metrics['total_loans']:,}", help="Total number of loans in portfolio")
-col2.metric("Active Loans", f"{metrics['active_loans']:,}", help="Number of currently active loans")
-col3.metric("Unique Customers", f"{metrics['current_customers']:,}", help="Total unique customers")
-col4.metric("Total Principal", f"${metrics['total_principal']:,.0f}", help="Total disbursed amount")
-col5.metric("Outstanding Balance", f"${metrics['outstanding_balance']:,.0f}", help="Current balance due")
+# Core Tables Identification
+loan_data = None
+customer_data = pd.DataFrame()
 
-# --- 2. FINANCIAL METRICS ---
-st.header("💵 Financial Metrics")
-fin_col1, fin_col2, fin_col3, fin_col4 = st.columns(4)
-fin_col1.metric("Collection Rate", f"{metrics['collection_rate']:.1f}%", help="% of principal collected")
-fin_col2.metric("Avg Interest Rate", f"{metrics['avg_interest_rate']:.2%}", help="Average interest rate across portfolio")
-fin_col3.metric("Outstanding Balance", f"${metrics['outstanding_balance']/1_000_000:.2f}M", help="Total balance remaining")
-fin_col4.metric("Average Loan Size", f"${metrics['total_principal']/metrics['total_loans']:,.0f}", help="Average disbursed amount per loan")
+for name, df in data.items():
+    if 'loan' in name.lower() and 'data' in name.lower():
+        loan_data = df
+    elif 'customer' in name.lower():
+        customer_data = df
 
-# --- 3. RISK INDICATORS ---
-st.header("⚠️ Risk Indicators (KRI)")
-risk_col1, risk_col2, risk_col3, risk_col4 = st.columns(4)
-risk_col1.metric("30+ Delinquency Rate", f"{metrics['delinquency_rate_30']:.2f}%", help="% of loans with 30+ DPD")
-risk_col2.metric("90+ Delinquency Rate", f"{metrics['delinquency_rate_90']:.2f}%", help="% of loans with 90+ DPD")
-risk_col3.metric("PAR 90 Ratio", f"{metrics['par_90_ratio']:.2f}%", help="% of balance at risk (90+ DPD)")
-risk_col4.metric("PAR 90 Amount", f"${metrics['par_90_amount']:,.0f}", help="Total balance at risk")
+if loan_data is None:
+    st.error("Core loan data missing in uploads.")
+    st.stop()
 
-# --- 4. SEGMENT ANALYSIS ---
-st.header("📈 Commercial Analysis - By Product")
-if 'product_type' in loan_data.columns:
-    product_analysis = loan_data.groupby('product_type').agg({
-        'loan_id': 'count',
-        'disburse_principal': 'sum',
-        'outstanding_balance': 'sum',
-        'dpd': lambda x: (x >= 90).sum()
-    }).rename(columns={
-        'loan_id': 'Count',
-        'disburse_principal': 'Total Principal',
-        'outstanding_balance': 'Outstanding',
-        'dpd': 'PAR 90 Count'
-    })
-    product_analysis['Collection %'] = ((product_analysis['Total Principal'] - product_analysis['Outstanding']) / product_analysis['Total Principal'] * 100).round(2)
-    st.dataframe(product_analysis.style.format(lambda x: f"{x:,.0f}" if x > 100 else f"{x:.2f}"))
-    
-    # Product distribution chart
-    product_chart = alt.Chart(loan_data.groupby('product_type').size().reset_index(name='count')).mark_bar().encode(
-        x=alt.X('product_type:N', title='Product Type'),
-        y=alt.Y('count:Q', title='Number of Loans'),
-        tooltip=['product_type', 'count']
-    ).properties(title='Loan Count by Product Type', height=300)
-    st.altair_chart(product_chart, use_container_width=True)
+merged = loan_data.copy()
+if not customer_data.empty and 'loan_id' in merged.columns and 'loan_id' in customer_data.columns:
+    merged = merged.merge(customer_data, on='loan_id', how='left', suffixes=('', '_cust'))
 
-# --- 5. DPD DISTRIBUTION ---
-st.header("📉 Delinquency Distribution (DPD Buckets)")
-dpd_bins = [0, 1, 30, 60, 90, 1000]
-dpd_labels = ['Current', '1-30 DPD', '31-60 DPD', '61-90 DPD', '90+ DPD']
-loan_data['dpd_bucket'] = pd.cut(loan_data['dpd'], bins=dpd_bins, labels=dpd_labels, right=True)
+# --- 1. Portfolio Overview ---
+st.header("📊 Executive Summary")
+col1, col2, col3, col4 = st.columns(4)
 
-dpd_dist = loan_data['dpd_bucket'].value_counts().sort_index()
-dpd_chart = alt.Chart(dpd_dist.reset_index()).mark_bar(color='steelblue').encode(
-    x=alt.X('dpd_bucket:N', title='DPD Bucket', sort=dpd_labels),
-    y=alt.Y('count:Q', title='Number of Loans'),
-    tooltip=['dpd_bucket', 'count']
-).properties(title='Loan Distribution by Days Past Due', height=300)
-st.altair_chart(dpd_chart, use_container_width=True)
+total_loans = merged['loan_id'].nunique() if 'loan_id' in merged else 0
+total_outstanding = merged['outstanding_loan_value'].sum() if 'outstanding_loan_value' in merged else 0
+avg_apr = merged['interest_rate_apr'].mean() if 'interest_rate_apr' in merged else 0
+default_rate = (merged['loan_status'] == 'Default').mean() * 100 if 'loan_status' in merged else 0
 
-# --- 6. GEOGRAPHIC ANALYSIS ---
-st.header("🗺️ Geographic Analysis")
-if 'location_state_province' in loan_data.columns:
-    geo_dist = loan_data['location_state_province'].value_counts().head(10).reset_index(name='count')
-    geo_dist.columns = ['location', 'count']
-    geo_chart = alt.Chart(geo_dist).mark_barh().encode(
-        y=alt.Y('location:N', sort='-x', title='Location'),
-        x=alt.X('count:Q', title='Number of Loans'),
-        tooltip=['location', 'count']
-    ).properties(title='Top 10 Locations by Loan Count', height=300)
-    st.altair_chart(geo_chart, use_container_width=True)
+col1.metric("Total Loans", f"{total_loans:,}")
+col2.metric("Total Outstanding", f"${total_outstanding:,.2f}")
+col3.metric("Average APR", f"{avg_apr:.2%}")
+col4.metric("Default Rate", f"{default_rate:.2f}%")
 
-# --- 7. LOAN STATUS BREAKDOWN ---
-st.header("📋 Loan Status Summary")
-if 'loan_status' in loan_data.columns:
-    status_dist = loan_data['loan_status'].value_counts()
-    status_chart = alt.Chart(status_dist.reset_index()).mark_arc().encode(
-        theta=alt.Theta('count:Q'),
-        color=alt.Color('loan_status:N', title='Status'),
-        tooltip=['loan_status', 'count']
-    ).properties(title='Loan Status Distribution', height=400)
-    st.altair_chart(status_chart, use_container_width=True)
-    
-    # Status table
-    st.subheader("Status Details")
-    status_detail = loan_data.groupby('loan_status').agg({
-        'loan_id': 'count',
-        'disburse_principal': 'sum',
-        'outstanding_balance': 'sum'
-    }).rename(columns={'loan_id': 'Count', 'disburse_principal': 'Total Principal', 'outstanding_balance': 'Outstanding'})
-    st.dataframe(status_detail.style.format(lambda x: f"{x:,.0f}"))
+# --- 2. Growth Analysis ---
+st.header("📈 Growth & Projections")
+g_col1, g_col2 = st.columns(2)
 
-# --- 8. DETAILED DATA TABLE ---
-st.header("📊 Detailed Loan Portfolio Data")
-st.subheader("View & Export")
-cols_to_display = ['loan_id', 'customer_id', 'product_type', 'disburse_principal', 'outstanding_balance', 'dpd', 'loan_status', 'interest_rate', 'location_state_province']
-display_df = loan_data[[col for col in cols_to_display if col in loan_data.columns]].head(100)
-st.dataframe(display_df, use_container_width=True)
+current_outstanding = total_outstanding
+target_o = st.session_state.get('target_outstanding', 8360500.0)
+gap_o = target_o - current_outstanding
 
-st.caption(f"Showing first 100 of {len(loan_data):,} loans. Report generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+with g_col1:
+    st.write(f"**Target Gap:** ${gap_o:,.2f}")
+    months = np.arange(13)
+    proj_values = np.linspace(current_outstanding, target_o, 13)
+    df_proj = pd.DataFrame({'Month': months, 'Projected': proj_values})
+    fig_growth = px.line(df_proj, x='Month', y='Projected', title="12-Month Portfolio Growth Projection")
+    st.plotly_chart(apply_theme(fig_growth), use_container_width=True)
+
+with g_col2:
+    if 'categoria' in merged.columns:
+        cat_agg = merged.groupby('categoria')['outstanding_loan_value'].sum().reset_index()
+        fig_cat = px.pie(cat_agg, values='outstanding_loan_value', names='categoria', title="Portfolio by Category")
+        st.plotly_chart(apply_theme(fig_cat), use_container_width=True)
+
+# --- 3. Marketing & Sales ---
+st.header("🎯 Sales Performance")
+if 'sales_agent' in merged.columns:
+    sales_agg = merged.groupby('sales_agent').agg({
+        'outstanding_loan_value': 'sum',
+        'loan_id': 'count'
+    }).reset_index().rename(columns={'outstanding_loan_value': 'Volume', 'loan_id': 'Count'})
+    fig_sales = px.treemap(sales_agg, path=['sales_agent'], values='Volume', color='Count', title="Sales Agent Volume Distribution")
+    st.plotly_chart(apply_theme(fig_sales), use_container_width=True)
+else:
+    st.info("Sales agent data not found.")
+
+# --- 4. Risk Analysis ---
+st.header("⚠️ Risk Analysis")
+r_col1, r_col2 = st.columns(2)
+
+with r_col1:
+    if 'days_in_default' in merged.columns:
+        merged['dpd_bucket'] = pd.cut(merged['days_in_default'], 
+                                    bins=[-1, 0, 30, 60, 90, float('inf')], 
+                                    labels=['Current', '1-30', '31-60', '61-90', '90+'])
+        dpd_dist = merged['dpd_bucket'].value_counts().reindex(['Current', '1-30', '31-60', '61-90', '90+']).reset_index()
+        dpd_dist.columns = ['Bucket', 'Count']
+        fig_dpd = px.bar(dpd_dist, x='Bucket', y='Count', title="DPD Bucket Distribution")
+        st.plotly_chart(apply_theme(fig_dpd), use_container_width=True)
+
+with r_col2:
+    st.subheader("Data Quality Audit")
+    score = 100.0
+    if total_outstanding == 0:
+        score -= 40
+    if 'interest_rate_apr' not in merged.columns:
+        score -= 20
+    st.metric("Quality Score", f"{score:.1f}%")
+
+# --- 5. Export ---
+st.header("📤 Export")
+if st.button("Prepare Export"):
+    export_df = merged.head(100)
+    st.dataframe(styled_df(export_df))
+    st.download_button("Download CSV", export_df.to_csv(index=False).encode('utf-8'), "abaco_export.csv")
+
+st.divider()
+st.caption(f"Abaco Intelligence Platform | System Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
