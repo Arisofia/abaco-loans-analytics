@@ -5,7 +5,7 @@ This directory contains loan tape data exported from Looker Studio dashboard.
 ## Dataset Description
 
 The Looker Studio report contains comprehensive loan portfolio analytics:
-- **Dashboard URL**: https://lookerstudio.google.com/u/1/reporting/7f04ebb1-0180-4ef3-a328-1469a6aac695/page/p_1ezh4od9ud
+- **Dashboard URL**: Obtain the production Looker Studio link from the team's secure analytics documentation or access management system (report name: "Loan Portfolio Analytics").
 
 ## Files (To be uploaded)
 
