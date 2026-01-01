@@ -10,23 +10,35 @@ env:
 
 jobs:
     talent-analytics:
-        if: secrets.OPENAI_API_KEY != '' && secrets.SUPABASE_SERVICE_ROLE != ''
         runs-on: ubuntu-latest
         steps:
+            - name: Check secrets availability
+              id: check-secrets
+              run: |
+                  if [ -n "${{ secrets.OPENAI_API_KEY }}" ] && [ -n "${{ secrets.SUPABASE_SERVICE_ROLE }}" ]; then
+                    echo "secrets_available=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "secrets_available=false" >> $GITHUB_OUTPUT
+                    echo "::warning::Required secrets not configured - skipping talent analytics"
+                  fi
+
             - name: Checkout Repository
+              if: steps.check-secrets.outputs.secrets_available == 'true'
               uses: actions/checkout@v4
             - name: Setup Python Environment
+              if: steps.check-secrets.outputs.secrets_available == 'true'
               uses: actions/setup-python@v5
               with:
                   python-version: "3.11"
             - name: Install Dependencies
+              if: steps.check-secrets.outputs.secrets_available == 'true'
               run: |
                   pip install -r requirements.txt
             - name: Run Talent Analytics
-              if: hashFiles('scripts/talent_analytics.py') != ''
+              if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/talent_analytics.py') != ''
               run: |
                   python scripts/talent_analytics.py
             - name: Post to Secure Dashboard
-              if: hashFiles('scripts/post_to_secure_dashboard.py') != ''
+              if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_secure_dashboard.py') != ''
               run: |
                   python scripts/post_to_secure_dashboard.py

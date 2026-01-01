@@ -13,7 +13,6 @@ on:
 jobs:
   sonarcloud:
     name: SonarCloud Scan
-    if: secrets.SONAR_TOKEN_GITHUB != ''
     permissions:
       contents: read
       pull-requests: read
@@ -22,40 +21,58 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_GITHUB }}
     steps:
+      - name: Check secrets availability
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.SONAR_TOKEN_GITHUB }}" ]; then
+            echo "secrets_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "secrets_available=false" >> $GITHUB_OUTPUT
+            echo "::warning::SONAR_TOKEN_GITHUB not configured - skipping scan"
+          fi
+
       - name: Checkout repository
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/checkout@v4
         with:
           # Necessary for SonarCloud to analyze history
           fetch-depth: 0
       - name: Setup Node
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: apps/web/pnpm-lock.yaml
       - name: Set up pnpm
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: pnpm/action-setup@v3
         with:
           version: 10
       - name: Set up Python
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Set up JDK 21
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
       - name: Install dependencies
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         run: |
           pnpm -C apps/web install --frozen-lockfile
           pnpm -C apps/web lint --version >/dev/null
       - name: Analytics coverage (pytest)
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         run: |
           python -m pip install -r apps/analytics/requirements.txt pytest pytest-cov
           cd apps/analytics
           pytest --cov=. --cov-report=xml:../coverage-python.xml
       - name: Java coverage (Jacoco)
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         run: |
           if [ -x ./gradlew ]; then
             ./gradlew jacocoTestReport
@@ -63,10 +80,12 @@ jobs:
             echo "Skipping Jacoco: gradlew not present in repository"
           fi
       - name: Web coverage placeholder
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         run: |
           mkdir -p apps/web/coverage
           echo "TN:\nSF:placeholder.js\nDA:1,0\nend_of_record" > apps/web/coverage/lcov.info
       - name: SonarCloud Scan
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
           args: >

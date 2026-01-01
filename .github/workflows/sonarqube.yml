@@ -10,14 +10,25 @@ on:
 jobs:
   build:
     name: Build and Analyze
-    if: secrets.SONAR_TOKEN_GITHUB != ''
     runs-on: ubuntu-latest
     steps:
+      - name: Check secrets availability
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.SONAR_TOKEN_GITHUB }}" ]; then
+            echo "secrets_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "secrets_available=false" >> $GITHUB_OUTPUT
+            echo "::warning::SONAR_TOKEN_GITHUB not configured - skipping analysis"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         with:
           fetch-depth: 0
 
       - name: SonarCloud Scan
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: SonarSource/sonarqube-scan-action@v5.3.2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_GITHUB }}
