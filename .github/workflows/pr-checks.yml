@@ -32,19 +32,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "pnpm"
           cache-dependency-path: apps/web/pnpm-lock.yaml
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
       - name: Install Node.js dependencies
         run: |
-          pnpm install --frozen-lockfile
+          pnpm -C apps/web install --frozen-lockfile
       - name: Lint JS/TS
         run: |
-          pnpm lint
+          pnpm -C apps/web lint
       - name: Build project (if applicable)
         run: |
-          pnpm build || echo "No build script defined."
+          pnpm -C apps/web build || echo "No build script defined."
       - name: Print completion message
         run: echo "PR checks complete."
