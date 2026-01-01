@@ -58,39 +58,6 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-    # Job 3: Orchestration Layer
-    orchestrate:
-      needs: check-data-manifest
-      if: needs.check-data-manifest.outputs.data-ready == 'true'
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
-        - name: Setup Python Environment
-          uses: actions/setup-python@v5
-          with:
-            python-version: '3.11'
-        - name: Install Dependencies
-          run: |
-            pip install -r requirements.txt
-        - name: Fetch All Agent Outputs
-          run: |
-            python scripts/fetch_agent_outputs.py --mode "daily_intelligence_cycle"
-        - name: Detect Conflicts
-          run: |
-            python scripts/detect_conflicts.py
-        - name: Build Consensus
-          run: |
-            python scripts/build_consensus.py
-        - name: Generate Executive Summary
-          run: |
-            python scripts/generate_executive_summary.py
-        - name: Post to Leadership Channel
-          run: |
-            python scripts/post_to_slack.py --channel "#executive-intelligence"
-        - name: Update Figma Executive Dashboard
-          run: |
-            python scripts/update_figma_dashboard.py
       - name: Run risk assessment on new loans
         run: |
           echo "🎯 Running Risk Assessment Agent..."
@@ -103,7 +70,41 @@ jobs:
           path: outputs/risk_scores.json
           retention-days: 7
 
-  # Job 3: Run Credit Scoring Agent
+  # Job 3: Orchestration Layer
+  orchestrate:
+    needs: check-data-manifest
+    if: needs.check-data-manifest.outputs.data-ready == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Fetch All Agent Outputs
+        run: |
+          python scripts/fetch_agent_outputs.py --mode "daily_intelligence_cycle"
+      - name: Detect Conflicts
+        run: |
+          python scripts/detect_conflicts.py
+      - name: Build Consensus
+        run: |
+          python scripts/build_consensus.py
+      - name: Generate Executive Summary
+        run: |
+          python scripts/generate_executive_summary.py
+      - name: Post to Leadership Channel
+        run: |
+          python scripts/post_to_slack.py --channel "#executive-intelligence"
+      - name: Update Figma Executive Dashboard
+        run: |
+          python scripts/update_figma_dashboard.py
+
+  # Job 4: Run Credit Scoring Agent
   credit-scoring-agent:
     needs: check-data-manifest
     if: needs.check-data-manifest.outputs.data-ready == 'true'
