@@ -31,6 +31,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -40,13 +46,10 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-      - name: Install pnpm
-        run: npm install -g pnpm
       - name: Install dependencies
         run: |
-          cd apps/web
-          pnpm install --frozen-lockfile
-          pnpm lint --version >/dev/null
+          pnpm -C apps/web install --frozen-lockfile
+          pnpm -C apps/web lint --version >/dev/null
       - name: Analytics coverage (pytest)
         run: |
           python -m pip install -r apps/analytics/requirements.txt pytest pytest-cov
@@ -61,9 +64,8 @@ jobs:
           fi
       - name: Web coverage placeholder
         run: |
-          cd apps/web
-          mkdir -p coverage
-          echo "TN:\nSF:placeholder.js\nDA:1,0\nend_of_record" > coverage/lcov.info
+          mkdir -p apps/web/coverage
+          echo "TN:\nSF:placeholder.js\nDA:1,0\nend_of_record" > apps/web/coverage/lcov.info
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         with:
