@@ -23,10 +23,10 @@ jobs:
               run: |
                   pip install -r requirements.txt
             - name: Run Talent Analytics
-              if: ${{ hashFiles('scripts/talent_analytics.py') != '' }}
+              if: hashFiles('scripts/talent_analytics.py') != ''
               run: |
                   python scripts/talent_analytics.py
             - name: Post to Secure Dashboard
-              if: ${{ hashFiles('scripts/post_to_secure_dashboard.py') != '' }}
+              if: hashFiles('scripts/post_to_secure_dashboard.py') != ''
               run: |
                   python scripts/post_to_secure_dashboard.py

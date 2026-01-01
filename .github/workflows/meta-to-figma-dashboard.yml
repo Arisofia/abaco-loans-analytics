@@ -26,11 +26,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas numpy matplotlib pyarrow boto3
       - name: Run Meta Agent Analysis
-        if: ${{ hashFiles('python/analytics/meta_agent_analysis.py') != '' }}
+        if: hashFiles('python/analytics/meta_agent_analysis.py') != ''
         run: |
           python python/analytics/meta_agent_analysis.py
       - name: Upload charts to S3
-        if: ${{ hashFiles('exports/meta_agent/*.png') != '' }}
+        if: hashFiles('exports/meta_agent/*.png') != ''
         env:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         run: |
@@ -49,7 +49,7 @@ jobs:
                   print(f'Uploaded {f} to S3')
           EOF
       - name: Update Figma dashboard
-        if: ${{ hashFiles('scripts/upload_to_figma.py') != '' && hashFiles('exports/meta_agent/*.png') != '' }}
+        if: hashFiles('scripts/upload_to_figma.py') != '' && hashFiles('exports/meta_agent/*.png') != ''
         run: |
           export IMAGE_URL="https://${{ env.AWS_S3_BUCKET }}.s3.amazonaws.com/figma_dashboard/top_ads_spend.png"
           python scripts/upload_to_figma.py --image-url "$IMAGE_URL" --file-key "$FIGMA_FILE_KEY" --node-id "$FIGMA_NODE_ID" --token "$FIGMA_TOKEN"

@@ -1,7 +1,5 @@
 name: KPI CSV Sync to Figma
-
-description: >
-  Export the KPI mapping table to CSV and sync it to the Figma KPI Table page automatically.
+# Export the KPI mapping table to CSV and sync it to the Figma KPI Table page automatically.
 
 on:
   workflow_dispatch:
@@ -32,11 +30,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Export KPI table to CSV
-        if: ${{ hashFiles('scripts/export_kpi_table_to_csv.py') != '' }}
+        if: hashFiles('scripts/export_kpi_table_to_csv.py') != ''
         run: |
           python scripts/export_kpi_table_to_csv.py
       - name: Sync KPI CSV to Figma
-        if: ${{ hashFiles('scripts/sync_kpi_table_to_figma.py') != '' && hashFiles('exports/KPI_Mapping_Table.csv') != '' }}
+        if: hashFiles('scripts/sync_kpi_table_to_figma.py') != '' && hashFiles('exports/KPI_Mapping_Table.csv') != ''
         run: |
           python scripts/sync_kpi_table_to_figma.py
         env:

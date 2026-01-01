@@ -29,7 +29,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Supabase to Figma sync script
-        if: ${{ hashFiles('scripts/export_copilot_slide_payload.py') != '' }}
+        if: hashFiles('scripts/export_copilot_slide_payload.py') != ''
         run: |
           python scripts/export_copilot_slide_payload.py
         env:

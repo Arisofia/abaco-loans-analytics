@@ -59,7 +59,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Update Figma Slides
-        if: ${{ hashFiles('scripts/update_figma_slides.js') != '' }}
+        if: hashFiles('scripts/update_figma_slides.js') != ''
         run: node scripts/update_figma_slides.js
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}

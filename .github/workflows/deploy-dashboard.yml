@@ -92,8 +92,17 @@ jobs:
           package: ./dashboard
           startup-command: ${{ env.STARTUP_CMD }}
 
+      - name: Deploy to Azure Web App (publish profile)
+        if: steps.check_creds.outputs.has_creds != 'true' && steps.check_publish_profile.outputs.has_publish_profile == 'true'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./dashboard
+          startup-command: ${{ env.STARTUP_CMD }}
+
       - name: Post-deployment health check
-        if: always()
+        if: steps.check_creds.outputs.has_creds == 'true' || steps.check_publish_profile.outputs.has_publish_profile == 'true'
         run: |
           echo "Deployment completed. Monitoring health check..."
           host_name="${{ steps.resolve_host.outputs.host_name }}"
@@ -111,10 +120,10 @@ jobs:
           done
           echo "⚠️ Health check not responding yet, but deployment completed"
 
-      - name: Skip deploy (missing publish profile)
-        if: steps.check_publish_profile.outputs.has_publish_profile != 'true'
+      - name: Skip deploy (missing secrets)
+        if: steps.check_creds.outputs.has_creds != 'true' && steps.check_publish_profile.outputs.has_publish_profile != 'true'
         run: |
-          echo "Skipping deployment: AZURE_WEBAPP_PUBLISH_PROFILE is not configured."
+          echo "Skipping deployment: AZURE_CREDENTIALS or AZURE_WEBAPP_PUBLISH_PROFILE is required."
 
       - name: Notify on failure
         if: failure() && github.event_name == 'pull_request'

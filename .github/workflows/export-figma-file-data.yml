@@ -26,7 +26,7 @@ jobs:
           pip install requests
 
       - name: Export Figma file data
-        if: ${{ hashFiles('scripts/export_figma_file_data.py') != '' }}
+        if: hashFiles('scripts/export_figma_file_data.py') != ''
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
         run: |

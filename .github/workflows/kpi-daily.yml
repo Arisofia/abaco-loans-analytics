@@ -50,6 +50,6 @@ jobs:
             - run: |
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
-            - if: ${{ hashFiles('scripts/run_kpis.py') != '' }}
+            - if: hashFiles('scripts/run_kpis.py') != ''
               run: |
                   python scripts/run_kpis.py --run-id "${RUN_ID}" --snapshot-id "${SNAPSHOT_ID}"

@@ -18,15 +18,17 @@ on:
 jobs:
   batch-export:
     runs-on: ubuntu-latest
-    environment: production
     timeout-minutes: 30
+    env:
+      SLACK_WEBHOOK_OPS: ${{ secrets.SLACK_WEBHOOK_OPS }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -63,26 +65,28 @@ jobs:
 
       - name: Upload export artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: batch-export-results-${{ github.run_id }}
           path: data/exports/
           retention-days: 30
 
       - name: Notify on success
-        if: success() && secrets.SLACK_WEBHOOK_OPS != ''
+        if: success() && env.SLACK_WEBHOOK_OPS != ''
         uses: 8398a7/action-slack@v3
         with:
           status: success
           text: 'Batch export workflow completed successfully'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK_OPS }}
           fields: repo,message,commit
+        env:
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_OPS }}
 
       - name: Notify on failure
-        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
         uses: 8398a7/action-slack@v3
         with:
           status: failure
           text: 'Batch export workflow failed'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           fields: repo,message,commit,author
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

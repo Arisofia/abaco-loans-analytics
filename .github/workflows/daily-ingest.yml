@@ -31,13 +31,13 @@ jobs:
             pip install -r apps/analytics/requirements.txt
           fi
       - name: Install Playwright
-        if: ${{ hashFiles('scripts/scrape_cascade.py') != '' && env.CASCADE_USERNAME != '' && env.CASCADE_PASSWORD != '' }}
+        if: hashFiles('scripts/scrape_cascade.py') != '' && env.CASCADE_USERNAME != '' && env.CASCADE_PASSWORD != ''
         run: |
           pip install playwright
           playwright install chromium
       
       - name: Run Cascade scraper
-        if: ${{ hashFiles('scripts/scrape_cascade.py') != '' && env.CASCADE_USERNAME != '' && env.CASCADE_PASSWORD != '' }}
+        if: hashFiles('scripts/scrape_cascade.py') != '' && env.CASCADE_USERNAME != '' && env.CASCADE_PASSWORD != ''
         continue-on-error: true
         run: python scripts/scrape_cascade.py --loan-tape
         env:
@@ -45,7 +45,7 @@ jobs:
           CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
           CASCADE_PID: abaco
       - name: Run data ingestion pipeline
-        if: ${{ hashFiles('scripts/run_data_pipeline.py') != '' }}
+        if: hashFiles('scripts/run_data_pipeline.py') != ''
         continue-on-error: true
         run: |
           python scripts/run_data_pipeline.py

@@ -23,7 +23,7 @@ jobs:
               run: |
                   pip install -r requirements.txt
             - name: Run Growth Experiment Analysis
-              if: ${{ hashFiles('scripts/growth_experiments.py') != '' }}
+              if: hashFiles('scripts/growth_experiments.py') != ''
               run: |
                   python scripts/growth_experiments.py
             - name: Post to Notion

@@ -23,10 +23,10 @@ jobs:
               run: |
                   pip install -r requirements.txt
             - name: Run Financial Forecast
-              if: ${{ hashFiles('scripts/financial_forecast.py') != '' }}
+              if: hashFiles('scripts/financial_forecast.py') != ''
               run: |
                   python scripts/financial_forecast.py
             - name: Post to Power BI
-              if: ${{ hashFiles('scripts/post_to_powerbi.py') != '' }}
+              if: hashFiles('scripts/post_to_powerbi.py') != ''
               run: |
                   python scripts/post_to_powerbi.py

@@ -23,7 +23,7 @@ permissions:
 jobs:
   run-demos:
     runs-on: ubuntu-latest
-    if: ${{ inputs.RUN_DEMOS == 'true' }}
+    if: inputs.RUN_DEMOS == 'true'
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:

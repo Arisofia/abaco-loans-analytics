@@ -64,13 +64,13 @@ jobs:
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
 
       - name: Validate Data Quality
-        if: ${{ hashFiles('scripts/validate_data_quality.py') != '' }}
+        if: hashFiles('scripts/validate_data_quality.py') != ''
         run: |
           echo "Running data quality checks..."
           python scripts/validate_data_quality.py
 
       - name: Generate Data Manifest
-        if: ${{ hashFiles('scripts/generate_data_manifest.py') != '' }}
+        if: hashFiles('scripts/generate_data_manifest.py') != ''
         run: |
           echo "Creating manifest with data freshness timestamps..."
           python scripts/generate_data_manifest.py

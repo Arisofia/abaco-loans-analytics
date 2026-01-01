@@ -24,7 +24,7 @@ jobs:
               run: |
                   pip install -r requirements.txt
             - name: Run Brand Monitoring
-              if: ${{ hashFiles('scripts/brand_monitoring.py') != '' }}
+              if: hashFiles('scripts/brand_monitoring.py') != ''
               run: |
                   python scripts/brand_monitoring.py
             - name: Post to Slack

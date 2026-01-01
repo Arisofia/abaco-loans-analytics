@@ -24,7 +24,7 @@ jobs:
               run: |
                   pip install -r requirements.txt
             - name: Run Operations Analysis
-              if: ${{ hashFiles('scripts/operations_dashboard.py') != '' }}
+              if: hashFiles('scripts/operations_dashboard.py') != ''
               run: |
                   python scripts/operations_dashboard.py
             - name: Post to Slack

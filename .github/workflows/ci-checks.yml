@@ -51,7 +51,7 @@ jobs:
       - name: Install web deps (for lint)
         run: pnpm -C apps/web install --frozen-lockfile
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
@@ -152,9 +152,12 @@ jobs:
     name: Notify on Failure
     runs-on: ubuntu-latest
     needs: [repo-health, run-demos, evaluate-models]
-    if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+    if: failure()
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Notify Slack on Failure
+        if: env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
         uses: slackapi/slack-github-action@v2
         with:
