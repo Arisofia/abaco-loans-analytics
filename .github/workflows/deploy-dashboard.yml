@@ -34,13 +34,13 @@ jobs:
           pip install -r requirements.txt
 
       - name: Azure login (for health check path)
-        if: ${{ secrets.AZURE_CREDENTIALS != '' }}
+        if: secrets.AZURE_CREDENTIALS != ''
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Configure App Service health check path
-        if: ${{ secrets.AZURE_CREDENTIALS != '' }}
+        if: secrets.AZURE_CREDENTIALS != ''
         run: az webapp config set --resource-group $RESOURCE_GROUP --name $WEBAPP_NAME --health-check-path $HEALTH_CHECK_PATH
 
       - name: Deploy to Azure Web App
