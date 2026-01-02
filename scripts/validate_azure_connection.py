@@ -12,7 +12,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.config.secrets import get_secrets_manager
 
-logger = logging.getLogger(__name__)
+try:
+    from src.azure_tracing import setup_azure_tracing
+
+    logger, _ = setup_azure_tracing()
+    logger.info("Azure tracing initialized for validate_azure_connection")
+except (ImportError, Exception) as tracing_err:
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 
 def validate_all() -> bool:

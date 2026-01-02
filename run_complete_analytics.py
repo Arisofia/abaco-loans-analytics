@@ -4,9 +4,10 @@ ABACO Complete Analytics - Load real data and calculate all KPIs
 Ready for production use and dashboard integration.
 """
 
-import json
-import sys
 import importlib.util
+import json
+import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -16,6 +17,16 @@ import pandas as pd
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "src" / "analytics"))
+
+try:
+    from src.azure_tracing import setup_azure_tracing
+
+    logger, _ = setup_azure_tracing()
+    logger.info("Azure tracing initialized for run_complete_analytics")
+except (ImportError, Exception) as tracing_err:
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 spec = importlib.util.spec_from_file_location(
     "kpi_calc", project_root / "src" / "analytics" / "kpi_calculator_complete.py"

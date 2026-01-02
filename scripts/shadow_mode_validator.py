@@ -4,23 +4,30 @@ Shadow Mode Validator - Week 3 Day 3-4
 Runs V1 and V2 pipelines in parallel and compares outputs
 """
 
-import sys
-
-sys.path.insert(0, "/Users/jenineferderas/Documents/abaco-loans-analytics")
-
 import json
 import logging
+import sys
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from src.kpi_engine_v2 import KPIEngineV2
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+try:
+    from src.azure_tracing import setup_azure_tracing
+
+    logger, _ = setup_azure_tracing()
+    logger.info("Azure tracing initialized for shadow_mode_validator")
+except (ImportError, Exception) as tracing_err:
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 
 class ShadowModeValidator:

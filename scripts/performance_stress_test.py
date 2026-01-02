@@ -4,24 +4,31 @@ Performance Stress Test - Week 3 Day 5-6
 Tests V2 pipeline with production-scale data and sustained load
 """
 
-import sys
-
-sys.path.insert(0, "/Users/jenineferderas/Documents/abaco-loans-analytics")
-
 import json
 import logging
 import os
+import sys
 import time
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import psutil
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from src.kpi_engine_v2 import KPIEngineV2
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+try:
+    from src.azure_tracing import setup_azure_tracing
+
+    logger, _ = setup_azure_tracing()
+    logger.info("Azure tracing initialized for performance_stress_test")
+except (ImportError, Exception) as tracing_err:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+    logger = logging.getLogger(__name__)
+    logger.warning("Azure tracing not initialized: %s", tracing_err)
 
 
 class PerformanceStressTest:

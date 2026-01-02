@@ -14,18 +14,18 @@ The ingestion layer converts Looker PAR balances into the loan tape schema expec
 
 - `reporting_date` -> `measurement_date`
 - `outstanding_balance_usd` -> `total_receivable_usd`
-- `PAR_90_balance_usd` -> `dpd_90_plus_usd`
-- `PAR_60_balance_usd` -> `dpd_60_90_usd` (net of PAR90)
-- `PAR_30_balance_usd` -> `dpd_30_60_usd` (net of PAR60)
-- `PAR_7_balance_usd` -> `dpd_7_30_usd` (net of PAR30)
-- `total_receivable_usd` - `PAR_7_balance_usd` -> `dpd_0_7_usd`
+- `par_90_balance_usd` -> `dpd_90_plus_usd`
+- `par_60_balance_usd` -> `dpd_60_90_usd` (net of PAR90)
+- `par_30_balance_usd` -> `dpd_30_60_usd` (net of PAR60)
+- `par_7_balance_usd` -> `dpd_7_30_usd` (net of PAR30)
+- `total_receivable_usd` - `par_7_balance_usd` -> `dpd_0_7_usd`
 
 If `loan_par_balances.csv` is missing, the pipeline can fall back to `loans.csv` and bucket balances by `dpd`.
 
 ### Example PAR CSV Format
 
 ```csv
-reporting_date,outstanding_balance_usd,PAR_0_balance_usd,PAR_7_balance_usd,PAR_30_balance_usd,PAR_60_balance_usd,PAR_90_balance_usd
+reporting_date,outstanding_balance_usd,par_0_balance_usd,par_7_balance_usd,par_30_balance_usd,par_60_balance_usd,par_90_balance_usd
 2025-12-31,5000000,4200000,500000,200000,80000,20000
 ```
 
@@ -133,7 +133,7 @@ This validates:
 The `ingest_looker()` function in `src/pipeline/ingestion.py`:
 
 1. **Validate PAR file** — Check for required columns, null percentages, date range
-2. **Map PAR columns** — Convert Looker naming to pipeline schema (`PAR_90_balance_usd` → `dpd_90_plus_usd`)
+2. **Map PAR columns** — Convert Looker naming to pipeline schema (`par_90_balance_usd` → `dpd_90_plus_usd`)
 3. **Load financial statements** (if provided)
    - Auto-detect format (wide vs. long) from structure
    - Map financial metric names to canonical keys
