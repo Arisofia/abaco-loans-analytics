@@ -13,7 +13,7 @@ All consumers (Next.js APIs, BI, Python, ML) should rely on these as the **singl
 
 ### 1.1 `analytics.customer_segment`
 
-#### Purpose
+#### Purpose — `analytics.customer_segment`
 
 Centralized customer segmentation:
 
@@ -21,7 +21,7 @@ Centralized customer segmentation:
 - `business_segment`: `OC`, `CCF`, `DTE`, `Nimal`, `Top`, `Other`
 - `industry_segment`: macro industry buckets
 
-#### Source
+#### Source — `analytics.customer_segment`
 
 - `public.customer_data`
 
@@ -39,7 +39,7 @@ Centralized customer segmentation:
 
 ### 1.2 `analytics.loan_month`
 
-#### Purpose
+#### Purpose — `analytics.loan_month`
 
 Monthly loan-level snapshot with:
 
@@ -47,7 +47,7 @@ Monthly loan-level snapshot with:
 - Days past due (DPD)
 - Pricing fields (APR, fees)
 
-#### Source
+#### Source — `analytics.loan_month`
 
 - `public.loan_data`
 - `public.real_payment`
@@ -71,7 +71,7 @@ Monthly loan-level snapshot with:
 
 ### 2.1 `analytics.kpi_monthly_pricing`
 
-#### Purpose
+#### Purpose — `analytics.kpi_monthly_pricing`
 
 Monthly portfolio pricing metrics:
 
@@ -85,7 +85,7 @@ Monthly portfolio pricing metrics:
 - `analytics.loan_month`
 - `public.real_payment`
 
-#### KPIs
+#### KPIs — `analytics.kpi_monthly_pricing`
 
 - `weighted_apr`
   - APR weighted by outstanding
@@ -99,7 +99,7 @@ Monthly portfolio pricing metrics:
 - `weighted_effective_rate`
   - `weighted_apr + weighted_fee_rate + weighted_other_income_rate`
 
-#### Grain
+#### Grain — `analytics.kpi_monthly_risk` — `analytics.kpi_monthly_pricing`
 
 - One row per `year_month`
 
@@ -109,7 +109,7 @@ Monthly portfolio pricing metrics:
 
 ### 3.1 `analytics.kpi_monthly_risk`
 
-#### Purpose
+#### Purpose — `analytics.kpi_monthly_risk`
 
 Global monthly delinquency KPIs.
 
@@ -117,7 +117,7 @@ Global monthly delinquency KPIs.
 
 - `analytics.loan_month`
 
-#### KPIs
+#### KPIs — `analytics.kpi_monthly_risk`
 
 - `total_outstanding`
 - `dpd7_amount`, `dpd7_pct`
@@ -136,7 +136,7 @@ Global monthly delinquency KPIs.
 
 ### 5.1 `public.figma_dashboard`
 
-#### Purpose
+#### Purpose — `public.figma_dashboard`
 
 Consolidated view for board and investor reporting, aligned with Figma design bindings.
 
