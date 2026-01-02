@@ -4,11 +4,10 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - "python/**"
+      - "src/**"
       - "apps/**"
       - "packages/**"
-      - "src/**"
-      - "dashboard/**"
+      - "streamlit_app.py"
       - "requirements*.txt"
       - "package.json"
       - "pnpm-lock.yaml"

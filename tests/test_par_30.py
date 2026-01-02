@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from python.kpis.par_30 import calculate_par_30
+from src.kpis.par_30 import calculate_par_30
 
 
 def test_calculate_par_30_standard():

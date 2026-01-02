@@ -8,12 +8,12 @@ from typing import Any, Dict, Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from python.compliance import build_compliance_report, write_compliance_report
-from python.pipeline.data_ingestion import UnifiedIngestion
-from python.pipeline.orchestrator import UnifiedPipeline
-from python.pipeline.data_transformation import UnifiedTransformation
-from python.kpi_engine_v2 import KPIEngineV2 as KPIEngine
-from python.config.paths import Paths
+from src.compliance import build_compliance_report, write_compliance_report
+from src.pipeline.data_ingestion import UnifiedIngestion
+from src.pipeline.orchestrator import UnifiedPipeline
+from src.pipeline.data_transformation import UnifiedTransformation
+from src.kpi_engine_v2 import KPIEngineV2 as KPIEngine
+from src.config.paths import Paths
 
 # Legacy aliases for backward compatibility with tests/patching
 CascadeIngestion = UnifiedIngestion

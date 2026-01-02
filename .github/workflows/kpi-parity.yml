@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - "python/analytics/**"
+      - "src/analytics/**"
       - "run_complete_analytics.py"
       - "supabase/migrations/**"
       - "tests/test_kpi_parity.py"

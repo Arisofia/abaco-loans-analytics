@@ -5,8 +5,8 @@ on:
       - main
     paths:
       - "apps/**"
-      - "python/**"
-      - "dashboard/**"
+      - "src/**"
+      - "streamlit_app.py"
       - "requirements*.txt"
       - "package.json"
       - "pnpm-lock.yaml"

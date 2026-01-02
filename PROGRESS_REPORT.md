@@ -34,10 +34,10 @@
 ### PHASE 3A: MODULE CONSOLIDATION (100% Complete)
 
 **Module Duplication Elimination**
-- Deleted legacy `python/ingestion.py` (122 lines) - Updated imports in 4 files
-- Deleted legacy `python/transformation.py` (52 lines) - Updated imports in 4 files
+- Deleted legacy `src/ingestion.py` (122 lines) - Updated imports in 4 files
+- Deleted legacy `src/transformation.py` (52 lines) - Updated imports in 4 files
 - Consolidated calculation: Renamed `calculation_v2.py` → `calculation.py`
-- Deprecated `python/kpi_engine.py` with migration guide pointing to `kpi_engine_v2.py`
+- Deprecated `src/kpi_engine.py` with migration guide pointing to `kpi_engine_v2.py`
 
 **Results**
 - Removed 278 lines of dead code
@@ -85,7 +85,7 @@
 - Mapped each legacy file to new location in pipeline.yml
 
 **Code Updates**
-- Updated `python/pipeline/orchestrator.py`:
+- Updated `src/pipeline/orchestrator.py`:
   - Implemented `_deep_merge()` function for safe configuration merging
   - Enhanced PipelineConfig class with environment resolution
   - Added environment variable support (PIPELINE_ENV)
@@ -211,7 +211,7 @@
 ### Code Artifacts
 - ✅ `scripts/consolidate_modules.sh` - Module consolidation script
 - ✅ `scripts/consolidate_transformation.sh` - Import update script
-- ✅ Updated `python/pipeline/orchestrator.py` - Config loading
+- ✅ Updated `src/pipeline/orchestrator.py` - Config loading
 
 ---
 

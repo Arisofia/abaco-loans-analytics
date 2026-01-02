@@ -23,7 +23,7 @@ on:
     branches: [main, develop]
     paths:
       - "apps/**"
-      - "python/**"
+      - "src/**"
       - "scripts/**"
       - "tests/**"
       - "dashboard/**"
@@ -68,15 +68,13 @@ jobs:
               - "apps/web/pnpm-lock.yaml"
               - ".github/workflows/ci.yml"
             analytics:
-              - "apps/analytics/**"
-              - "python/**"
+              - "src/analytics/**"
               - "requirements.txt"
-              - "apps/analytics/requirements.txt"
               - "tests/evaluation/**"
               - ".github/workflows/ci.yml"
             checks:
               - "scripts/**"
-              - "python/**"
+              - "src/**"
               - "tests/evaluation/**"
               - ".github/workflows/ci.yml"
 
@@ -222,12 +220,10 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             requirements.txt
-            apps/analytics/requirements.txt
       - name: Install
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r apps/analytics/requirements.txt
           pip install pytest pytest-cov
       - name: Validate
         run: |
@@ -236,13 +232,12 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          cd apps/analytics
-          pytest --cov=. --cov-report=xml:../coverage-python.xml
+          pytest --cov=src --cov-report=xml:coverage-src.xml tests/
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
           name: analytics-coverage
-          path: apps/coverage-python.xml
+          path: coverage-src.xml
 
   update-figma-slides:
     name: Update Figma Slides

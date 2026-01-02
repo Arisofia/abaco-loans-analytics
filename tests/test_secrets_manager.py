@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from python.config.secrets import SecretsManager, get_secrets_manager
+from src.config.secrets import SecretsManager, get_secrets_manager
 
 
 class TestSecretsManagerGet:
@@ -61,8 +61,8 @@ class TestSecretsManagerValidate:
     
     def test_validate_with_all_required_set(self):
         """Should pass validation when all required secrets set."""
-        os.environ["OPENAI_API_KEY"] = "sk-test"
-        os.environ["ANTHROPIC_API_KEY"] = "sk-ant-test"
+        os.environ["OPENAI_API_KEY"] = "test-openai-key"
+        os.environ["ANTHROPIC_API_KEY"] = "test-anthropic-key"
         
         manager = SecretsManager()
         result = manager.validate(fail_on_missing_required=False)
@@ -93,8 +93,8 @@ class TestSecretsManagerGetAll:
     
     def test_get_all_required_only(self):
         """Should return dict of required secrets."""
-        os.environ["OPENAI_API_KEY"] = "sk-test"
-        os.environ["ANTHROPIC_API_KEY"] = "sk-ant-test"
+        os.environ["OPENAI_API_KEY"] = "test-openai-key"
+        os.environ["ANTHROPIC_API_KEY"] = "test-anthropic-key"
         
         manager = SecretsManager()
         result = manager.get_all(required_only=True)
@@ -102,7 +102,7 @@ class TestSecretsManagerGetAll:
         assert isinstance(result, dict)
         assert "OPENAI_API_KEY" in result
         assert "ANTHROPIC_API_KEY" in result
-        assert result["OPENAI_API_KEY"] == "sk-test"
+        assert result["OPENAI_API_KEY"] == "test-openai-key"
         
         del os.environ["OPENAI_API_KEY"]
         del os.environ["ANTHROPIC_API_KEY"]
@@ -137,14 +137,14 @@ class TestSecretsManagerLogging:
     
     def test_log_status_does_not_expose_values(self, capsys):
         """Log output should not contain actual secret values."""
-        os.environ["OPENAI_API_KEY"] = "sk-test-secret-value"
+        os.environ["OPENAI_API_KEY"] = "test-secret-value-not-exposed"
         
         manager = SecretsManager()
         manager.get("OPENAI_API_KEY")
         manager.log_status()
         
         captured = capsys.readouterr()
-        assert "sk-test" not in captured.out
+        assert "test-secret" not in captured.out
         assert "OPENAI_API_KEY" in captured.out
         
         del os.environ["OPENAI_API_KEY"]

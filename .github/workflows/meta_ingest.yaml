@@ -56,7 +56,7 @@ jobs:
         if: steps.meta_token.outputs.run == 'true'
         run: |
           pip install pandas pyarrow pyyaml
-          python python/ingestion/meta_to_warehouse.py
+          python src/ingestion/meta_to_warehouse.py
       - name: Upload warehouse parquet
         if: steps.meta_token.outputs.run == 'true'
         uses: actions/upload-artifact@v4

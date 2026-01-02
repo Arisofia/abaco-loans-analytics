@@ -7,8 +7,8 @@ from pathlib import Path
 import requests
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from python.config.paths import Paths
-from python.config.secrets import get_secrets_manager
+from src.config.paths import Paths
+from src.config.secrets import get_secrets_manager
 
 # Secrets
 secrets = get_secrets_manager()

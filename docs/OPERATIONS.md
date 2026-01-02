@@ -67,5 +67,5 @@ pipeline:
    ```
 3. Validate config:
    ```bash
-   python -c "from python.pipeline.orchestrator import PipelineConfig; PipelineConfig()"
+   python -c "from src.pipeline.orchestrator import PipelineConfig; PipelineConfig()"
    ```

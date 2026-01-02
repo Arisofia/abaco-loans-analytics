@@ -12,7 +12,7 @@ pip check
 
 # Check for critical directories
 echo "📂 Checking directory structure..."
-[ -d "python" ] || { echo "❌ python/ directory missing"; exit 1; }
+[ -d "python" ] || { echo "❌ src/ directory missing"; exit 1; }
 [ -d "tests" ] || { echo "❌ tests/ directory missing"; exit 1; }
 [ -d "data" ] || { echo "⚠️ data/ directory missing (creating...)"; mkdir -p data; }
 

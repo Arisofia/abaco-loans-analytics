@@ -13,7 +13,7 @@ import json
 from datetime import datetime
 import logging
 
-from python.kpi_engine_v2 import KPIEngineV2
+from src.kpi_engine_v2 import KPIEngineV2
 
 logging.basicConfig(
     level=logging.INFO,

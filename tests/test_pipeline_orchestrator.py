@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 import tempfile
 import pandas as pd
-from python.pipeline.orchestrator import UnifiedPipeline, PipelineConfig
+from src.pipeline.orchestrator import UnifiedPipeline, PipelineConfig
 
 
 class TestPipelineConfig:

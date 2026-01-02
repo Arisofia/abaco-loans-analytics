@@ -79,7 +79,7 @@ git push origin main
 **Immediate Mitigation**:
 - If **single source failed**: Retry manually or use fallback data
 - If **multiple sources failed**: Likely authentication issue → Rotate API keys in Key Vault
-- If **transformation error**: Hotfix code in `python/` and redeploy
+- If **transformation error**: Hotfix code in `src/` and redeploy
 
 **Success Criteria**: At least 1 data pipeline completes successfully
 

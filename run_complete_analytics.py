@@ -13,12 +13,12 @@ from datetime import datetime
 # Add project to path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "python" / "analytics"))
+sys.path.insert(0, str(project_root / "src" / "analytics"))
 
 # Load the KPI calculator directly
 import importlib.util
 spec = importlib.util.spec_from_file_location("kpi_calc", 
-    project_root / "python" / "analytics" / "kpi_calculator_complete.py")
+    project_root / "src" / "analytics" / "kpi_calculator_complete.py")
 kpi_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(kpi_module)
 ABACOKPICalculator = kpi_module.ABACOKPICalculator
@@ -175,7 +175,7 @@ def load_real_data():
 
 # Load the KPI catalog processor
 spec_cat = importlib.util.spec_from_file_location("kpi_cat", 
-    project_root / "python" / "analytics" / "kpi_catalog_processor.py")
+    project_root / "src" / "analytics" / "kpi_catalog_processor.py")
 kpi_cat_module = importlib.util.module_from_spec(spec_cat)
 spec_cat.loader.exec_module(kpi_cat_module)
 KPICatalogProcessor = kpi_cat_module.KPICatalogProcessor

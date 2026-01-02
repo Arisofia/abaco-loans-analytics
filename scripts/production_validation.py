@@ -16,7 +16,7 @@ import logging
 from datetime import datetime
 from typing import Dict, Any
 
-from python.kpi_engine_v2 import KPIEngineV2
+from src.kpi_engine_v2 import KPIEngineV2
 
 logging.basicConfig(
     level=logging.INFO,

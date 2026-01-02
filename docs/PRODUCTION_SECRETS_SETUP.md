@@ -340,7 +340,7 @@ export NOTION_API_KEY="..."
 export AZURE_STORAGE_CONNECTION_STRING="..."
 
 # Run batch export runner
-python python/integrations/batch_export_runner.py --type full --verbose
+python src/integrations/batch_export_runner.py --type full --verbose
 ```
 
 Note: The batch export runner reports success as long as all enabled outputs succeed.
@@ -411,4 +411,4 @@ All secrets should be rotated on a regular basis:
 
 ---
 
-**For questions or issues, refer to the specific integration client in `python/integrations/` or check the runbooks in `docs/operations/`.**
+**For questions or issues, refer to the specific integration client in `src/integrations/` or check the runbooks in `docs/operations/`.**

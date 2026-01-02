@@ -20,7 +20,9 @@ jobs:
 
             - name: Install linters and tools
               run: |
-                  pip install yamllint jsonlint flake8
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt -r dev-requirements.txt
+                  pip install jsonlint
                   npm install -g markdownlint-cli
 
             - name: Lint YAML
@@ -29,19 +31,34 @@ jobs:
 
             - name: Lint JSON
               run: |
-                  find . -name '*.json' -not -path './node_modules/*' -exec jsonlint -q {} \;
+                  find . -name '*.json' -not -path './node_modules/*' -not -path './.venv/*' -exec jsonlint -q {} \;
 
             - name: Lint Markdown
               run: |
-                  markdownlint '**/*.md' --ignore node_modules
+                  markdownlint '**/*.md' --ignore node_modules --ignore .venv
 
-            - name: Lint Python
+            - name: Lint Python (pylint, flake8, ruff)
               run: |
-                  flake8 .
+                  echo "Running pylint..."
+                  PYTHONPATH=src pylint src tests --fail-under=8.0
+                  echo "Running flake8..."
+                  PYTHONPATH=src flake8 src tests
+                  echo "Running ruff..."
+                  PYTHONPATH=src ruff check src tests
+
+            - name: Type Check (mypy)
+              run: |
+                  PYTHONPATH=src mypy src --ignore-missing-imports
 
             - name: Check for duplicate/stale README and config files
               run: |
-                  find . -type f \( -iname 'README*' -o -iname '*.example.*' -o -iname '*.sample.*' \) | grep -vE 'node_modules|.venv|.git|dist|build' > doc_files.txt
+                  find . -type f \( -iname 'README*' -o -iname '*example*' -o -iname '*sample*' \) \
+                    | grep -vE 'node_modules|.venv|.git|.mypy_cache|.pytest_cache|.ruff_cache|dist|build' \
+                    | grep -vE 'dev-requirements.txt|.env.example|.env.local.example' \
+                    | grep -vE 'scripts/generate_abaco_portfolio_sample.py' \
+                    | grep -vE 'data_samples/abaco_portfolio_sample.csv' \
+                    | grep -vE 'config/codex_mcp_config.toml.example' \
+                    > doc_files.txt
                   python scripts/security/check_doc_policy.py doc_files.txt
 
             - name: Run secret scan

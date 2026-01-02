@@ -4,10 +4,10 @@ import json
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
-from python.abaco_pipeline.output.supabase_writer import SupabaseAuth, SupabaseWriter
+from src.abaco_pipeline.output.supabase_writer import SupabaseAuth, SupabaseWriter
 
 
-@patch("python.abaco_pipeline.output.supabase_writer.requests.post")
+@patch("src.abaco_pipeline.output.supabase_writer.requests.post")
 def test_upsert_pipeline_run_posts_expected_url_headers_and_body(mock_post: Mock):
     mock_resp = Mock()
     mock_resp.raise_for_status = Mock()
@@ -39,7 +39,7 @@ def test_upsert_pipeline_run_posts_expected_url_headers_and_body(mock_post: Mock
     assert body[0]["started_at"].startswith("2025-12-31T00:00:00")
 
 
-@patch("python.abaco_pipeline.output.supabase_writer.requests.post")
+@patch("src.abaco_pipeline.output.supabase_writer.requests.post")
 def test_insert_kpi_values_noop_on_empty(mock_post: Mock):
     mock_resp = Mock()
     mock_resp.raise_for_status = Mock()

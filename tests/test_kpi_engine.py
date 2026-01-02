@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from python.kpi_engine_v2 import KPIEngineV2
+from src.kpi_engine_v2 import KPIEngineV2
 
 
 def sample_portfolio():

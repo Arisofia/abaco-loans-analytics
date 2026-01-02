@@ -107,10 +107,10 @@ Startup Command: bash startup.sh
 | `meta_ingest.yaml` | Daily 08:00 CET | 🔴 FAILING | 19s | Meta marketing data |
 
 **Pipeline Code Locations**:
-- Orchestration: `python/pipeline/orchestrator.py`
-- Ingestion: `python/abaco_pipeline/ingestion/`
-- Transformation: `python/abaco_pipeline/transform/`
-- Output: `python/abaco_pipeline/output/`
+- Orchestration: `src/pipeline/orchestrator.py`
+- Ingestion: `src/abaco_pipeline/ingestion/`
+- Transformation: `src/abaco_pipeline/transform/`
+- Output: `src/abaco_pipeline/output/`
 
 **Current Issues**:
 - Very short runtimes (11-19 seconds) suggest immediate failures
@@ -207,7 +207,7 @@ Startup Command: bash startup.sh
 - [ ] Data quality alerts (row counts, schema validation)
 
 ### Audit & Compliance Logging
-- **Audit Hooks Module**: `python/pipeline/audit_hooks.py` (IMPLEMENTED)
+- **Audit Hooks Module**: `src/pipeline/audit_hooks.py` (IMPLEMENTED)
 - **Features**:
   - Immutable audit logging (JSONL format)
   - Data lineage tracking
@@ -282,8 +282,8 @@ Startup Command: bash startup.sh
 - **Frameworks**: ISO 27001, SOX, GDPR (if EU customers)
 
 ### Implemented Controls
-- ✅ Data classification module (`python/data_classification.py`)
-- ✅ Audit logging module (`python/pipeline/audit_hooks.py`)
+- ✅ Data classification module (`src/data_classification.py`)
+- ✅ Audit logging module (`src/pipeline/audit_hooks.py`)
 - ✅ RBAC access control
 - ✅ Secrets in Key Vault
 - ✅ Risk register and runbooks
@@ -348,4 +348,4 @@ Startup Command: bash startup.sh
 - 📄 Risk Register: `docs/RISK_REGISTER.md`
 - 📄 Emergency Response Plan: `EMERGENCY_RESPONSE_PLAN.md`
 - 📄 Runbooks: `docs/runbooks/`
-- 📄 Audit Integration Guide: `python/pipeline/AUDIT_INTEGRATION_GUIDE.md`
+- 📄 Audit Integration Guide: `src/pipeline/AUDIT_INTEGRATION_GUIDE.md`

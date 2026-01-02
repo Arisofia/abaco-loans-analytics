@@ -2,8 +2,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Re-exporting real implementations from python/analytics package
-from python.analytics import (
+# Re-exporting real implementations from src/analytics package
+from src.analytics import (
     calculate_quality_score,
     portfolio_kpis,
     project_growth,

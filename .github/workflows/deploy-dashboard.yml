@@ -5,7 +5,11 @@ on:
     branches:
       - main
     paths:
-      - "dashboard/**"
+      - "streamlit_app.py"
+      - "src/**"
+      - "config/**"
+      - "requirements.txt"
+      - "startup.sh"
       - ".github/workflows/deploy-dashboard.yml"
   workflow_dispatch:
 
@@ -32,17 +36,16 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Assert root requirements exists
+      - name: Assert core files exist
         run: |
-          test -f dashboard/requirements.txt
-          test -f dashboard/app.py
-          test -f dashboard/startup.sh
-          test -f dashboard/tracing_setup.py
+          test -f requirements.txt
+          test -f streamlit_app.py
+          test -f startup.sh
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r dashboard/requirements.txt
+          pip install -r requirements.txt
 
       - name: Check Azure credentials availability
         id: check_creds
@@ -97,7 +100,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.WEBAPP_NAME }}
-          package: ./dashboard
+          package: .
           startup-command: ${{ env.STARTUP_CMD }}
 
       - name: Deploy to Azure Web App (publish profile)
@@ -106,7 +109,7 @@ jobs:
         with:
           app-name: ${{ env.WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./dashboard
+          package: .
           startup-command: ${{ env.STARTUP_CMD }}
 
       - name: Post-deployment health check

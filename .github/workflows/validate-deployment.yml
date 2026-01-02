@@ -211,7 +211,7 @@ jobs:
               with:
                   script: |
                       const title = "Dashboard Dependency Test Failed";
-                      const body = "Local smoke test failed for dashboard dependencies.\n\nMode: Local Verification (No Azure Secrets)\nIssue: One or more required Python dependencies failed to import\n\nTo fix:\n1. Run: pip install -r dashboard/requirements.txt\n2. Test: python scripts/validate_dashboard_imports.py\n3. Check dashboard/app.py for import errors\n\nTo enable Azure validation:\nConfigure secrets: AZURE_CREDENTIALS or AZURE_WEBAPP_PUBLISH_PROFILE";
+                      const body = "Local smoke test failed for dashboard dependencies.\n\nMode: Local Verification (No Azure Secrets)\nIssue: One or more required Python dependencies failed to import\n\nTo fix:\n1. Run: pip install -r requirements.txt\n2. Test: python scripts/validate_dashboard_imports.py\n3. Check streamlit_app.py for import errors\n\nTo enable Azure validation:\nConfigure secrets: AZURE_CREDENTIALS or AZURE_WEBAPP_PUBLISH_PROFILE";
 
                       github.rest.issues.create({
                         owner: context.repo.owner,

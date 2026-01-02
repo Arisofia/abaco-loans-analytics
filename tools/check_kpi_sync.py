@@ -107,7 +107,7 @@ def check_files(repo_root: Path) -> List[FileCheckResult]:
         "docs/KPI_CATALOG.md",
         "docs/DATA_DICTIONARY.md",
         "supabase/migrations/20260101_analytics_kpi_views.sql",
-        "python/analytics/kpi_catalog_processor.py",
+        "src/analytics/kpi_catalog_processor.py",
         "run_complete_analytics.py",
         "tests/test_kpi_parity.py",
         "exports/complete_kpi_dashboard.json",

@@ -83,7 +83,7 @@ sql/
 ├── v_portfolio_risk.sql      # Portfolio health score view
 └── models/                   # Additional dimensional models
 
-python/
+src/
 ├── setup.py                  # Package configuration
 ├── kpi_engine.py            # KPI calculation implementations
 ├── ingestion/               # Data import modules

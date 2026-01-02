@@ -2,7 +2,7 @@
 
 ## Overview
 - Runs daily at 03:00 UTC via `orchestration/github/workflows/cascade_ingest.yml` with strict logging, retries, and audit manifests under `data/audit/runs/`.
-- Uses Playwright with a read-only session cookie to fetch the Cascade export, then canonicalizes the loan tape via `python/ingest/transform.py` before persisting CSV and Parquet.
+- Uses Playwright with a read-only session cookie to fetch the Cascade export, then canonicalizes the loan tape via `src/ingest/transform.py` before persisting CSV and Parquet.
 - The C-suite agent relies on this data to regenerate executive summaries, slide decks, and Slack alerts after each run.
 
 ## Secrets (GitHub Actions → Settings → Secrets)
@@ -62,12 +62,12 @@ gh pr create --base main \
 
 ## Orchestration Notes
 - `orchestration/github/workflows/cascade_ingest.yml` downloads the Cascade ZIP export, extracts the workbook, runs the canonicalizer, uploads the Parquet artifact, and notifies Slack on success.
-- `python/agents/c_suite_agent.py` wireframes executive outputs using `agents/specs/c_suite_agent.yaml` and the prompt in `agents/prompts/c_suite_prompt.md`.
+- `src/agents/c_suite_agent.py` wireframes executive outputs using `agents/specs/c_suite_agent.yaml` and the prompt in `agents/prompts/c_suite_prompt.md`.
 - The `vibe_quality_gate.yml` workflow enforces Black/Flake8/Sonar/Sourcery + tests as the CI gate for this package.
 - `scripts/cascade_ingest_plan_b.js` (Playwright Plan B) can be used to download the raw ZIP when the Python workflow needs a quick troubleshooting path or when the UI changes temporarily.
 
 ## Growth agent & risk models
-- `python/agents/growth_agent.py` runs after ingest to spotlight high-potential leads, recording each run in `data/agents/growth/`.
+- `src/agents/growth_agent.py` runs after ingest to spotlight high-potential leads, recording each run in `data/agents/growth/`.
 - `analytics.v_loan_risk_drivers` (SQL defined in `sql/models/v_loan_risk_drivers.sql`) surfaces product-level roll rates so both agents and human operators can trace driver shifts.
 
 ## Logging & Audit
@@ -78,4 +78,4 @@ gh pr create --base main \
 - Confirm secrets are populated per the list above.
 - Validate that the Cascade export URL still returns the expected CSV format; update selectors if the UI changes.
 - Review the Prisma/Vibe gate results in `orchestration/github/workflows/vibe_quality_gate.yml` and ensure `SOURCERY_TOKEN`/`SONAR_TOKEN` are healthy.
-- Verify the C-suite agent run by launching `python/agents/c_suite_agent.py --run-id <run_id> --date-range "last 30 days"` and inspect `data/agents/c_suite/`.
+- Verify the C-suite agent run by launching `src/agents/c_suite_agent.py --run-id <run_id> --date-range "last 30 days"` and inspect `data/agents/c_suite/`.

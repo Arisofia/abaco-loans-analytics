@@ -1,6 +1,6 @@
 .PHONY: install install-dev test test-cov run-pipeline run-dashboard clean check-maturity \
         lint format type-check audit-code quality env-clean venv venv-install \
-	test-kpi-parity analytics-sync analytics-run gradle-build upgrade-gradle vscode-envfile-info \
+	test-kpi-parity analytics-sync analytics-run vscode-envfile-info \
 	audit-dry-run audit-write help
 
 # ------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ test:
 	pytest
 
 test-cov:
-	pytest --cov=python --cov-report=html --cov-report=term
+	pytest --cov=src --cov-report=html --cov-report=term
 
 # ------------------------------------------------------------------------------
 # Code quality targets
@@ -29,21 +29,21 @@ test-cov:
 
 lint:
 	@echo "Running pylint..."
-	pylint python --exit-zero
+	PYTHONPATH=src pylint src --exit-zero
 	@echo "\nRunning flake8..."
-	flake8 python --exit-zero
+	PYTHONPATH=src flake8 src --exit-zero
 	@echo "\nRunning ruff check..."
-	ruff check python --exit-zero
+	PYTHONPATH=src ruff check src --exit-zero
 
 format:
 	@echo "Running black..."
-	black python
+	PYTHONPATH=src black src
 	@echo "\nRunning isort..."
-	isort python
+	PYTHONPATH=src isort src
 
 type-check:
 	@echo "Running mypy..."
-	mypy python --ignore-missing-imports
+	PYTHONPATH=src mypy src --ignore-missing-imports
 
 audit-code: lint type-check test-cov
 	@echo "\n✅ Code audit complete: linting, type checking, and tests"
@@ -66,10 +66,10 @@ run-dashboard:
 # ------------------------------------------------------------------------------
 
 audit-dry-run:
-	python -m python.abaco_pipeline.main --config config/pipeline.yml write-audit --kpis-config config/kpis.yml --payload config/audit_payload.example.json --dry-run
+	python -m src.abaco_pipeline.main --config config/pipeline.yml write-audit --kpis-config config/kpis.yml --payload config/audit_payload.example.json --dry-run
 
 audit-write:
-	python -m python.abaco_pipeline.main --config config/pipeline.yml write-audit --kpis-config config/kpis.yml --payload config/audit_payload.example.json
+	python -m src.abaco_pipeline.main --config config/pipeline.yml write-audit --kpis-config config/kpis.yml --payload config/audit_payload.example.json
 
 check-maturity:
 	python repo_maturity_summary.py
@@ -94,7 +94,7 @@ venv-install: venv
 
 # KPI parity test (dual-engine governance)
 test-kpi-parity:
-	. .venv/bin/activate && pytest -q tests/test_kpi_parity.py
+	. .venv/bin/activate && RUN_KPI_PARITY_TESTS=1 pytest -q tests/test_kpi_parity.py
 
 # Analytics validation and execution
 analytics-run:
@@ -102,21 +102,6 @@ analytics-run:
 
 analytics-sync:
 	. .venv/bin/activate && python3 tools/check_kpi_sync.py --print-json
-
-# ------------------------------------------------------------------------------
-# Gradle / Java helpers
-# ------------------------------------------------------------------------------
-
-# Usage:
-#   make gradle-build JAVA_HOME=$(/usr/libexec/java_home -v 21)
-gradle-build:
-	@echo "Running Gradle build with JAVA_HOME=$$JAVA_HOME"
-	JAVA_HOME=$$JAVA_HOME PATH=$$JAVA_HOME/bin:$$PATH ./gradlew clean build
-
-upgrade-gradle:
-	@echo "Upgrading Gradle wrapper to 9.1.0 for Java 25 support"
-	./gradlew wrapper --gradle-version=9.1.0
-	./gradlew wrapper
 
 # ------------------------------------------------------------------------------
 # VS Code .env warning info
@@ -162,7 +147,5 @@ help:
 	@echo "  make analytics-sync   - Validate KPI sync and health"
 	@echo "  make audit-dry-run    - Print enriched audit payload (no Supabase write)"
 	@echo "  make audit-write      - Write audit/lineage rows to Supabase (requires env vars)"
-	@echo "  make gradle-build     - Run Gradle build with provided JAVA_HOME"
-	@echo "  make upgrade-gradle   - Upgrade Gradle wrapper to 9.1.0"
 	@echo "  make clean            - Clean up temporary files"
 	@echo "  make help             - Show this help message"

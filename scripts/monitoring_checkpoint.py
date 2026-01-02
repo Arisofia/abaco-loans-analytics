@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from python.config.paths import Paths, get_project_root
+from src.config.paths import Paths, get_project_root
 
 
 class MonitoringCheckpoint:

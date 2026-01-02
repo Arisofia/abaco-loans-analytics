@@ -6,8 +6,8 @@ on:
         paths:
             - "data/**"
             - "scripts/**"
-            - "abaco_pipeline/**"
-            - "python/**"
+            - "src/abaco_pipeline/**"
+            - "src/**"
             - "requirements*.txt"
             - ".github/workflows/analytics-pipeline.yml"
 

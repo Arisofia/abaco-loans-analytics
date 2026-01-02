@@ -18,7 +18,7 @@ import requests
 
 # Optional: Azure Application Insights tracing
 try:
-    from python.azure_tracing import setup_azure_tracing, trace_analytics_job
+    from src.azure_tracing import setup_azure_tracing, trace_analytics_job
     AZURE_TRACING_ENABLED = True
 except ImportError:
     AZURE_TRACING_ENABLED = False

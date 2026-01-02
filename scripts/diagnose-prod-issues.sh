@@ -68,8 +68,8 @@ echo "========================================"
 
 echo -e "\n5️⃣ Checking pipeline configurations..."
 PIPELINE_FILES=(
-    "python/pipeline/orchestrator.py"
-    "python/abaco_pipeline/main.py"
+    "src/pipeline/orchestrator.py"
+    "src/abaco_pipeline/main.py"
     ".github/workflows/daily-ingest.yml"
     ".github/workflows/cascade_ingest.yml"
 )
@@ -83,9 +83,9 @@ for file in "${PIPELINE_FILES[@]}"; do
 done
 
 echo -e "\n6️⃣ Checking for API key configuration..."
-if [ -f "python/pipeline/orchestrator.py" ] || [ -f "python/abaco_pipeline/main.py" ]; then
+if [ -f "src/pipeline/orchestrator.py" ] || [ -f "src/abaco_pipeline/main.py" ]; then
     echo "   Searching for API key references..."
-    for file in python/pipeline/*.py python/abaco_pipeline/*.py; do
+    for file in src/pipeline/*.py src/abaco_pipeline/*.py; do
         if [ -f "$file" ]; then
             if grep -q "HUBSPOT\|OPENAI\|API_KEY\|api_key" "$file" 2>/dev/null; then
                 echo -e "   ${GREEN}✅ $(basename $file)${NC} - API key references found"

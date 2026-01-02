@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "dashboard"))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     import streamlit as st
@@ -22,7 +22,7 @@ try:
     import plotly.express as px
     print("✓ plotly.express imported successfully")
     
-    from tracing_setup import init_tracing
+    from src.tracing_setup import init_tracing
     print("✓ tracing_setup imported successfully")
     
     print("\n✅ All core imports successful")

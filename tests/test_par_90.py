@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from python.kpis.par_90 import calculate_par_90
+from src.kpis.par_90 import calculate_par_90
 
 
 def test_calculate_par_90_standard():

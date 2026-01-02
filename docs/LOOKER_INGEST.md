@@ -130,7 +130,7 @@ This validates:
 
 ## Ingestion Architecture
 
-The `ingest_looker()` function in `python/pipeline/ingestion.py`:
+The `ingest_looker()` function in `src/pipeline/ingestion.py`:
 
 1. **Validate PAR file** — Check for required columns, null percentages, date range
 2. **Map PAR columns** — Convert Looker naming to pipeline schema (`PAR_90_balance_usd` → `dpd_90_plus_usd`)

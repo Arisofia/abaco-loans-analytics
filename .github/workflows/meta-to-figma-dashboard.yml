@@ -26,9 +26,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas numpy matplotlib pyarrow boto3
       - name: Run Meta Agent Analysis
-        if: hashFiles('python/analytics/meta_agent_analysis.py') != ''
+        if: hashFiles('src/analytics/meta_agent_analysis.py') != ''
         run: |
-          python python/analytics/meta_agent_analysis.py
+          python src/analytics/meta_agent_analysis.py
       - name: Upload charts to S3
         if: hashFiles('exports/meta_agent/*.png') != ''
         env:

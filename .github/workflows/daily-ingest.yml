@@ -23,7 +23,6 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             requirements.txt
-            apps/analytics/requirements.txt
       - name: Check Cascade secrets
         id: cascade_secrets
         run: |
@@ -45,9 +44,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          if [ -f apps/analytics/requirements.txt ]; then
-            pip install -r apps/analytics/requirements.txt
-          fi
       - name: Install Playwright
         if: steps.cascade_secrets.outputs.available == 'true' && hashFiles('scripts/scrape_cascade.py') != ''
         run: |

@@ -28,7 +28,7 @@ pytest -q tests/test_kpi_parity.py
 
 ### Governance Rules
 1. **Catalog Alignment**: Any KPI change must align with `docs/KPI_CATALOG.md`.
-2. **Dual-Engine Parity**: Always update both `python/analytics/kpi_catalog_processor.py` and `supabase/migrations/20260101_analytics_kpi_views.sql`.
+2. **Dual-Engine Parity**: Always update both `src/analytics/kpi_catalog_processor.py` and `supabase/migrations/20260101_analytics_kpi_views.sql`.
 3. **Pre-flight Check**: Run `python tools/zencoder_bootstrap.py` before and after major edits.
 
 ---
@@ -141,7 +141,7 @@ make test-cov
 - `config/pipeline.yml` - Master configuration (526 lines)
 - `config/environments/` - Environment overrides (dev/staging/prod)
 - `config/LEGACY/` - Archived configs with deprecation guide
-- `python/pipeline/orchestrator.py` - Environment-aware config loading
+- `src/pipeline/orchestrator.py` - Environment-aware config loading
 - `PROGRESS_REPORT.md` - Updated with Phase 3 completion
 - `CONFIG_CONSOLIDATION_SUMMARY.md` - Detailed analysis
 
@@ -204,7 +204,7 @@ make test-cov
 - docs/KPI_CATALOG.md - Source of truth for KPI definitions
 - tools/zencoder_bootstrap.py - Agent entrypoint for KPI health
 - tools/check_kpi_sync.py - KPI parity validation engine
-- python/analytics/kpi_catalog_processor.py - Python KPI implementation
+- src/analytics/kpi_catalog_processor.py - Python KPI implementation
 - tests/test_kpi_parity.py - Automated parity test suite
 
 ### Code Quality
@@ -213,9 +213,9 @@ make test-cov
 - pyproject.toml - Tool configuration (pylint, black, etc)
 
 ### Production Pipeline
-- python/pipeline/orchestrator.py - V2 Pipeline orchestrator
-- python/pipeline/{ingestion,transformation,calculation,output}.py - Pipeline phases
-- python/kpi_engine_v2.py - KPI calculation engine
+- src/pipeline/orchestrator.py - V2 Pipeline orchestrator
+- src/pipeline/{ingestion,transformation,calculation,output}.py - Pipeline phases
+- src/kpi_engine_v2.py - KPI calculation engine
 
 ---
 

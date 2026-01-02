@@ -60,7 +60,7 @@ jobs:
             "tests/*" \
             "scripts/*" \
             "streamlit_app/*" \
-            "python/*" \
+            "src/*" \
             "htmlcov/*" \
             "*.md" \
             ".env*" \

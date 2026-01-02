@@ -70,10 +70,10 @@ All secrets should be stored in GitHub Repository Settings → Secrets, NOT in `
 
 ### Solution: Centralized Paths Module
 
-New module: `python/config/paths.py` provides environment-aware path resolution:
+New module: `src/config/paths.py` provides environment-aware path resolution:
 
 ```python
-from python.config.paths import Paths
+from src.config.paths import Paths
 
 # Usage:
 config_file = Paths.config_file()
@@ -97,14 +97,14 @@ environment = Paths.get_environment()
 
 #### Files to Refactor (Priority Order)
 
-1. **`python/pipeline/orchestrator.py`** (Lines 36-37)
+1. **`src/pipeline/orchestrator.py`** (Lines 36-37)
    ```python
    # BEFORE:
    DEFAULT_CONFIG_PATH = Path("config/pipeline.yml")
    ENVIRONMENTS_DIR = Path("config/environments")
    
    # AFTER:
-   from python.config.paths import Paths
+   from src.config.paths import Paths
    config_path = Paths.config_file()
    environments_dir = Paths.config_file().parent.parent / "environments"
    ```
@@ -127,7 +127,7 @@ environment = Paths.get_environment()
    DEFAULT_INPUT = os.getenv("PIPELINE_INPUT_FILE", "data/abaco_portfolio_calculations.csv")
    
    # AFTER:
-   from python.config.paths import Paths
+   from src.config.paths import Paths
    DEFAULT_INPUT = os.getenv("PIPELINE_INPUT_FILE", str(Paths.raw_data_dir() / "abaco_portfolio_calculations.csv"))
    ```
 
@@ -137,7 +137,7 @@ environment = Paths.get_environment()
    def save_checkpoint(self, output_dir: str = "logs/monitoring") -> str:
    
    # AFTER:
-   from python.config.paths import Paths
+   from src.config.paths import Paths
    def save_checkpoint(self, output_dir: Optional[str] = None) -> str:
        if output_dir is None:
            output_dir = str(Paths.monitoring_logs_dir(create=True))
@@ -168,15 +168,15 @@ All secrets via **environment variables** (from GitHub Secrets → workflow → 
 
 ```bash
 # .env.example (for documentation only)
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-AZURE_CLIENT_SECRET=xxx
-HUBSPOT_API_KEY=xxx
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY
+AZURE_CLIENT_SECRET=YOUR_AZURE_CLIENT_SECRET
+HUBSPOT_API_KEY=YOUR_HUBSPOT_API_KEY_HERE
 
 # Actual deployment: GitHub Secrets or K8s/container secrets
 ```
 
-### New Module: `python/config/secrets.py`
+### New Module: `src/config/secrets.py`
 
 ```python
 import os
@@ -232,7 +232,7 @@ class SecretsManager:
 
 ```python
 # tests/test_paths.py
-from python.config.paths import Paths, resolve_path
+from src.config.paths import Paths, resolve_path
 
 def test_resolve_path_absolute():
     """Absolute paths remain unchanged."""
@@ -271,7 +271,7 @@ python -m pytest tests/test_pipeline_orchestrator.py -v
 - [ ] Remove credentials from git history (`bfg` or `git filter-branch`)
 - [ ] Rotate all exposed API keys
 - [ ] Create GitHub Secrets for all credentials
-- [ ] Merge `python/config/paths.py` and `python/config/secrets.py`
+- [ ] Merge `src/config/paths.py` and `src/config/secrets.py`
 - [ ] Refactor 10+ scripts to use `Paths` module
 - [ ] Add unit tests for path resolution
 - [ ] Update `.env.example` (credentials only)

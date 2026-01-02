@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
-from abaco_runtime.standalone_ai import StandaloneAIEngine
+from src.abaco_runtime.standalone_ai import StandaloneAIEngine
 
 
 class TestStandaloneAI(unittest.TestCase):
@@ -14,7 +14,7 @@ class TestStandaloneAI(unittest.TestCase):
         new_callable=mock_open,
         read_data='{"risk_guidelines": "Always check LTV."}',
     )
-    @patch("abaco_runtime.standalone_ai.GrokClient")
+    @patch("src.abaco_runtime.standalone_ai.GrokClient")
     def test_generate_response_online(self, mock_grok_cls, mock_file, mock_exists):
         # Setup mock client
         mock_client = mock_grok_cls.return_value

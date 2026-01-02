@@ -11,7 +11,7 @@ The unified pipeline introduces explicit schema validation, checksum verificatio
 
 ## Quality Controls in Place
 - **Schema Validation**: `config/data_schemas/loan_tape.json` enforced at ingestion.
-- **Numeric/Date Enforcement**: `python.validation.validate_dataframe` checks required numeric/date columns.
+- **Numeric/Date Enforcement**: `src.validation.validate_dataframe` checks required numeric/date columns.
 - **Checksums**: SHA-256 for raw inputs and output artifacts.
 - **PII Masking**: Keyword-based masking in Phase 2 with compliance report output.
 - **Anomaly Detection**: Optional baseline comparison for KPI deltas.

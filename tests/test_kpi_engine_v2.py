@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from python.kpi_engine_v2 import KPIEngineV2
+from src.kpi_engine_v2 import KPIEngineV2
 
 
 class TestKPIEngineV2:

@@ -62,7 +62,7 @@ The Abaco platform has successfully transitioned from a pure analytics engine in
 
 #### Files Present
 ```
-python/agents/
+src/agents/
 ├── agent.py                  # ReAct Reasoning Loop
 ├── orchestrator.py           # Multi-agent Orchestration
 ├── tools.py                  # 15+ Specialized Tools
@@ -87,77 +87,77 @@ python/agents/
 ### 2.1 Implementation: 11 Specialized Agents
 
 #### Agent 1: Investor Relations (@investor-ai)
-**Status:** ✅ Implemented (`python/agents/investor_agent.py`)
+**Status:** ✅ Implemented (`src/agents/investor_agent.py`)
 - **Capabilities:** ROI analysis, capital efficiency metrics, market valuation modeling.
 - **Tools:** `compute_investor_kpis`, `generate_roi_report`.
 
 ---
 
 #### Agent 2: Customer Intelligence (@customer-ai)
-**Status:** ✅ Implemented (`python/agents/customer_agent.py`)
+**Status:** ✅ Implemented (`src/agents/customer_agent.py`)
 - **Capabilities:** Behavioral segmentation, CLV prediction, churn probability.
 - **Tools:** `analyze_customer_behavior`.
 
 ---
 
 #### Agent 3: Market Intelligence (@market-ai)
-**Status:** ✅ Implemented (`python/agents/market_agent.py`)
+**Status:** ✅ Implemented (`src/agents/market_agent.py`)
 - **Capabilities:** Competitive landscape monitoring, economic indicator correlation.
 - **Tools:** `fetch_market_competitors`, `get_economic_indicators`.
 
 ---
 
 #### Agent 4: Sales Optimization (@sales-ai)
-**Status:** ✅ Implemented (`python/agents/sales_agent.py`)
+**Status:** ✅ Implemented (`src/agents/sales_agent.py`)
 - **Capabilities:** Lead scoring, funnel analysis, deal velocity tracking.
 - **Tools:** `score_leads`, `analyze_sales_funnel`.
 
 ---
 
 #### Agent 5: Growth Strategy (@growth-ai)
-**Status:** ✅ Implemented (`python/agents/growth_agent.py`)
+**Status:** ✅ Implemented (`src/agents/growth_agent.py`)
 - **Capabilities:** Experiment design, user acquisition cost optimization.
 - **Tools:** `run_portfolio_analysis` (for growth modeling).
 
 ---
 
 #### Agent 6: Risk Management (@risk-ai)
-**Status:** ✅ Implemented (`python/agents/risk_agent.py`)
+**Status:** ✅ Implemented (`src/agents/risk_agent.py`)
 - **Capabilities:** Credit risk scoring, stress testing, early warning system.
 - **Tools:** `run_portfolio_analysis`, `run_sql_query`.
 
 ---
 
 #### Agent 7: Financial Planning (@finance-ai)
-**Status:** ✅ Implemented (`python/agents/financial_agent.py`)
+**Status:** ✅ Implemented (`src/agents/financial_agent.py`)
 - **Capabilities:** Forecasting, budget variance analysis, scenario planning.
 - **Tools:** `simulate_portfolio_scenario`.
 
 ---
 
 #### Agent 8: Operations Excellence (@ops-ai)
-**Status:** ✅ Implemented (`python/agents/ops_agent.py`)
+**Status:** ✅ Implemented (`src/agents/ops_agent.py`)
 - **Capabilities:** Bottleneck detection, SLA monitoring, resource optimization.
 - **Tools:** `monitor_sla_performance`, `identify_process_bottlenecks`.
 
 ---
 
 #### Agent 9: Brand & Marketing (@brand-ai)
-**Status:** ✅ Implemented (`python/agents/brand_agent.py`)
+**Status:** ✅ Implemented (`src/agents/brand_agent.py`)
 - **Capabilities:** Brand health tracking, campaign performance analysis.
 - **Tools:** `analyze_brand_sentiment`, `track_campaign_performance`.
 
 ---
 
 #### Agent 10: Product Intelligence (@product-ai)
-**Status:** ✅ Implemented (`python/agents/product_agent.py`)
+**Status:** ✅ Implemented (`src/agents/product_agent.py`)
 - **Capabilities:** Feature usage analysis, roadmap prioritization (RICE).
 - **Tools:** `get_feature_usage_metrics`, `prioritize_product_roadmap`.
 
 ---
 
 #### Agent 11: HR & Talent (@talent-ai)
-**Status:** ✅ Implemented (`python/agents/talent_agent.py`)
+**Status:** ✅ Implemented (`src/agents/talent_agent.py`)
 - **Capabilities:** Performance prediction, retention risk scoring.
 - **Tools:** `analyze_customer_behavior` (adapted for internal talent profiling).
 
@@ -166,22 +166,22 @@ python/agents/
 ## Phase 2.2: Infrastructure Components (✅ Complete)
 
 ### LLM Integration Layer
-**Status:** ✅ Complete (`python/agents/llm_provider.py`)
+**Status:** ✅ Complete (`src/agents/llm_provider.py`)
 - Multi-provider support (OpenAI, Anthropic).
 - MockLLM for testing and ReAct flow verification.
 
 ### Tool Integration Framework
-**Status:** ✅ Complete (`python/agents/tools.py`)
+**Status:** ✅ Complete (`src/agents/tools.py`)
 - Decorator-based registration system.
 - 15+ specialized tools covering SQL, simulation, and API interactions.
 
 ### Output Channels Integration
-**Status:** ✅ Complete (`python/agents/outputs.py`)
+**Status:** ✅ Complete (`src/agents/outputs.py`)
 - Standardized `BaseOutput` interface.
 - Implementations for Slack, Notion, and Figma.
 
 ### Continuous Learning Framework
-**Status:** ✅ Complete (`python/agents/learning.py`)
+**Status:** ✅ Complete (`src/agents/learning.py`)
 - SQL-based logging of agent runs.
 - Feedback collection system and performance tracking.
     

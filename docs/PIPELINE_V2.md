@@ -5,7 +5,7 @@ It lives alongside the existing v1 pipeline to avoid breaking current workflows.
 
 ## What is included
 
-- `python/abaco_pipeline/`: v2 package scaffold (CLI, ingestion placeholders, KPI registry, quality gates).
+- `src/abaco_pipeline/`: v2 package scaffold (CLI, ingestion placeholders, KPI registry, quality gates).
 - `config/kpis.yml`: versioned KPI definitions and validation ranges.
 - `requirements.pipeline.txt`: baseline dependencies for the v2 pipeline scaffold.
 - `supabase/migrations/20251231_pipeline_audit_tables.sql`: audit/lineage tables for run tracking.
@@ -59,5 +59,5 @@ psql "$SUPABASE_DB_URL" -f supabase/migrations/20251231_pipeline_audit_tables.sq
 
 ## Notes
 
-- The v1 pipeline remains in `python/pipeline/`.
+- The v1 pipeline remains in `src/pipeline/`.
 - The scaffold is intentionally minimal and safe to extend without destabilizing v1.

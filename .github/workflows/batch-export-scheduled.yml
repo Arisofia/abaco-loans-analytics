@@ -90,7 +90,7 @@ jobs:
           NOTION_REPORTS_PAGE_ID: ${{ secrets.NOTION_REPORTS_PAGE_ID }}
           EXPORT_TYPE: ${{ github.event.inputs.export_type || 'full' }}
         run: |
-          python python/integrations/batch_export_runner.py \
+          python src/integrations/batch_export_runner.py \
             --type "$EXPORT_TYPE" \
             --output-dir data/exports \
             --verbose

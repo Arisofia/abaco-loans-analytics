@@ -19,9 +19,9 @@ assignees: ''
 
 ## Acceptance criteria
 1. [ ] Updated spec/prompt files under `agents/specs/` and `agents/prompts/` reflect the request
-2. [ ] Runtime harness (python/agents/*.py or node/agents) can consume the new spec
+2. [ ] Runtime harness (src/agents/*.py or node/agents) can consume the new spec
 3. [ ] Downstream docs and CI checks reference the updated agent
 
 ## Testing notes
-- [ ] Agent harness executed via `python/agents/<agent>.py --run-id TEST --date-range "last 30 days"`
+- [ ] Agent harness executed via `src/agents/<agent>.py --run-id TEST --date-range "last 30 days"`
 - [ ] Output stored under `data/agents/`

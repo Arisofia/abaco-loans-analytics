@@ -11,8 +11,8 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 
-from python.analytics import project_growth
-from python.theme import ABACO_THEME
+from src.analytics import project_growth
+from src.theme import ABACO_THEME
 
 
 def apply_theme(fig: px.Figure) -> px.Figure:

@@ -97,8 +97,8 @@ SUPABASE_ANON_KEY=your-anon-key-here
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Optional: LLM keys (for AI features)
-ANTHROPIC_API_KEY=sk-ant-xxx
-OPENAI_API_KEY=sk-xxx
+ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
 
 # Optional: Azure (for cloud tracing)
 AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;...
@@ -411,7 +411,7 @@ abaco-loans-analytics/
 │   ├── app.py              # Main entry point
 │   ├── pages/              # Multi-page UI
 │   └── requirements.txt     # Dashboard deps
-├── python/                 # Shared modules
+├── src/                 # Shared modules
 │   ├── tracing_setup.py    # OpenTelemetry config
 │   ├── validation.py       # Data validation
 │   └── compliance.py       # PII masking

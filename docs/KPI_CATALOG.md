@@ -2,7 +2,7 @@
 
 This catalog defines the core KPIs implemented in:
 
-- **Python**: `python/analytics/kpi_catalog_processor.py`
+- **Python**: `src/analytics/kpi_catalog_processor.py`
 - **SQL**: Postgres views under schema `analytics`
 
 All consumers (Next.js APIs, BI, Python, ML) should rely on these as the **single source of truth**.
@@ -150,4 +150,4 @@ Consolidated view for board and investor reporting, aligned with Figma design bi
 
 **Source**  
 - `public.analytics_facts` (CSV Import)
-- `python/analytics/kpi_catalog_processor.py`
+- `src/analytics/kpi_catalog_processor.py`

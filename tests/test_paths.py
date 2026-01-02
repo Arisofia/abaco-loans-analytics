@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from python.config.paths import Paths, get_project_root, resolve_path
+from src.config.paths import Paths, get_project_root, resolve_path
 
 
 class TestProjectRoot:
@@ -15,7 +15,7 @@ class TestProjectRoot:
     def test_get_project_root_exists(self):
         """Project root should be detected correctly."""
         root = get_project_root()
-        assert (root / "python").exists()
+        assert (root / "src").exists()
         assert (root / ".git").exists()
         assert (root / ".github").exists()
     

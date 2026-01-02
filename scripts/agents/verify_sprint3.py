@@ -1,5 +1,5 @@
-from python.agents.orchestrator import AgentOrchestrator
-from python.agents.llm_provider import BaseLLM, LLMResponse
+from src.agents.orchestrator import AgentOrchestrator
+from src.agents.llm_provider import BaseLLM, LLMResponse
 from typing import List, Dict, Any
 
 class Sprint3MockLLM(BaseLLM):

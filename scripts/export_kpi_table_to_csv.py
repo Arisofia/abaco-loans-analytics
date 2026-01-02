@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from python.config.paths import Paths
+from src.config.paths import Paths
 
 # Paths
 KPI_MD_PATH = Paths.docs_dir() / "analytics/KPIs.md"

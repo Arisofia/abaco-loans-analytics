@@ -4,7 +4,7 @@
 Move all ingestion, transformation, and KPI computation to the unified pipeline without data loss or downtime.
 
 ## Scope
-- Replace ad-hoc ingestion scripts with `python/pipeline/orchestrator.py`.
+- Replace ad-hoc ingestion scripts with `src/pipeline/orchestrator.py`.
 - Consolidate KPI calculations under `config/pipeline.yml` and `config/kpi_definitions_unified.yml`.
 - Centralize run artifacts under `logs/runs/`.
 

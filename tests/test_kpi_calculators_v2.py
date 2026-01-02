@@ -1,9 +1,9 @@
 import pytest
 import pandas as pd
-from python.kpis.par_30 import calculate_par_30
-from python.kpis.par_90 import calculate_par_90
-from python.kpis.collection_rate import calculate_collection_rate
-from python.kpis.portfolio_health import calculate_portfolio_health
+from src.kpis.par_30 import calculate_par_30
+from src.kpis.par_90 import calculate_par_90
+from src.kpis.collection_rate import calculate_collection_rate
+from src.kpis.portfolio_health import calculate_portfolio_health
 
 
 class TestPAR30Calculator:

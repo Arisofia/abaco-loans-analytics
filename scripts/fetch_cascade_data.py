@@ -15,7 +15,7 @@ from pathlib import Path
 from azure.storage.blob import BlobServiceClient
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from python.config.secrets import get_secrets_manager
+from src.config.secrets import get_secrets_manager
 
 # Configure logging
 logging.basicConfig(

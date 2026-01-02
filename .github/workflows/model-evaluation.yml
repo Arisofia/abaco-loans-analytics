@@ -7,8 +7,8 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - "apps/analytics/**"
-      - "python/**"
+      - "src/analytics/**"
+      - "src/**"
       - "scripts/evaluation/**"
       - "tests/evaluation/**"
       - "requirements*.txt"
@@ -35,7 +35,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r apps/analytics/requirements.txt
+          pip install -r requirements.txt
           pip install pytest-html pytest-json-report allure-pytest
       - name: Check Slack webhook availability
         id: slack_check

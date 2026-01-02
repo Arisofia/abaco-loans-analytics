@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - "apps/web/**"
-      - "dashboard/**"
+      - "streamlit_app.py"
+      - "src/**"
+      - "requirements.txt"
       - "docker-compose.yml"
       - ".github/workflows/docker-images.yml"
   workflow_dispatch:
@@ -68,8 +70,8 @@ jobs:
       - name: Build & push (dashboard)
         uses: docker/build-push-action@v6
         with:
-          context: ./dashboard
-          file: ./dashboard/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ steps.meta_dash.outputs.tags }}
           labels: ${{ steps.meta_dash.outputs.labels }}

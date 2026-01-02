@@ -7,10 +7,10 @@ This document guides the transition from legacy, fragmented scripts to the enter
 
 | Component | Legacy Location | Unified Location (v2.0) |
 |-----------|-----------------|------------------------|
-| Ingestion | `python/ingest/` | `python/pipeline/data_ingestion.py` |
-| Transformation | `python/analytics/transformation.py` | `python/pipeline/data_transformation.py` |
-| KPI Engine | `python/kpi_engine.py` | `python/pipeline/kpi_calculation.py` |
-| Orchestrator | `scripts/run_data_pipeline.py` | `python/pipeline/orchestrator.py` |
+| Ingestion | `src/ingest/` | `src/pipeline/data_ingestion.py` |
+| Transformation | `src/analytics/transformation.py` | `src/pipeline/data_transformation.py` |
+| KPI Engine | `src/kpi_engine.py` | `src/pipeline/kpi_calculation.py` |
+| Orchestrator | `scripts/run_data_pipeline.py` | `src/pipeline/orchestrator.py` |
 | Entry Point | Multiple scripts | `apps/analytics/run_report.py` |
 
 ## 3. Mandatory Cutover Actions
@@ -20,8 +20,8 @@ All cron jobs or GitHub Actions calling `scripts/run_data_pipeline.py` or legacy
 
 **Legacy Command:**
 ```bash
-python python/ingestion.py --file loans.csv
-python python/transformation.py --input raw.csv
+python src/ingestion.py --file loans.csv
+python src/transformation.py --input raw.csv
 ```
 
 **Unified Command:**
@@ -46,8 +46,8 @@ To ensure the migration was successful for your local or production environment,
 ## 5. Deletion Schedule
 The following directories and files are marked for deletion in **Q1 2026**:
 - `config/LEGACY/`
-- `python/ingest/` (Legacy)
-- `python/financial_analysis.py.bak`
+- `src/ingest/` (Legacy)
+- `src/financial_analysis.py.bak`
 - All scripts in `archives/refactoring/`
 
 ## 6. Rollback
