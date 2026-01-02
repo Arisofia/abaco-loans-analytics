@@ -367,6 +367,15 @@ with st.sidebar:
                 st.session_state['data'] = dfs
                 st.session_state['loaded'] = True
                 st.success("Data ingested successfully.")
+                                
+                # Auto-generate KPI exports from uploaded data
+                with st.spinner("Generating KPI exports from uploaded data..."):
+                    try:
+                        output_path = generate_kpi_exports(dfs)
+                        st.cache_data.clear()
+                        st.info(f"✅ KPI exports generated: {output_path}")
+                    except Exception as exc:
+                        st.warning(f"⚠️ KPI auto-generation skipped: {exc}")
 
     if st.button("Clear Data"):
         st.session_state['loaded'] = False
