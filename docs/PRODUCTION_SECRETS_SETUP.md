@@ -20,9 +20,9 @@ These secrets are documented as previously set:
 
 ```
 SUPABASE_URL: https://zpowfbeftxexzidlxndy.supabase.co
-SUPABASE_ANON_KEY: sb_publishable_Vl4DpUMUXo8czA1epSZ3kg_y0TV0z81
-FIGMA_TOKEN: figd-w1hcCu4RZqua7N8sDjysZyZRbVso9UiZ3BjxXJtp
-FIGMA_FILE_KEY: nuVKwuPuLS7VmLFvqzOX1G
+SUPABASE_ANON_KEY: <REDACTED>
+FIGMA_TOKEN: <REDACTED>
+FIGMA_FILE_KEY: <REDACTED>
 ```
 
 ---
