@@ -172,6 +172,12 @@ def load_looker_exports():
             LOOKER_DIR / "Abaco-Loan-Tape_Historic-Real-Payment_Table-6.csv",
             ROOT_DIR / "data" / "abaco" / "real_payment.csv",
         ],
+        "schedule_data": [
+            LOOKER_DIR / "schedules.csv",
+            LOOKER_DIR / "payment_schedule.csv",
+            LOOKER_DIR / "Abaco-Loan-Tape_Payment Schedule_Table-6.csv",
+            ROOT_DIR / "data" / "abaco" / "payment_schedule.csv",
+        ],
     }
     data = {}
     for key, paths in candidates.items():
@@ -198,6 +204,49 @@ def load_kpi_dashboard():
     if not dashboard_path.exists():
         return {}
     return json.loads(dashboard_path.read_text())
+
+def generate_kpi_exports(looker_data):
+    required = ["loan_data", "customer_data", "historic_payment_data"]
+    missing = [key for key in required if key not in looker_data]
+    if missing:
+        raise ValueError(f"Missing required Looker exports: {', '.join(missing)}")
+
+    exports_dir = EXPORTS_DIR
+    exports_dir.mkdir(parents=True, exist_ok=True)
+
+    from python.analytics.kpi_calculator_complete import ABACOKPICalculator
+
+    calc = ABACOKPICalculator(
+        looker_data["loan_data"],
+        looker_data["historic_payment_data"],
+        looker_data["customer_data"],
+    )
+    dashboard = calc.get_complete_kpi_dashboard(cac_usd=350)
+    dashboard["timestamp"] = datetime.now().isoformat()
+
+    try:
+        from python.analytics.kpi_catalog_processor import KPICatalogProcessor
+
+        catalog_proc = KPICatalogProcessor(
+            looker_data["loan_data"],
+            looker_data["historic_payment_data"],
+            looker_data["customer_data"],
+            looker_data.get("schedule_data"),
+        )
+        dashboard["extended_kpis"] = catalog_proc.get_all_kpis()
+
+        figma_df = catalog_proc.get_figma_dashboard_df()
+        figma_df.to_csv(exports_dir / "analytics_facts.csv", index=False)
+
+        scorecard_df = catalog_proc.get_quarterly_scorecard()
+        scorecard_df.to_csv(exports_dir / "quarterly_scorecard.csv", index=False)
+    except Exception as exc:
+        logger.warning("Extended KPI generation failed: %s", exc)
+
+    output_path = exports_dir / "complete_kpi_dashboard.json"
+    output_path.write_text(json.dumps(dashboard, indent=2, default=str), encoding="utf-8")
+
+    return output_path
 
 def build_kpi_snapshot(dashboard, facts_df):
     metrics = {}
@@ -280,6 +329,14 @@ with st.sidebar:
             st.session_state['data'] = looker_data
             st.session_state['loaded'] = True
             st.caption(f"Loaded Looker exports: {', '.join(looker_data.keys())}")
+            if st.button("Generate KPI exports"):
+                with st.spinner("Generating KPI exports from Looker data..."):
+                    try:
+                        output_path = generate_kpi_exports(looker_data)
+                        st.cache_data.clear()
+                        st.success(f"KPI exports generated: {output_path}")
+                    except Exception as exc:
+                        st.error(f"Failed to generate KPI exports: {exc}")
         else:
             st.session_state['loaded'] = False
             st.warning("No Looker exports found in data/raw/looker_exports.")

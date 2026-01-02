@@ -11,6 +11,8 @@ jobs:
       has_scripts: ${{ steps.check.outputs.has_scripts }}
       has_tokens: ${{ steps.check.outputs.has_tokens }}
       slack_available: ${{ steps.check.outputs.slack_available }}
+      slack_bot_available: ${{ steps.check.outputs.slack_bot_available }}
+      slack_webhook_available: ${{ steps.check.outputs.slack_webhook_available }}
     steps:
       - uses: actions/checkout@v4
       - id: check
@@ -42,6 +44,18 @@ jobs:
             echo "slack_available=true" >> $GITHUB_OUTPUT
           else
             echo "slack_available=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$SLACK_BOT_TOKEN" ]; then
+            echo "slack_bot_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "slack_bot_available=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            echo "slack_webhook_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "slack_webhook_available=false" >> $GITHUB_OUTPUT
           fi
 
   monitor:
@@ -84,16 +98,28 @@ jobs:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
         run: |
           python scripts/update_figma_agent_dashboard.py
-      - name: Post Summary to Slack #ops-alerts
-        uses: slackapi/slack-github-action@v1.24.0
+      - name: Post Summary to Slack (bot) #ops-alerts
+        if: always() && needs.check-dependencies.outputs.slack_bot_available == 'true' && hashFiles('scripts/post_to_slack.py') != ''
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always() && needs.check-dependencies.outputs.slack_available == 'true'
         run: |
-          if [ -f scripts/post_to_slack.py ] && [ -n "$SLACK_BOT_TOKEN" ]; then
-            python scripts/post_to_slack.py --channel "#ops-alerts"
-          elif [ -n "$SLACK_WEBHOOK_URL" ]; then
-            echo "Falling back to curl for Slack notification"
-            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Agent Performance Monitoring complete. Status: ${{ job.status }}\"}" "$SLACK_WEBHOOK_URL"
-          fi
+          python scripts/post_to_slack.py --channel "#ops-alerts"
+      - name: Post Summary to Slack (webhook) #ops-alerts
+        if: always() && needs.check-dependencies.outputs.slack_webhook_available == 'true'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Agent Performance Monitoring: ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Agent Performance Monitoring*\n*Status:* ${{ job.status }}\n*Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
