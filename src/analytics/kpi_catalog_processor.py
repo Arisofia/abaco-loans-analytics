@@ -154,26 +154,29 @@ class KPICatalogProcessor:
         mapping = {
             # Disbursement date
             "disburse_date": "disbursement_date",
-            "disbursement date": "disbursement_date",
+            "disbursement_date": "disbursement_date",
             # Disbursement amount
             "disburse_principal": "disbursement_amount",
-            "disbursement amount": "disbursement_amount",
+            "disbursement_amount": "disbursement_amount",
             # Payment date
-            "true payment date": "true_payment_date",
+            "true_payment_date": "true_payment_date",
             "payment_date": "true_payment_date",
             # Payment amount
             "true_total_payment": "true_total_payment",
             "payment_amount": "true_total_payment",
-            "true total payment": "true_total_payment",
             "amount": "true_total_payment",
             # Principal mapping
             "principal_payment": "true_principal_payment",
-            "true principal payment": "true_principal_payment",
             "true_principal_payment": "true_principal_payment",
             # Rebates
             "true_rebates": "true_rebates",
-            "true rebates": "true_rebates",
-            "true rabates": "true_rebates",
+            "true_rabates": "true_rebates",
+            # New mappings for payment components
+            "true_interest_payment": "true_interest_payment",
+            "true_fee_payment": "true_fee_payment",
+            "true_other_payment": "true_other_payment",
+            "true_tax_payment": "true_tax_payment",
+            "true_fee_tax_payment": "true_fee_tax_payment",
             # Other mappings
             "outstanding_balance": "outstanding_loan_value",
             "interest_rate": "interest_rate_apr",

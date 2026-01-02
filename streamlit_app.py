@@ -8,6 +8,8 @@ from pathlib import Path
 import streamlit as st
 
 # FAST HEALTH CHECK - MUST BE FIRST
+# NOTE: Azure App Service should be configured to use /?page=health 
+# or /_stcore/health to avoid timeouts.
 try:
     query_params = st.query_params
 except AttributeError:
@@ -67,7 +69,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
+ROOT_DIR = Path(__file__).resolve().parent
 LOOKER_DIR = ROOT_DIR / "data" / "raw" / "looker_exports"
 EXPORTS_DIR = ROOT_DIR / "exports"
 SUPPORT_DIR = ROOT_DIR / "data" / "support"
