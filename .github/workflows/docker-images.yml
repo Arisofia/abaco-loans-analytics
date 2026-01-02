@@ -20,9 +20,8 @@ env:
   REGISTRY: ghcr.io
   IMAGE_WEB: ${{ github.repository }}-web
   IMAGE_DASHBOARD: ${{ github.repository }}-dashboard
-    DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USER }}    
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
