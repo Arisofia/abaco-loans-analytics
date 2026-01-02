@@ -14,13 +14,13 @@ Move all ingestion, transformation, and KPI computation to the unified pipeline 
 
 ### 1. Update Entry Points
 
-**Old**
+#### Old
 
 ```bash
 python scripts/ingest_cascade.py --file input.csv
 ```
 
-**New**
+#### New
 
 ```bash
 python scripts/run_data_pipeline.py --input data/raw/cascade/loan_tape.csv
@@ -59,7 +59,7 @@ python scripts/run_data_pipeline.py --input data/raw/cascade/loan_tape.csv
 - **Week 2**: Update dashboards to new outputs.
 - **Week 3**: Cutover and retire legacy scripts.
 
-**Risks**
+### Risks
 
 - Schema drift from Cascade exports.
 - Hidden dependencies on legacy output locations.
