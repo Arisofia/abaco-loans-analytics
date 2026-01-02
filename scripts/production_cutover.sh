@@ -10,12 +10,13 @@ echo "Date: $(date)"
 echo "Script: production_cutover.sh"
 echo ""
 
-PROD_ENV="${PROD_ENV:-.venv}"
+VENV_PATH="${VENV_PATH:-.venv}"
 PROD_DIR="${PROD_DIR:-.}"
-LOG_FILE="${PROD_DIR}/logs/cutover_$(date +%Y%m%d_%H%M%S).log"
+LOGS_PATH="${LOGS_PATH:-./logs}"
 ROLLBACK_DIR="${PROD_DIR}/.rollback"
 
-mkdir -p "$(dirname "$LOG_FILE")" "$ROLLBACK_DIR"
+mkdir -p "$LOGS_PATH" "$ROLLBACK_DIR"
+LOG_FILE="${LOGS_PATH}/cutover_$(date +%Y%m%d_%H%M%S).log"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
@@ -30,7 +31,7 @@ success() {
 }
 
 log "========== PRODUCTION CUTOVER STARTED =========="
-log "Virtual environment: $PROD_ENV"
+log "Virtual environment: $VENV_PATH"
 log "Production directory: $PROD_DIR"
 log "Log file: $LOG_FILE"
 echo ""
@@ -42,13 +43,13 @@ echo ""
 log "PHASE 0: Pre-cutover validation"
 log "Checking prerequisites..."
 
-if [ ! -d "$PROD_ENV" ]; then
-    error "Virtual environment not found at $PROD_ENV"
+if [ ! -d "$VENV_PATH" ]; then
+    error "Virtual environment not found at $VENV_PATH"
     exit 1
 fi
 success "Virtual environment exists"
 
-PYTHON_VERSION=$(source "$PROD_ENV/bin/activate" && python --version 2>&1)
+PYTHON_VERSION=$(source "$VENV_PATH/bin/activate" && python --version 2>&1)
 log "Python version: $PYTHON_VERSION"
 
 if [ ! -f "tests/test_kpi_calculators_v2.py" ]; then
@@ -63,7 +64,7 @@ if [ ! -f "config/pipeline.yml" ]; then
 fi
 success "Production configuration found"
 
-source "$PROD_ENV/bin/activate"
+source "$VENV_PATH/bin/activate"
 success "Virtual environment activated"
 
 log "Verifying dependencies..."

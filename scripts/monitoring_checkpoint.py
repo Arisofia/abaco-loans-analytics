@@ -11,7 +11,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-sys.path.insert(0, "/Users/jenineferderas/Documents/abaco-loans-analytics")
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from python.config.paths import Paths
 
 
 class MonitoringCheckpoint:
@@ -129,10 +131,17 @@ class MonitoringCheckpoint:
 
         return self.metrics
 
-    def save_checkpoint(self, output_dir: str = "logs/monitoring") -> str:
-        """Save checkpoint results to file"""
-        output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
+    def save_checkpoint(self, output_dir: Optional[str] = None) -> str:
+        """Save checkpoint results to file
+        
+        Args:
+            output_dir: Directory to save checkpoint. Defaults to logs/monitoring from config.
+        """
+        if output_dir is None:
+            output_path = Paths.monitoring_logs_dir(create=True)
+        else:
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=True)
 
         checkpoint_file = (
             output_path / f"checkpoint_hour_{self.checkpoint_hour:02d}.json"
