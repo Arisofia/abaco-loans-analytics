@@ -140,7 +140,7 @@ All dollar amounts, metrics, and targets are planning hypotheses, not current st
 
 **Archive structure:**
 
-```
+```text
 archives/
 ├── extractions/2025-12-04/     # Dated extractions
 ├── extractions/2025-12-11/
@@ -234,7 +234,7 @@ To determine current Assets Under Management:
 
 Last Updated: 2025-12-26
 
-```
+```text
 
 #### ❌ Bad: Static Data in Operational Docs
 

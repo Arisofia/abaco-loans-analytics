@@ -65,7 +65,7 @@ This document provides deployment instructions, operational procedures, and trou
 
 ## Configuration Files
 
-```
+```text
 config/
 ├── integrations/
 │   ├── cascade.yaml          # Data source mapping

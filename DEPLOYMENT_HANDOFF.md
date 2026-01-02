@@ -82,7 +82,7 @@ python scripts/production_validation.py
 
 **Step 1**: Check the alert condition in WEEK4_24HOUR_MONITORING.md
 
-```
+```text
 Latency > 100ms?  → Escalate to Data Ops
 Error rate > 5%?   → Emergency escalation (VP Engineering)
 Data loss?         → Immediate rollback
@@ -240,7 +240,7 @@ systemctl start abaco-pipeline-v1
 
 ## Timeline & Decision Points
 
-```
+```text
 Hour 0  ✓ Cutover completed
     ↓
 Hour 1  ✓ Validation checkpoint: PASS

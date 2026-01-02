@@ -200,7 +200,7 @@ Para comenzar a usar este sistema de OKRs:
 
 ## Estructura de Carpetas Sugerida
 
-```
+```text
 ventas-mercadeo-okrs/
 ├── objectives/
 │   ├── company-objectives.md

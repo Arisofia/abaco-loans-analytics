@@ -40,7 +40,7 @@
 
 **Key Metrics from Dashboard:**
 
-```
+```text
 Total Loans:               17,688
 Active Loans:              ~6,200
 Unique Customers:          8,942

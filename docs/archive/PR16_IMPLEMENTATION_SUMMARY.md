@@ -49,7 +49,7 @@ manager.log_status()
 
 **Supported Secret Categories**:
 
-```
+```text
 REQUIRED: OPENAI_API_KEY, ANTHROPIC_API_KEY
 OPTIONAL: GEMINI_API_KEY, PERPLEXITY_API_KEY, HUBSPOT_API_KEY, etc
 AZURE: AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, etc
@@ -163,7 +163,7 @@ Automated scanning for exposed credentials:
 
 #### `tests/test_paths.py` (18 tests)
 
-```
+```text
 ✅ test_get_project_root_exists
 ✅ test_resolve_absolute_path
 ✅ test_resolve_with_environment_variable_precedence
@@ -175,7 +175,7 @@ Automated scanning for exposed credentials:
 
 #### `tests/test_secrets_manager.py` (13 tests)
 
-```
+```text
 ✅ test_get_existing_secret
 ✅ test_get_required_missing_secret_raises_error
 ✅ test_validate_with_all_required_set
@@ -185,7 +185,7 @@ Automated scanning for exposed credentials:
 
 **Test Results**: 31 tests, 100% passing
 
-```
+```text
 ======================== 31 passed, 1 warning in 0.30s =========================
 ```
 

@@ -172,7 +172,7 @@ Created `config/LEGACY/README.md` with:
 
 ## File Structure
 
-```
+```text
 config/
 ├── pipeline.yml                    # Master config (526 lines)
 ├── environments/

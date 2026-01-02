@@ -273,7 +273,7 @@ except Exception as e:
 
 Expected output when everything is configured correctly:
 
-```
+```text
 Azure Connection Validator
 ==================================================
 ✓ Loaded 15 variables from .env

@@ -2,7 +2,7 @@
 
 Developers may encounter the following error when launching the Zencoder extension inside VS Code:
 
-```
+```text
 Failed to spawn Zencoder process: spawn /Users/<user>/.vscode/extensions/zencoderai.zencoder-3.7.9002-darwin-arm64/out/zencoder-cli ENOENT
 ```
 
@@ -29,7 +29,7 @@ Following this checklist addresses the ENOENT cause (missing binary) without cha
 
 When VS Code shows this variant of the startup dialog,
 
-```
+```text
 Something went wrong
 We couldn't find codex-cli at /Users/<you>/.vscode/extensions/zencoderai.zencoder-3.14.0-darwin-arm64/out/codex.
 Update the "zencoder.codexCliExecutablePath" setting or clear it to use the default location.

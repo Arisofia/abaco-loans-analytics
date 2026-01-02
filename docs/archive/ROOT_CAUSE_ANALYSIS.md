@@ -46,7 +46,7 @@ cascade_token: str | None = os.getenv("CASCADE_TOKEN")
 
 ### Failure Sequence
 
-```
+```text
 1. GitHub Actions pipeline runs
 2. Python code imports supabase_writer.py
 3. Tries to initialize SupabaseWriter
@@ -107,7 +107,7 @@ az webapp config appsettings set \
 
 ### Failure Sequence
 
-```
+```text
 1. App Service restarts with new code
 2. startup.sh runs: bash startup.sh
 3. app.py imports and tries to connect to database
@@ -137,7 +137,7 @@ az webapp config appsettings set \
 
 **Expected Supabase Schema** (`supabase_writer.py` lines 10-12):
 
-```
+```text
 Database: analytics (schema)
 Tables:
   - pipeline_runs
@@ -183,7 +183,7 @@ supabase migration up --db-url "postgres://[user]:[password]@db.xxx.supabase.co:
 
 ### Diagnosis
 
-```
+```text
 Azure Portal → App Services → abaco-analytics-dashboard → Instances
 Look for: Instance status should change to "En ejecución" (Running)
 If still "Desconocido" after 10 minutes: Click "Reparar" again
@@ -196,7 +196,7 @@ If persistent: Click "Reemplazar instancia" for full replacement
 
 ### Immediate (Next 30 Minutes)
 
-```
+```text
 1. ✅ PROD-002 (CI/CD): FIXED - deploy-dashboard.yml corrected
 2. Verify PROD-001 (Dashboard): Check Azure Portal for instance recovery
 3. Identify Supabase status:
@@ -214,7 +214,7 @@ If persistent: Click "Reemplazar instancia" for full replacement
 
 ### Short Term (Next 2 Hours)
 
-```
+```text
 1. Apply Supabase migrations (if new project)
 2. Manually trigger pipeline from GitHub Actions
 3. Verify pipeline logs show successful Supabase connection
@@ -224,7 +224,7 @@ If persistent: Click "Reemplazar instancia" for full replacement
 
 ### Medium Term (This Week)
 
-```
+```text
 1. Document data architecture (COMPLETE: docs/ARCHITECTURE.md)
 2. Set up automated backups for Supabase
 3. Configure alerting for missing env vars

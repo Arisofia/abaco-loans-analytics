@@ -42,7 +42,7 @@ python -m abaco_pipeline.main --config config/pipeline.yml --validate --publish
 - Schema drift writes `logs/runs/<run_id>/schema_diff.json` and stops publish.
 - Quality gates write `logs/runs/<run_id>/quality.json` and stop publish when thresholds fail.
 
-```
+```text
 
 ## Audit tables migration
 

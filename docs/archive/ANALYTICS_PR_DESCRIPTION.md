@@ -141,7 +141,7 @@ pytest -q tests/test_kpi_parity.py
 
 ## Commit Message
 
-```
+```text
 chore(analytics): refactor KPI engine – eliminate FutureWarnings, improve performance
 
 - Replace groupby().apply() with vectorized groupby().agg() in 5 core methods

@@ -40,7 +40,7 @@ The ABACO Analytics codebase maintains **excellent code quality** with a pylint 
 **Auto-fixable**: 58 (31.5%)  
 **Categories**:
 
-```
+```text
 E501 Line too long (88 > 88 chars)       : ~120 issues
 E1120 No value for argument              : 1 issue
 C0303 Trailing whitespace                : ~30 issues
@@ -376,7 +376,7 @@ LONG_SQL_QUERY = "SELECT ... FROM ... WHERE ..."
 
 ### Quality Trajectory
 
-```
+```text
 Phase 3.4 (Config)     9.39/10
 Phase 4 (Audit)        9.56/10  ↑ +0.17
 Phase 5 (Refactor)     9.8+/10  ↑ +0.24 (target)

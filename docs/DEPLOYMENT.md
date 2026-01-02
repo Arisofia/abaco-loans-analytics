@@ -234,13 +234,13 @@ Check GitHub Actions workflow:
 
 After successful deployment:
 
-```
+```text
 https://abaco-analytics-dashboard.azurewebsites.net
 ```
 
 Health endpoint:
 
-```
+```text
 https://abaco-analytics-dashboard.azurewebsites.net/?page=health
 ```
 

@@ -206,7 +206,7 @@ if (result.success) {
 
 Track these in your dashboard (if using Sentry):
 
-```
+```text
 - CSV parsing errors per day
 - Export failures per day
 - Invalid loan rows detected
@@ -240,7 +240,7 @@ These **are** already handled:
 
 ### User uploads invalid CSV
 
-```
+```text
 ❌ Error: CSV must have at least 7 columns
 ✅ Solution: validateCsvInput() catches this before parsing
 ✅ Action: Show user message, ask them to fix columns
@@ -248,7 +248,7 @@ These **are** already handled:
 
 ### CSV has malformed number
 
-```
+```text
 ❌ Error: Loan amount cannot be parsed as number
 ✅ Solution: parseLoanCsv() returns 0, gets validated on output
 ✅ Action: validateAnalytics() flags quality issues
@@ -256,7 +256,7 @@ These **are** already handled:
 
 ### Export fails silently
 
-```
+```text
 ❌ Error: processedAnalyticsToCSV() returns empty string
 ✅ Solution: Add check: if (!csv || csv.length === 0) throw Error
 ✅ Action: Sentry captures error, user sees retry prompt
@@ -264,7 +264,7 @@ These **are** already handled:
 
 ### Memory issue with huge CSV
 
-```
+```text
 ❌ Error: Browser runs out of memory
 ✅ Solution: validateCsvInput() enforces 50MB limit
 ✅ Action: User must split file and upload separately

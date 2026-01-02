@@ -199,7 +199,7 @@ Manage API tokens for external platforms (Meta, LinkedIn, custom APIs) with:
 
 ## Deployment Pipeline
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │ Developer commits code                      │
 └────────────┬────────────────────────────────┘

@@ -64,7 +64,7 @@ The Abaco platform has successfully transitioned from a pure analytics engine in
 
 #### Files Present
 
-```
+```text
 src/agents/
 ├── agent.py                  # ReAct Reasoning Loop
 ├── orchestrator.py           # Multi-agent Orchestration
@@ -246,7 +246,7 @@ class ContinuousLearningEngine:
         # Share insights across agents
         pass
 
-```
+```text
 
 ---
 
@@ -401,7 +401,7 @@ PyYAML >= 6.0.0
 openai >= 1.0.0
 anthropic >= 0.7.0
 
-```
+```text
 
 ---
 

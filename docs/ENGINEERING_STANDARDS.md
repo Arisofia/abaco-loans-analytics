@@ -318,7 +318,7 @@ def test_ingest_data(mock_ingest):
 
 **Format**: `<type>: <subject>`
 
-```
+```text
 PHASE 4: Fix test suite for config-aware UnifiedIngestion
 
 - Updated 28 tests to use new config parameter
@@ -404,7 +404,7 @@ Example:
 
 ### 2. README Structure
 
-```
+```text
 README.md
 ├── Title & Description
 ├── Quick Start (installation, usage)

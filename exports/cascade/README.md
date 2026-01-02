@@ -27,7 +27,7 @@ Comprehensive JSON export of all risk metrics and analytics views from Cascade D
 
 ### Portfolio Traction
 
-```
+```text
 Total Unique Customers: 327
 Total Loans: 17,587
 Total Volume: $55.02M USD
@@ -39,7 +39,7 @@ Active Borrowers: 123
 
 ### Delinquency (Performance)
 
-```
+```text
 PAR 30: 3.31%
 PAR 90 (Latest): 1.61%
 RDR 90 @ 12 Months: 0.98%
@@ -49,7 +49,7 @@ Bad 90 @ 12 Months: 0.58%
 
 ### Characteristics
 
-```
+```text
 Average APR (12m): 38.99%
 Average Loan Size (12m): $3,654 USD
 Average Term (12m): 54 days
@@ -58,7 +58,7 @@ Average Headline Interest Rate (12m): 3,712.33%
 
 ### Collection
 
-```
+```text
 Collection Rate (Latest): 2.57%
 Month-over-Month Change: -104.07% (-97.59%)
 ```

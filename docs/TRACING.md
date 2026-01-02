@@ -4,7 +4,7 @@ OpenTelemetry (OTEL) distributed tracing captures HTTP requests, database querie
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────┐
 │  Streamlit Dashboard    │
 │  (dashboard/app.py)     │
@@ -95,7 +95,7 @@ export LOG_LEVEL=DEBUG
 
 Or add to `.env`:
 
-```
+```text
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 LOG_LEVEL=DEBUG
 ```

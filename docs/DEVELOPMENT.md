@@ -129,7 +129,7 @@
 
 ### File Organization
 
-```
+```text
 components/
   ├── ui/              # Reusable UI components
   ├── forms/           # Form components

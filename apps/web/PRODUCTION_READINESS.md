@@ -80,7 +80,7 @@ All checks pass ✅:
 
 You must configure these GitHub Secrets before deploying:
 
-```
+```text
 NEXT_PUBLIC_SUPABASE_URL        (required)
 NEXT_PUBLIC_SUPABASE_ANON_KEY   (required)
 VERCEL_TOKEN                     (required)

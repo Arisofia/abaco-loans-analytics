@@ -104,7 +104,7 @@ git push origin main
 
 **Azure Portal Actions**:
 
-```
+```text
 Application Insights → Alerts → Create Alert Rule
 - Metric: Response time > 5 seconds
 - Action: Email to team
@@ -120,7 +120,7 @@ App Service → Health Check
 
 **GitHub Actions**:
 
-```
+```text
 Repository Settings → Notifications
 - Workflows: Enable email on workflow failure
 - Add Slack webhook if configured

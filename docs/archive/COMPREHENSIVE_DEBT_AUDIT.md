@@ -10,7 +10,7 @@
 
 ### 1. INGESTION MODULE DUPLICATION (3 versions!)
 
-```
+```text
 src/ingestion.py (122 lines)
 ├─ CascadeIngestion class
 ├─ ingest_csv(), ingest_dataframe(), validate_loans()
@@ -35,7 +35,7 @@ streamlit_app/utils/ingestion.py (unknown lines)
 
 ### 2. TRANSFORMATION MODULE DUPLICATION (2 versions)
 
-```
+```text
 src/transformation.py (52 lines)
 ├─ DataTransformation class
 ├─ transform_to_kpi_dataset()
@@ -55,7 +55,7 @@ src/pipeline/transformation.py (155 lines)
 
 ### 3. KPI ENGINE DUPLICATION (2 versions)
 
-```
+```text
 src/kpi_engine.py (182 lines)
 ├─ MetricDefinition, KPIEngine classes
 ├─ Direct calculation functions
@@ -79,7 +79,7 @@ src/kpi_engine_v2.py (101 lines)
 
 ### 4. SCATTERED CALCULATION LOGIC
 
-```
+```text
 src/pipeline/calculation.py (94 lines, OLD)
 ├─ CalculationResult, UnifiedCalculation classes
 └─ Status: LEGACY?
@@ -97,7 +97,7 @@ src/pipeline/calculation_v2.py (210 lines, NEW)
 
 ### 5. AGENT FRAMEWORK ISOLATION
 
-```
+```text
 src/agents/ (4 files, ~250 lines)
 ├─ c_suite_agent.py
 ├─ growth_agent.py
@@ -111,7 +111,7 @@ Risk: Duplicate audit trails, data consistency issues
 
 ### 6. CONFIGURATION CHAOS
 
-```
+```text
 /config/ (17 files across 6 directories)
 ├─ config/pipeline.yml (main)
 ├─ config/pipelines/data_orchestration.yaml (duplicate?)

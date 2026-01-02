@@ -7,7 +7,7 @@
 
 ## Current State: Fragmented (18 files, 120KB, 6 directories)
 
-```
+```text
 config/
 ├─ pipeline.yml (MAIN - 8KB)
 ├─ pipelines/data_orchestration.yaml (DUPLICATE?)
@@ -26,7 +26,7 @@ config/
 
 ### Architecture
 
-```
+```text
 config/
 ├─ pipeline.yml (MASTER - unified everything)
 │  ├─ Pipeline phases (ingestion, transformation, calculation, output)
