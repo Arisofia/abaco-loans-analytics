@@ -9,6 +9,10 @@ on:
       - ".github/workflows/deploy-dashboard.yml"
   workflow_dispatch:
 
+concurrency:
+  group: deploy-dashboard-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: "3.11"
   WEBAPP_NAME: abaco-analytics-dashboard
