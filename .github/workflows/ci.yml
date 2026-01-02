@@ -21,6 +21,17 @@ on:
         default: ""
   push:
     branches: [main, develop]
+    paths:
+      - "apps/**"
+      - "python/**"
+      - "scripts/**"
+      - "tests/**"
+      - "dashboard/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "apps/web/pnpm-lock.yaml"
+      - "requirements*.txt"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main, develop]
   schedule:

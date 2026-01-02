@@ -8,6 +8,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "app/**"
+      - "services/**"
+      - "scripts/**"
+      - "host.json"
+      - "requirements*.txt"
+      - ".github/workflows/main_hubspot-segment-agent.yml"
   workflow_dispatch:
 
 env:

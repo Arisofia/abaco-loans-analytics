@@ -3,6 +3,18 @@ name: CodeQL Analysis
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "python/**"
+      - "apps/**"
+      - "packages/**"
+      - "src/**"
+      - "dashboard/**"
+      - "requirements*.txt"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "tsconfig.json"
+      - "next.config.js"
+      - ".github/workflows/codeql.yml"
   pull_request:
     branches: [main, develop]
   schedule:

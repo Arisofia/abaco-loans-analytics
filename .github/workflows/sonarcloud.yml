@@ -7,6 +7,15 @@ on:
     branches:
       - main
       - codex/**
+    paths:
+      - "python/**"
+      - "apps/**"
+      - "dashboard/**"
+      - "requirements*.txt"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "sonar-project.properties"
+      - ".github/workflows/sonarcloud.yml"
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:

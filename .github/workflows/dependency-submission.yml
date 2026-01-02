@@ -3,6 +3,12 @@ name: Automatic Dependency Submission (Python)
 on:
   push:
     branches: [main]
+    paths:
+      - "requirements*.txt"
+      - "dashboard/requirements.txt"
+      - "apps/analytics/requirements.txt"
+      - "pyproject.toml"
+      - ".github/workflows/dependency-submission.yml"
   pull_request:
     branches: [main]
 

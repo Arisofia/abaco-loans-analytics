@@ -5,6 +5,14 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "python/**"
+      - "apps/**"
+      - "packages/**"
+      - "src/**"
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - ".github/workflows/coderabbit-ci.yml"
 jobs:
   coderabbit:
     runs-on: ubuntu-latest

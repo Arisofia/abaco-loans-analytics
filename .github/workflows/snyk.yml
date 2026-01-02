@@ -3,6 +3,14 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "apps/**"
+      - "python/**"
+      - "dashboard/**"
+      - "requirements*.txt"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/snyk.yml"
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:

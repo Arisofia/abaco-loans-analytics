@@ -6,6 +6,13 @@ permissions:
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "apps/analytics/**"
+      - "python/**"
+      - "scripts/evaluation/**"
+      - "tests/evaluation/**"
+      - "requirements*.txt"
+      - ".github/workflows/model-evaluation.yml"
   pull_request:
     types: [opened, synchronize, reopened]
   schedule:

@@ -3,6 +3,13 @@ name: KPI Parity
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "python/analytics/**"
+      - "run_complete_analytics.py"
+      - "supabase/migrations/**"
+      - "tests/test_kpi_parity.py"
+      - "requirements*.txt"
+      - ".github/workflows/kpi-parity.yml"
   pull_request:
     branches: [main, develop]
 
