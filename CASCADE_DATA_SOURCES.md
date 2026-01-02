@@ -13,10 +13,12 @@ This document contains the URLs and instructions for downloading current data fr
 ## Data Export URLs
 
 ### 1. Loan Tape Export
+
 **Description:** Complete loan-level data export
 **URL:** `https://app.cascadedebt.com/data/exports/loan-tape?pid=abaco`
 **Format:** CSV/XLSX
 **Contents:**
+
 - Individual loan details
 - Borrower information
 - Payment history
@@ -24,20 +26,24 @@ This document contains the URLs and instructions for downloading current data fr
 - Outstanding balances
 
 ### 2. Financial Statements - Profit & Loss
+
 **Description:** Income statement and P&L metrics
 **URL:** `https://app.cascadedebt.com/analytics/financials/statements?pid=abaco&tab=profit-%26-loss`
 **Format:** Exportable via Export button (CSV, JSON, XLSX)
 **Contents:**
+
 - Revenue metrics
 - Operating expenses
 - Net income trends
 - Monthly comparisons
 
 ### 3. Financial Statements - Balance Sheet
+
 **Description:** Assets, liabilities, and equity statements
 **URL:** `https://app.cascadedebt.com/analytics/financials/statements?pid=abaco&tab=balance-sheet`
 **Format:** Exportable via Export button (CSV, JSON, XLSX)
 **Contents:**
+
 - Total assets
 - Cash position
 - Debt obligations
@@ -47,6 +53,7 @@ This document contains the URLs and instructions for downloading current data fr
 ## Key Portfolio Metrics (as of Dec 11, 2025)
 
 ### Traction
+
 - **Total Unique Clients:** 332
 - **Total Volume:** $56.61M USD
 - **Outstanding Portfolio:** $7.36M USD
@@ -54,12 +61,14 @@ This document contains the URLs and instructions for downloading current data fr
 - **Active Borrowers:** 118
 
 ### Risk Metrics
+
 - **PAR90 (Latest):** 0.68%
 - **RDR90 @ 12 Months:** 0.93%
 - **Collection Rate:** 41.26%
 - **Average APR:** 38.98%
 
 ### Financial Summary
+
 - **Total Assets:** $6.2M USD
 - **Cash Balance:** $287K USD
 - **Net Income:** -$3.1M USD
@@ -88,6 +97,7 @@ This document contains the URLs and instructions for downloading current data fr
 ## Additional Analytics Sections
 
 ### Risk Analytics
+
 - [Key Indicators](https://app.cascadedebt.com/analytics/risk/indicators?pid=abaco)
 - [Traction](https://app.cascadedebt.com/analytics/risk/traction?pid=abaco)
 - [Delinquency](https://app.cascadedebt.com/analytics/risk/delinquency?pid=abaco)
@@ -97,11 +107,13 @@ This document contains the URLs and instructions for downloading current data fr
 - [Characteristics](https://app.cascadedebt.com/analytics/risk/characteristics?pid=abaco)
 
 ### Financial Analytics
+
 - Overview: `https://app.cascadedebt.com/analytics/financials/overview?pid=abaco`
 - Key Indicators: `https://app.cascadedebt.com/analytics/financials/key-indicators?pid=abaco`
 - Statements: `https://app.cascadedebt.com/analytics/financials/statements?pid=abaco`
 
 ### Analytics Pro (Advanced)
+
 - Collection Categories: `https://app.cascadedebt.com/analytics-pro/categories/collection?pid=abaco`
 
 ## Notes
@@ -115,9 +127,9 @@ This document contains the URLs and instructions for downloading current data fr
 ## Contact & Support
 
 - **Platform:** Cascade Debt
-- **Support:** https://support.cascadedebt.com
-- **Documentation:** https://knowledgebase.cascadedebt.com
+- **Support:** <https://support.cascadedebt.com>
+- **Documentation:** <https://knowledgebase.cascadedebt.com>
 
 ---
 *Document maintained by: Abaco Analytics Team*
-*Repository: https://github.com/Abaco-Technol/abaco-loans-analytics*
+*Repository: <https://github.com/Abaco-Technol/abaco-loans-analytics>*

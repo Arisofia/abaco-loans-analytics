@@ -1,12 +1,17 @@
 # Agent/Workflow Secrets Documentation
 
-All required secrets for the Abaco Multi-Agent Intelligence Ecosystem are managed in Azure Key Vault or GitHub Secrets. No manual action is needed for runtime access.
+All required secrets for the Abaco Multi-Agent Intelligence Ecosystem are managed
+in Azure Key Vault or GitHub Secrets. No manual action is needed for runtime
+access.
 
 ## Secrets Management Summary
 
-- **Azure Key Vault**: Used for production and sensitive credentials (API keys, DB URIs, tokens).
-- **GitHub Secrets**: Used for CI/CD, workflow automation, and agent orchestration.
-- **Environment Variables**: All workflows and agents access secrets via environment variables.
+- **Azure Key Vault**: Used for production and sensitive credentials
+  (API keys, DB URIs, tokens).
+- **GitHub Secrets**: Used for CI/CD, workflow automation, and agent
+  orchestration.
+- **Environment Variables**: All workflows and agents access secrets via
+  environment variables.
 
 ## Key Secrets (Examples)
 
@@ -35,8 +40,10 @@ All required secrets for the Abaco Multi-Agent Intelligence Ecosystem are manage
 
 ## Validation
 
-- Run `python scripts/validate_secrets.py` to confirm all secrets are available to the runtime.
+- Run `python scripts/validate_secrets.py` to confirm all secrets are available
+  to the runtime.
 - All workflows will fail fast if a required secret is missing.
 
 ---
-This file is auto-generated and should be updated if new agents or workflows require additional secrets.
+This file is auto-generated and should be updated if new agents or workflows
+require additional secrets.

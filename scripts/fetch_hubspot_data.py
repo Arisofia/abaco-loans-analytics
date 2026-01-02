@@ -7,29 +7,27 @@ from typing import Dict, List
 def fetch_contacts(api_key: str) -> List[Dict]:
     """
     Fetch contacts from HubSpot.
-    
+
     Args:
         api_key: HubSpot API key from environment
-        
+
     Returns:
         List of contact dictionaries
     """
     # TODO: Implement HubSpot API integration
-    pass
 
 
 def fetch_deals(api_key: str) -> List[Dict]:
     """
     Fetch deals from HubSpot.
-    
+
     Args:
         api_key: HubSpot API key from environment
-        
+
     Returns:
         List of deal dictionaries
     """
     # TODO: Implement HubSpot deals API integration
-    pass
 
 
 if __name__ == "__main__":

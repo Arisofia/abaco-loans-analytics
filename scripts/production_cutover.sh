@@ -10,12 +10,15 @@ echo "Date: $(date)"
 echo "Script: production_cutover.sh"
 echo ""
 
-PROD_ENV="${PROD_ENV:-.venv}"
+VENV_PATH="${VENV_PATH:-.venv}"
 PROD_DIR="${PROD_DIR:-.}"
-LOG_FILE="${PROD_DIR}/logs/cutover_$(date +%Y%m%d_%H%M%S).log"
+LOGS_PATH="${LOGS_PATH:-./logs}"
+CONFIG_FILE="${CONFIG_FILE:-config/pipeline.yml}"
+DATA_METRICS_DIR="${DATA_METRICS_DIR:-data/metrics}"
 ROLLBACK_DIR="${PROD_DIR}/.rollback"
 
-mkdir -p "$(dirname "$LOG_FILE")" "$ROLLBACK_DIR"
+mkdir -p "$LOGS_PATH" "$ROLLBACK_DIR"
+LOG_FILE="${LOGS_PATH}/cutover_$(date +%Y%m%d_%H%M%S).log"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
@@ -30,7 +33,7 @@ success() {
 }
 
 log "========== PRODUCTION CUTOVER STARTED =========="
-log "Virtual environment: $PROD_ENV"
+log "Virtual environment: $VENV_PATH"
 log "Production directory: $PROD_DIR"
 log "Log file: $LOG_FILE"
 echo ""
@@ -42,13 +45,13 @@ echo ""
 log "PHASE 0: Pre-cutover validation"
 log "Checking prerequisites..."
 
-if [ ! -d "$PROD_ENV" ]; then
-    error "Virtual environment not found at $PROD_ENV"
+if [ ! -d "$VENV_PATH" ]; then
+    error "Virtual environment not found at $VENV_PATH"
     exit 1
 fi
 success "Virtual environment exists"
 
-PYTHON_VERSION=$(source "$PROD_ENV/bin/activate" && python --version 2>&1)
+PYTHON_VERSION=$(source "$VENV_PATH/bin/activate" && python --version 2>&1)
 log "Python version: $PYTHON_VERSION"
 
 if [ ! -f "tests/test_kpi_calculators_v2.py" ]; then
@@ -57,13 +60,13 @@ if [ ! -f "tests/test_kpi_calculators_v2.py" ]; then
 fi
 success "Test suite found"
 
-if [ ! -f "config/pipeline.yml" ]; then
-    error "Production configuration not found"
+if [ ! -f "$CONFIG_FILE" ]; then
+    error "Production configuration not found at $CONFIG_FILE"
     exit 1
 fi
 success "Production configuration found"
 
-source "$PROD_ENV/bin/activate"
+source "$VENV_PATH/bin/activate"
 success "Virtual environment activated"
 
 log "Verifying dependencies..."
@@ -84,14 +87,14 @@ echo ""
 
 log "PHASE 1: Creating backups and snapshots"
 
-if [ -f "config/pipeline.yml" ]; then
-    cp "config/pipeline.yml" "$ROLLBACK_DIR/pipeline_backup_$(date +%Y%m%d_%H%M%S).yml"
+if [ -f "$CONFIG_FILE" ]; then
+    cp "$CONFIG_FILE" "$ROLLBACK_DIR/pipeline_backup_$(date +%Y%m%d_%H%M%S).yml"
     success "Configuration backup created"
 fi
 
-if [ -d "data/metrics" ]; then
+if [ -d "$DATA_METRICS_DIR" ]; then
     mkdir -p "$ROLLBACK_DIR/metrics_backup"
-    cp -r data/metrics/* "$ROLLBACK_DIR/metrics_backup/" 2>/dev/null || true
+    cp -r "$DATA_METRICS_DIR/"* "$ROLLBACK_DIR/metrics_backup/" 2>/dev/null || true
     success "Metrics backup created"
 fi
 
@@ -138,12 +141,12 @@ log "PHASE 3: Graceful V1 shutdown"
 
 if command -v systemctl &> /dev/null; then
     log "Checking V1 pipeline service..."
-    
+
     if systemctl is-active --quiet abaco-pipeline-v1 2>/dev/null; then
         log "Stopping V1 pipeline service..."
         systemctl stop abaco-pipeline-v1
         sleep 5
-        
+
         if ! systemctl is-active --quiet abaco-pipeline-v1; then
             success "V1 pipeline stopped gracefully"
         else
@@ -153,7 +156,7 @@ if command -v systemctl &> /dev/null; then
     else
         log "V1 pipeline not running (service may not exist, continuing)"
     fi
-    
+
     if command -v journalctl &> /dev/null; then
         journalctl -u abaco-pipeline-v1 -n 100 > "$ROLLBACK_DIR/v1_final_logs.log" 2>&1 || true
         success "V1 final logs recorded"
@@ -189,7 +192,7 @@ log "Testing V2 execution on sample data..."
 python -c "
 import pandas as pd
 import numpy as np
-from python.kpi_engine_v2 import KPIEngineV2
+from src.kpi_engine_v2 import KPIEngineV2
 
 np.random.seed(42)
 df = pd.DataFrame({

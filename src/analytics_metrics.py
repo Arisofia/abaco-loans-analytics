@@ -2,8 +2,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Re-exporting real implementations from python/analytics package
-from python.analytics import (
+# Re-exporting real implementations from src/analytics package
+from src.analytics import (
     calculate_quality_score,
     portfolio_kpis,
     project_growth,
@@ -50,6 +50,7 @@ def get_customer_types() -> List[Dict[str, Any]]:
     """Get customer types from dashboard."""
     data = load_dashboard_metrics()
     return data.get("extended_kpis", {}).get("customer_types", [])
+
 
 __all__ = [
     "calculate_quality_score",

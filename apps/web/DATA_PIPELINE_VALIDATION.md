@@ -444,7 +444,7 @@ Create test cases covering:
 
 **Overall Assessment**: ✅ **Ready for MVP, needs hardening for production**
 
-### To Ship Safely:
+### To Ship Safely
 
 1. Add Zod validation to all inputs
 2. Wrap pipelines in try-catch with error logging
@@ -452,7 +452,7 @@ Create test cases covering:
 4. Deploy with Sentry error tracking
 5. Monitor first week for issues
 
-### Timeline:
+### Timeline
 
 - **Week 1**: Deploy with basic error handling + monitoring
 - **Week 2**: Add unit tests and fix bugs found in production

@@ -2,7 +2,7 @@
 
 This catalog defines the core KPIs implemented in:
 
-- **Python**: `python/analytics/kpi_catalog_processor.py`
+- **Python**: `src/analytics/kpi_catalog_processor.py`
 - **SQL**: Postgres views under schema `analytics`
 
 All consumers (Next.js APIs, BI, Python, ML) should rely on these as the **single source of truth**.
@@ -13,14 +13,15 @@ All consumers (Next.js APIs, BI, Python, ML) should rely on these as the **singl
 
 ### 1.1 `analytics.customer_segment`
 
-**Purpose**  
+**Purpose**
 Centralized customer segmentation:
 
 - `sector_segment`: `Gob` vs `Private`
 - `business_segment`: `OC`, `CCF`, `DTE`, `Nimal`, `Top`, `Other`
 - `industry_segment`: macro industry buckets
 
-**Source**  
+**Source**
+
 - `public.customer_data`
 
 **Key Fields**
@@ -37,7 +38,7 @@ Centralized customer segmentation:
 
 ### 1.2 `analytics.loan_month`
 
-**Purpose**  
+**Purpose**
 Monthly loan-level snapshot with:
 
 - Outstanding principal at month-end
@@ -68,7 +69,7 @@ Monthly loan-level snapshot with:
 
 ### 2.1 `analytics.kpi_monthly_pricing`
 
-**Purpose**  
+**Purpose**
 Monthly portfolio pricing metrics:
 
 - Weighted APR
@@ -105,7 +106,7 @@ Monthly portfolio pricing metrics:
 
 ### 3.1 `analytics.kpi_monthly_risk`
 
-**Purpose**  
+**Purpose**
 Global monthly delinquency KPIs.
 
 **Source**
@@ -131,7 +132,7 @@ Global monthly delinquency KPIs.
 
 ### 5.1 `public.figma_dashboard`
 
-**Purpose**  
+**Purpose**
 Consolidated view for board and investor reporting, aligned with Figma design bindings.
 
 **Metrics Definition**
@@ -148,6 +149,7 @@ Consolidated view for board and investor reporting, aligned with Figma design bi
 - **CAC**: `Commercial Expense / New Clients`.
 - **LTV Realized**: `Cumulative Revenue / Cumulative Unique Customers`.
 
-**Source**  
+**Source**
+
 - `public.analytics_facts` (CSV Import)
-- `python/analytics/kpi_catalog_processor.py`
+- `src/analytics/kpi_catalog_processor.py`

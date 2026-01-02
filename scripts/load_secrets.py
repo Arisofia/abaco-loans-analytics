@@ -1,49 +1,45 @@
-import os
-from azure.identity import ClientSecretCredential
-from azure.keyvault.secrets import SecretClient
+import sys
+from pathlib import Path
+
 from dotenv import load_dotenv
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.config.secrets import get_secrets_manager
 
 load_dotenv()
 
-def get_secret_client():
-    vault_name = os.getenv("AZURE_KEY_VAULT_NAME", "abaco-capital-kv")
-    vault_url = f"https://{vault_name}.vault.azure.net"
-    
-    tenant_id = os.getenv("AZURE_TENANT_ID")
-    client_id = os.getenv("AZURE_CLIENT_ID")
-    client_secret = os.getenv("AZURE_CLIENT_SECRET")
-    
-    if not all([tenant_id, client_id, client_secret]):
-        raise ValueError("Missing Azure credentials")
-    
-    credential = ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
-    return SecretClient(vault_url=vault_url, credential=credential)
 
-def load_secrets():
+def load_secrets(use_vault_fallback: bool = True) -> dict:
+    """Load and validate secrets from environment or Azure Key Vault.
+
+    Args:
+        use_vault_fallback: If True, use Azure Key Vault as fallback for missing secrets
+
+    Returns:
+        Dict with validation results
+    """
+    manager = get_secrets_manager(use_vault=use_vault_fallback)
+
+    print("\n" + "=" * 60)
+    print("LOADING SECRETS")
+    print("=" * 60 + "\n")
+
+    # Validate all secrets
     try:
-        client = get_secret_client()
-        secrets = {"OPENAI-API-KEY": "OPENAI_API_KEY", "ANTHROPIC-API-KEY": "ANTHROPIC_API_KEY", "HUBSPOT-API-KEY": "HUBSPOT_API_KEY", "HUBSPOT-PORTAL-ID": "HUBSPOT_PORTAL_ID"}
-        results = {}
-        for vault_name, env_name in secrets.items():
-            try:
-                secret = client.get_secret(vault_name)
-                os.environ[env_name] = secret.value
-                results[env_name] = "✅"
-                print(f"✅ {env_name}")
-            except Exception as e:
-                results[env_name] = f"❌ {str(e)}"
-                print(f"❌ {vault_name}: {str(e)}")
-        return results
-    except Exception as e:
-        print(f"❌ Key Vault failed: {str(e)}")
-        raise
+        validation = manager.validate(fail_on_missing_required=True, fail_on_missing_optional=False)
+        manager.log_status(include_optional=True)
+        return validation
+    except ValueError as e:
+        print(f"⚠️  Validation failed: {e}")
+        print("\nAttempting to load available secrets...")
+        manager.log_status(include_optional=True)
+        return {"status": "partial", "error": str(e)}
+
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Loading Azure Key Vault secrets...")
-    print("=" * 60)
-    results = load_secrets()
-    print("\n" + "=" * 60)
-    for key, status in results.items():
-        print(f"  {key}: {status}")
-    print("=" * 60)
+    results = load_secrets(use_vault_fallback=True)
+    print(f"\nResult: {results.get('status', 'unknown')}")
+    if results.get("error"):
+        print(f"Error: {results['error']}")
+    exit(0 if results.get("status") == "ok" else 1)

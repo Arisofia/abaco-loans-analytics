@@ -22,6 +22,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python scripts/trigger_workflows.py ${{ github.repository }} \
-            --workflows "CI Analytics" "Test" \
+            --workflows "CI" \
             --ref main \
             --delay 5

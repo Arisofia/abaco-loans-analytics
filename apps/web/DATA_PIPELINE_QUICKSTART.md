@@ -196,6 +196,7 @@ if (result.success) {
   ```
 
 - [ ] **Monitoring**: Set up alerts for export failures
+
   ```typescript
   // Sentry will track exceptions automatically
   // Go to https://sentry.io → abaco-loans-analytics → Alerts

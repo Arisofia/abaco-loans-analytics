@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 import pandas as pd
 
-from python.financial_analysis import FinancialAnalyzer
+from src.financial_analysis import FinancialAnalyzer
 
 
 class TestFinancialAnalyzer(unittest.TestCase):

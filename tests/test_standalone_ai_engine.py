@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
 
-from abaco_runtime.standalone_ai_engine import StandaloneAIEngine
 from scripts.clients import AIResponse
+from src.abaco_runtime.standalone_ai_engine import StandaloneAIEngine
 
 
 class TestStandaloneAIEngine(unittest.TestCase):

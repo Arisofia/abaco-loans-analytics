@@ -1,4 +1,5 @@
 # ABACO Slide Assets
+
 - **Theme:** Dark gradients with neon purple/blue accents to mirror the Figma “Dark Editable Slides”.
 - **Growth path:** See the interactive chart exported as `growth-path.html`.
 - **Marketing treemap:** Use `sales-treemap.html` to explain segment weighting.

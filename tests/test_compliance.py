@@ -1,6 +1,6 @@
 import pandas as pd
 
-from python.compliance import (
+from src.compliance import (
     build_compliance_report,
     create_access_log_entry,
     mask_pii_in_dataframe,

@@ -20,7 +20,7 @@ async function updateSlides() {
     // Example Figma API usage:
     // const file = await client.file(FILE_KEY);
     // Find node by name, update text, etc.
-    
+
     console.log('Figma slides updated successfully');
   } catch (error) {
     console.error('Error updating Figma slides:', error.message);

@@ -1,6 +1,7 @@
 # AI-MultiAgent-Ecosystem – Abaco Analytics
 
 This repository hosts the Abaco Financial Intelligence Platform, including:
+
 - Raw Abaco CSV loan tapes under data/abaco
 - Synthetic support tables under data/support
 - SQL definitions for core views and KPIs under sql/

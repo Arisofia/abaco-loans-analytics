@@ -1,8 +1,8 @@
 # Week 1 Setup Guide
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
-**Duration**: 2-4 hours  
+**Version**: 2.0
+**Date**: 2025-12-26
+**Duration**: 2-4 hours
 **Audience**: DevOps, Infrastructure, Team Lead
 
 ---
@@ -16,6 +16,7 @@ This guide walks you through the Week 1 setup process to make the CI/CD pipeline
 ## Prerequisites
 
 ### What You Need
+
 - [ ] GitHub CLI installed (`gh`)
 - [ ] GitHub account with admin access to the repository
 - [ ] Access to Supabase dashboard (staging & production projects)
@@ -26,11 +27,13 @@ This guide walks you through the Week 1 setup process to make the CI/CD pipeline
 ### Install GitHub CLI
 
 **macOS**:
+
 ```bash
 brew install gh
 ```
 
 **Linux**:
+
 ```bash
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
 sudo apt-add-repository https://cli.github.com/packages
@@ -39,6 +42,7 @@ sudo apt install gh
 ```
 
 **Windows**:
+
 ```bash
 choco install gh
 ```
@@ -62,7 +66,8 @@ Before running the setup script, gather all required values. This prevents inter
 #### 1. STAGING_SUPABASE_URL
 
 **Where to find**:
-1. Go to https://supabase.com/dashboard
+
+1. Go to <https://supabase.com/dashboard>
 2. Select your **staging** project
 3. Click **Settings** → **API**
 4. Copy the **Project URL** (example: `https://xxxxxxxxxxxx.supabase.co`)
@@ -72,6 +77,7 @@ Before running the setup script, gather all required values. This prevents inter
 #### 2. STAGING_SUPABASE_KEY
 
 **Where to find**:
+
 1. Same dashboard: **Settings** → **API**
 2. Copy the **anon public** key (NOT the service_role key)
 3. Key starts with `eyJ...` (JWT format)
@@ -81,7 +87,8 @@ Before running the setup script, gather all required values. This prevents inter
 #### 3. AZURE_STATIC_WEB_APPS_TOKEN_STAGING
 
 **Where to find**:
-1. Go to https://portal.azure.com
+
+1. Go to <https://portal.azure.com>
 2. Find your **Static Web App** (staging environment)
 3. Click **Manage deployment token**
 4. Copy the token
@@ -101,7 +108,8 @@ Before running the setup script, gather all required values. This prevents inter
 #### 6. PROD_SENTRY_DSN
 
 **Where to find**:
-1. Go to https://sentry.io
+
+1. Go to <https://sentry.io>
 2. Select your organization
 3. Go to **Settings** → **Projects**
 4. Select your project
@@ -128,6 +136,7 @@ cd apps/web
 ```
 
 The script will:
+
 1. Verify you're in a git repository
 2. Verify GitHub CLI is installed and authenticated
 3. Ask for repository owner (if not detected)
@@ -139,11 +148,11 @@ The script will:
 
 ### What the Script Does
 
-✅ Creates 7 GitHub repository secrets  
-✅ Validates each secret before creating  
-✅ Verifies successful creation  
-✅ Does NOT modify any code or configuration  
-✅ Can be run multiple times (will update existing secrets)  
+✅ Creates 7 GitHub repository secrets
+✅ Validates each secret before creating
+✅ Verifies successful creation
+✅ Does NOT modify any code or configuration
+✅ Can be run multiple times (will update existing secrets)
 
 ### Troubleshooting
 
@@ -224,6 +233,7 @@ GitHub needs to know what environments exist. Create them in repository settings
 ### Verification
 
 After creating, you should see 3 environments in Settings → Environments:
+
 - staging
 - production (with branch rules)
 - production-rollback (with branch rules)
@@ -249,7 +259,7 @@ cascade:
 supabase:
   url: ${STAGING_SUPABASE_URL}
   anon_key: ${STAGING_SUPABASE_KEY}
-  
+
 sentry:
   enabled: false
   dsn: null
@@ -317,6 +327,7 @@ cat .github/QUICK_START.md
 ```
 
 Key points:
+
 - Daily workflow: feature branch → PR → CI validates → merge
 - Commands: `pnpm check-all`, `npm test`, `pnpm build`
 - Fix CI failures: `pnpm lint:fix`, etc.
@@ -329,6 +340,7 @@ grep -A 100 "## QA / Quality Assurance" .github/TEAM_RUNBOOKS.md
 ```
 
 Key points:
+
 - 24-hour validation window after develop merge
 - Use validation checklist
 - Post results in #dev-alerts
@@ -341,6 +353,7 @@ cat .github/DEPLOYMENT_CONFIG.md
 ```
 
 Key points:
+
 - Create version tags for production
 - Approve deployments in GitHub Actions
 - Monitor health checks
@@ -429,6 +442,7 @@ ls -la .github/workflows/*.yml
 **Problem**: Script says secret creation failed
 
 **Solutions**:
+
 1. Verify you have admin access to repository
 2. Check GitHub CLI authentication: `gh auth status`
 3. Try creating secret manually: `gh secret set NAME --body "value" -R owner/repo`
@@ -439,6 +453,7 @@ ls -la .github/workflows/*.yml
 **Problem**: `config/environments/` directory doesn't exist
 
 **Solution**:
+
 ```bash
 mkdir -p config/environments
 # Then create staging.yml and production.yml as shown above
@@ -449,6 +464,7 @@ mkdir -p config/environments
 **Problem**: Workflows fail with "secret not found"
 
 **Solutions**:
+
 1. Wait 1-2 minutes after creating secrets (GitHub needs time to sync)
 2. Trigger workflow manually to test
 3. Check workflow YAML uses correct secret names (case-sensitive)
@@ -459,6 +475,7 @@ mkdir -p config/environments
 **Problem**: Azure deployment token invalid
 
 **Solutions**:
+
 1. Verify token is still valid (not expired)
 2. Regenerate token from Azure portal
 3. Update secret with new token
@@ -469,12 +486,12 @@ mkdir -p config/environments
 
 Week 1 setup is complete when:
 
-✅ 7 GitHub secrets created and verified  
-✅ 3 GitHub environments created  
-✅ Staging environment file created  
-✅ Production environment file created  
-✅ All team members read documentation  
-✅ Slack channels ready (optional)  
+✅ 7 GitHub secrets created and verified
+✅ 3 GitHub environments created
+✅ Staging environment file created
+✅ Production environment file created
+✅ All team members read documentation
+✅ Slack channels ready (optional)
 
 ---
 
@@ -537,10 +554,11 @@ Once Week 1 is complete, proceed to Week 2:
 
 ## Timeline
 
-**Expected duration**: 2-4 hours for one person  
+**Expected duration**: 2-4 hours for one person
 **Best practice**: Have 2-3 people involved (DevOps + Tech Lead)
 
 **Breakdown**:
+
 - Step 1 (Gather info): 30 min
 - Step 2 (Run script): 30 min
 - Step 3 (Verify): 10 min
@@ -553,9 +571,8 @@ Once Week 1 is complete, proceed to Week 2:
 
 ---
 
-**Setup Owner**: _______________  
-**Completion Date**: _______________  
-**Verified By**: _______________  
+**Setup Owner**: _______________
+**Completion Date**: _______________
+**Verified By**: _______________
 
 **Next**: Follow Week 2 dry-runs in POST_IMPLEMENTATION_CHECKLIST.md
-

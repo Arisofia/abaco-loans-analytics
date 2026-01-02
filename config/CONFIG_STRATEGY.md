@@ -1,5 +1,6 @@
 # Configuration Consolidation Strategy
-**Status**: PHASE 3.4E In Progress  
+
+**Status**: PHASE 3.4E In Progress
 **Date**: 2025-12-26
 
 ---
@@ -23,7 +24,7 @@ config/
 
 ## Target State: Unified (Single Source of Truth + Modular Overrides)
 
-### Architecture:
+### Architecture
 
 ```
 config/
@@ -51,22 +52,26 @@ config/
 ## Implementation Plan
 
 ### Phase 1: Extend pipeline.yml (TODAY)
+
 1. Add integrations section
 2. Add agents section
 3. Add kpi_definitions section
 4. Use environment variables for all secrets
 
 ### Phase 2: Create environment overrides (TOMORROW)
+
 1. development.yml (local testing, mocked credentials)
 2. staging.yml (pre-production, real Cascade)
 3. production.yml (live, hardened security)
 
 ### Phase 3: Archive old configs (WEEK)
+
 1. Move to `/config/LEGACY/` with warning headers
 2. Add "DO NOT USE" markers
 3. Keep for reference only
 
 ### Phase 4: Update all imports (WEEK)
+
 1. Update orchestrator.py to load from single pipeline.yml
 2. Remove references to scattered configs
 3. Add environment variable resolution
@@ -75,7 +80,8 @@ config/
 
 ## Migration Path
 
-### Before (fragmented):
+### Before (fragmented)
+
 ```python
 # Different services loading different configs
 ingestion = load_config("config/integrations/cascade.yaml")
@@ -83,7 +89,8 @@ agent = load_config("config/agents/specs/c_level_executive_agent.yaml")
 kpis = load_config("config/kpi_definitions.yml")
 ```
 
-### After (unified):
+### After (unified)
+
 ```python
 # Single source of truth with environment overrides
 config = load_config("config/pipeline.yml", env=os.getenv("ENV", "development"))
@@ -109,8 +116,7 @@ kpis = config["kpis"]
 
 - [ ] Extend config/pipeline.yml with integrations, agents, KPI sections
 - [ ] Create config/environments/development.yml|staging.yml|production.yml
-- [ ] Update python/pipeline/orchestrator.py to use new structure
+- [ ] Update src/pipeline/orchestrator.py to use new structure
 - [ ] Move old configs to /config/LEGACY/ with deprecation warnings
 - [ ] Update documentation with new config loading pattern
 - [ ] Test all environments to confirm configuration works
-

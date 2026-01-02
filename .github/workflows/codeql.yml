@@ -3,10 +3,21 @@ name: CodeQL Analysis
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "src/**"
+      - "apps/**"
+      - "packages/**"
+      - "streamlit_app.py"
+      - "requirements*.txt"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "tsconfig.json"
+      - "next.config.js"
+      - ".github/workflows/codeql.yml"
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
   workflow_dispatch:
 
 permissions:
@@ -25,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['javascript', 'python']
+        language: ["javascript", "python"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,14 +48,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
 
       - name: Setup Python
         if: matrix.language == 'python'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
@@ -56,4 +67,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: '/language:${{ matrix.language }}'
+          category: "/language:${{ matrix.language }}"

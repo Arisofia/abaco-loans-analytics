@@ -6,18 +6,22 @@ permissions:
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "src/analytics/**"
+      - "src/**"
+      - "scripts/evaluation/**"
+      - "tests/evaluation/**"
+      - "requirements*.txt"
+      - ".github/workflows/model-evaluation.yml"
   pull_request:
     types: [opened, synchronize, reopened]
   schedule:
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 
 jobs:
   evaluate-models:
     name: Evaluate ML Models
     runs-on: ubuntu-latest
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,13 +30,23 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
-          pip install -r apps/analytics/requirements.txt
+          pip install -r requirements.txt
           pip install pytest-html pytest-json-report allure-pytest
+      - name: Check Slack webhook availability
+        id: slack_check
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Run evaluation tests
         continue-on-error: true
@@ -131,7 +145,7 @@ jobs:
             }
 
       - name: Send Slack notification on failure
-        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        if: failure() && steps.slack_check.outputs.available == 'true'
         continue-on-error: true
         uses: slackapi/slack-github-action@v1.24.0
         env:

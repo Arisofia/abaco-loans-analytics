@@ -13,4 +13,4 @@ To replace it with the real numbers:
 
 3. Commit the updated export.
 
-If you prefer to automate the download, add a script that authenticates to the Cascade Platform API using an authorized service account or OAuth token, then writes the CSV to this path. API authentication details are available in the Cascade Platform documentation at https://docs.cascade.app/api. Network credentials are required for that workflow and are not available in this sandboxed environment.
+If you prefer to automate the download, add a script that authenticates to the Cascade Platform API using an authorized service account or OAuth token, then writes the CSV to this path. API authentication details are available in the Cascade Platform documentation at <https://docs.cascade.app/api>. Network credentials are required for that workflow and are not available in this sandboxed environment.

@@ -1,8 +1,8 @@
 # Week 4: First Production Deployment & Operations
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
-**Status**: Ready to execute  
+**Version**: 2.0
+**Date**: 2025-12-26
+**Status**: Ready to execute
 **Duration**: 4-8 hours (deployment) + ongoing operations
 
 ---
@@ -25,6 +25,7 @@ Week 4 marks the transition from preparation to production. This guide covers:
 Before starting Week 4 deployment, verify:
 
 ### Code Quality
+
 - [ ] Run `pnpm check-all` locally → All pass
 - [ ] Run `npm test` locally → All pass
 - [ ] Code coverage ≥ 85%
@@ -32,6 +33,7 @@ Before starting Week 4 deployment, verify:
 - [ ] No TODOs or FIXMEs in critical paths
 
 ### System Status
+
 - [ ] All workflows visible in GitHub Actions
 - [ ] All 7 GitHub secrets configured
 - [ ] All 3 GitHub environments exist
@@ -39,6 +41,7 @@ Before starting Week 4 deployment, verify:
 - [ ] QA has validated staging version
 
 ### Team Readiness
+
 - [ ] All team members read documentation
 - [ ] DevOps lead is present and ready
 - [ ] Team lead/manager standing by
@@ -46,6 +49,7 @@ Before starting Week 4 deployment, verify:
 - [ ] Slack channels ready (#prod-alerts, #incidents)
 
 ### External Systems
+
 - [ ] Supabase production database accessible
 - [ ] Sentry error tracking configured
 - [ ] Azure Static Web Apps health check working
@@ -90,8 +94,8 @@ Create a release notes file for reference:
 cat > RELEASE_NOTES_v1.0.0.md << 'EOF'
 # Release v1.0.0 - First Production Deployment
 
-**Date**: 2025-12-26  
-**Deployed By**: [Your Name]  
+**Date**: 2025-12-26
+**Deployed By**: [Your Name]
 **Approval**: [Approver Name]
 
 ## What's Included
@@ -144,6 +148,7 @@ cat RELEASE_NOTES_v1.0.0.md
 Post in Slack channels:
 
 **#prod-alerts**
+
 ```
 🚀 PRODUCTION DEPLOYMENT STARTING
 
@@ -164,6 +169,7 @@ Watch #prod-alerts for updates.
 ```
 
 **#incidents** (optional, just for visibility)
+
 ```
 📡 First production deployment starting
 
@@ -200,6 +206,7 @@ git push origin v1.0.0
 ```
 
 **Expected Output**:
+
 ```
 Total 0 (delta 0), reused 0 (delta 0)
 To github.com:owner/repo.git
@@ -210,7 +217,7 @@ To github.com:owner/repo.git
 
 Immediately go to GitHub Actions:
 
-1. Open: https://github.com/owner/repo/actions
+1. Open: <https://github.com/owner/repo/actions>
 2. You should see a new workflow run for "deploy-production.yml"
 3. Watch it progress through stages:
    - ✅ pre-deployment (extract version)
@@ -258,6 +265,7 @@ curl -s https://staging.abaco-loans-analytics.com | head -20
 ### 3.4 Watch Deployment Progress
 
 The workflow will now:
+
 1. Build application for production
 2. Deploy to Azure Static Web Apps
 3. Create GitHub release
@@ -267,6 +275,7 @@ The workflow will now:
 This takes 5-10 minutes.
 
 **In the workflow logs, you should see**:
+
 ```
 ✅ Production health check passed
 ✅ Performance baseline acceptable
@@ -304,19 +313,22 @@ curl -s https://abaco-loans-analytics.com | head -30
 ### 4.2 Check Monitoring Systems
 
 **Sentry (Error Tracking)**
-1. Go to: https://sentry.io
+
+1. Go to: <https://sentry.io>
 2. Navigate to your organization/project
 3. Verify no new errors appeared
 4. Check "Last 30 minutes" filter
 
 **Azure Portal (Deployment Status)**
-1. Go to: https://portal.azure.com
+
+1. Go to: <https://portal.azure.com>
 2. Find Static Web App
 3. Check deployment status shows latest
 4. Verify HTTP 200 responses in logs
 
 **GitHub Releases**
-1. Go to: https://github.com/owner/repo/releases
+
+1. Go to: <https://github.com/owner/repo/releases>
 2. You should see: "Release v1.0.0"
 3. Verify timestamp is recent
 4. Release notes should be auto-populated
@@ -326,6 +338,7 @@ curl -s https://abaco-loans-analytics.com | head -30
 Ask team to verify in each role:
 
 **DevOps**:
+
 ```
 ✓ Workflow completed successfully
 ✓ Health checks passed
@@ -334,6 +347,7 @@ Ask team to verify in each role:
 ```
 
 **QA**:
+
 ```
 ✓ Application loads
 ✓ No JavaScript errors
@@ -342,6 +356,7 @@ Ask team to verify in each role:
 ```
 
 **Developers**:
+
 ```
 ✓ Your code deployed
 ✓ Features visible in production
@@ -357,17 +372,20 @@ Ask team to verify in each role:
 Keep monitoring dashboard open and watch:
 
 **Sentry** - Check every 5 minutes
+
 - [ ] No new errors
 - [ ] Error rate normal (or zero)
 - [ ] All monitors green
 
 **Azure** - Check every 10 minutes
+
 - [ ] Health checks green
 - [ ] HTTP response times < 1 second
 - [ ] No deployment errors
 - [ ] Request rate normal
 
 **Browser** - Test every 15 minutes
+
 - [ ] Page loads
 - [ ] No console errors (F12)
 - [ ] Interactive features work
@@ -512,6 +530,7 @@ Next Steps:
 ### Automatic Triggers for Rollback
 
 Rollback should be considered if:
+
 - [ ] HTTP errors > 10% of requests
 - [ ] Response time > 10 seconds
 - [ ] Critical feature completely broken
@@ -519,6 +538,7 @@ Rollback should be considered if:
 - [ ] Security incident detected
 
 **Do NOT rollback for**:
+
 - Minor UI issues
 - Non-critical feature bugs
 - Expected behavior issues
@@ -538,6 +558,7 @@ Rollback should be considered if:
 ```
 
 **Workflow will**:
+
 1. Validate inputs
 2. Create incident issue
 3. Wait for approval
@@ -553,6 +574,7 @@ Rollback should be considered if:
 After successful rollback:
 
 1. **Post in #incidents**:
+
 ```
 🔄 ROLLBACK EXECUTED
 
@@ -568,12 +590,12 @@ Next Steps:
 4. Plan new production deployment
 ```
 
-2. **Create GitHub Issue**:
+1. **Create GitHub Issue**:
    - Title: `[INCIDENT] v1.0.0 rollback - [brief description]`
    - Labels: incident, production, rollback
    - Assign to relevant team
 
-3. **Schedule Post-Mortem**:
+2. **Schedule Post-Mortem**:
    - Time: Within 24 hours
    - Attendees: All team leads
    - Duration: 30 minutes
@@ -586,6 +608,7 @@ Next Steps:
 ### Daily Checklist
 
 **Every morning**:
+
 ```bash
 # Check production is healthy
 curl -s https://abaco-loans-analytics.com | head -10
@@ -665,7 +688,7 @@ Post in **#dev-help**:
 ```
 📋 WEEK 4 FEEDBACK - CI/CD Pipeline
 
-We just completed our first production deployment! 
+We just completed our first production deployment!
 Help us improve by answering these quick questions:
 
 1. How clear were the deployment procedures?
@@ -691,12 +714,14 @@ Please reply in thread 👇
 Schedule 30-minute meeting:
 
 **Agenda**:
+
 1. (5 min) Celebrate successful first deployment
 2. (10 min) What went well?
 3. (10 min) What could be better?
 4. (5 min) Action items for next deployment
 
 **Discussion Points**:
+
 - Was the documentation clear?
 - Any unexpected issues?
 - Time estimates accurate?
@@ -746,6 +771,7 @@ Based on feedback:
 ## Success Criteria
 
 ### Immediate (First Hour)
+
 - [x] v1.0.0 tag created and pushed
 - [x] CI pipeline passed
 - [x] Manual approval granted
@@ -754,6 +780,7 @@ Based on feedback:
 - [x] No critical errors
 
 ### Short-term (First 24 Hours)
+
 - [x] Uptime 99%+
 - [x] Error rate < 1%
 - [x] Response time < 3 seconds
@@ -762,6 +789,7 @@ Based on feedback:
 - [x] Monitoring active
 
 ### Medium-term (First Week)
+
 - [x] Zero critical issues
 - [x] Stable 99%+ uptime
 - [x] Team confident in process
@@ -770,6 +798,7 @@ Based on feedback:
 - [x] Metrics baseline established
 
 ### Long-term (First Month)
+
 - [x] Multiple successful deployments
 - [x] Process optimized based on feedback
 - [x] Team skilled in procedures
@@ -782,15 +811,18 @@ Based on feedback:
 ## Emergency Contacts
 
 **During Deployment**:
+
 - DevOps Lead: [Name/Number]
 - Tech Lead: [Name/Number]
 - On-Call: [Name/Number]
 
 **Escalation**:
-- Critical Issues: [Name/Number] 
+
+- Critical Issues: [Name/Number]
 - Rollback Approval: Tech Lead or Manager
 
 **Communication**:
+
 - #prod-alerts - Deployment notifications
 - #incidents - Critical issues
 - #dev-help - Questions and discussion
@@ -804,6 +836,7 @@ Based on feedback:
 **Symptoms**: Workflow shows red X on health check
 
 **Steps**:
+
 1. Wait 2 minutes (deployment might still be propagating)
 2. Manually test: `curl https://abaco-loans-analytics.com`
 3. Check Azure portal for deployment status
@@ -815,6 +848,7 @@ Based on feedback:
 **Symptoms**: Approval gate stuck after 10+ minutes
 
 **Steps**:
+
 1. Refresh GitHub Actions page
 2. Click workflow run → Review deployments
 3. If button appears, click it
@@ -826,6 +860,7 @@ Based on feedback:
 **Symptoms**: Sentry shows 10%+ errors, but page loads
 
 **Steps**:
+
 1. Check Sentry for error pattern
 2. If all from same endpoint, might be expected
 3. If widespread, monitor for 5 minutes
@@ -837,6 +872,7 @@ Based on feedback:
 **Symptoms**: No messages in #prod-alerts
 
 **Steps**:
+
 1. Manually post update in #prod-alerts
 2. Check webhook URLs in GitHub secrets
 3. Verify Slack channel exists and bot has access
@@ -848,6 +884,7 @@ Based on feedback:
 ## Checklist Summary
 
 **Pre-Deployment**:
+
 - [ ] Code quality verified
 - [ ] System status verified
 - [ ] Team readiness confirmed
@@ -856,6 +893,7 @@ Based on feedback:
 - [ ] Slack notification ready
 
 **Deployment**:
+
 - [ ] Git tag created
 - [ ] Workflow triggered
 - [ ] CI checks passed
@@ -864,6 +902,7 @@ Based on feedback:
 - [ ] Deployment completed
 
 **Post-Deployment**:
+
 - [ ] Health checks passed
 - [ ] Manual verification done
 - [ ] Monitoring systems active
@@ -872,6 +911,7 @@ Based on feedback:
 - [ ] 24-hour monitoring ongoing
 
 **Follow-up**:
+
 - [ ] Stability report posted
 - [ ] Feedback collected
 - [ ] Issues documented
@@ -883,12 +923,14 @@ Based on feedback:
 ## Files for Week 4
 
 **In `.github/` directory**:
+
 - WEEK4_PRODUCTION_DEPLOYMENT.md (this file)
 - TEAM_RUNBOOKS.md (reference for procedures)
 - DEPLOYMENT_COORDINATION.md (Slack templates)
 - DEPLOYMENT_CONFIG.md (technical reference)
 
 **External**:
+
 - GitHub Actions dashboard (workflow monitoring)
 - Sentry dashboard (error tracking)
 - Azure portal (deployment status)
@@ -900,12 +942,12 @@ Based on feedback:
 
 If you've completed Week 4 following this guide, you've successfully:
 
-✅ Created your first v1.0.0 production release  
-✅ Deployed to production with approval gates  
-✅ Verified health and functionality  
-✅ Established monitoring  
-✅ Communicated status to team  
-✅ Prepared rollback procedures  
+✅ Created your first v1.0.0 production release
+✅ Deployed to production with approval gates
+✅ Verified health and functionality
+✅ Established monitoring
+✅ Communicated status to team
+✅ Prepared rollback procedures
 
 **You now have a production-grade CI/CD pipeline!**
 
@@ -913,6 +955,6 @@ Next: Plan Week 5 and future releases following established procedures.
 
 ---
 
-**Status**: 🟢 Week 4 Ready for Execution  
-**Created**: 2025-12-26  
+**Status**: 🟢 Week 4 Ready for Execution
+**Created**: 2025-12-26
 **Duration**: 4-8 hours deployment + ongoing monitoring

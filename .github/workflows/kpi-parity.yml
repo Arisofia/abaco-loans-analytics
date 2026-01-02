@@ -2,18 +2,20 @@ name: KPI Parity
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
+    paths:
+      - "src/analytics/**"
+      - "run_complete_analytics.py"
+      - "supabase/migrations/**"
+      - "tests/test_kpi_parity.py"
+      - "requirements*.txt"
+      - ".github/workflows/kpi-parity.yml"
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   kpi-parity:
     runs-on: ubuntu-latest
-
-    env:
-      # Must be set in GitHub Secrets to point to staging/prod analytics DB,
-      # e.g. postgresql://user:pass@host:5432/dbname
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Checkout repository
@@ -35,7 +37,18 @@ jobs:
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
-          pip install pytest psycopg[binary] pandas
+          pip install pytest psycopg[binary] pandas scipy numpy
+
+      - name: Check database availability
+        id: db_check
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            echo "db_available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "db_available=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Generate KPI JSON via Python engine
         run: |
@@ -43,13 +56,23 @@ jobs:
           python run_complete_analytics.py
 
       - name: Apply SQL migrations (analytics views)
-        if: ${{ env.DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        if: steps.db_check.outputs.db_available == 'true'
         run: |
           echo "Applying analytics views migration to $DATABASE_URL"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260101_analytics_kpi_views.sql
 
       - name: Run KPI parity tests (Python vs SQL)
         env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RUN_KPI_PARITY_TESTS: "1"
+        if: steps.db_check.outputs.db_available == 'true'
         run: |
           pytest -q tests/test_kpi_parity.py
+
+      - name: Skip KPI parity tests (no database configured)
+        if: steps.db_check.outputs.db_available != 'true'
+        run: |
+          echo "::warning::DATABASE_URL secret not configured - skipping KPI parity tests"
+          echo "To enable these tests, add DATABASE_URL to repository secrets"

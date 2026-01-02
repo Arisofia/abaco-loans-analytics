@@ -8,6 +8,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "app/**"
+      - "services/**"
+      - "scripts/**"
+      - "host.json"
+      - "requirements*.txt"
+      - ".github/workflows/main_hubspot-segment-agent.yml"
   workflow_dispatch:
 
 env:
@@ -53,7 +60,7 @@ jobs:
             "tests/*" \
             "scripts/*" \
             "streamlit_app/*" \
-            "python/*" \
+            "src/*" \
             "htmlcov/*" \
             "*.md" \
             ".env*" \
@@ -83,8 +90,27 @@ jobs:
         run: |
           unzip release.zip
           rm release.zip
-        
+
+      - name: Check Azure OIDC secrets
+        id: check_oidc
+        env:
+          CLIENT_ID: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F6607BB65D034140A480784B481B338B }}
+          TENANT_ID: ${{ secrets.AZUREAPPSERVICE_TENANTID_F145EFCA8AD64ED686BE309DA9DFE502 }}
+          SUBSCRIPTION_ID: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_09482FCEC83B4AD880614EFC42AD11AD }}
+        run: |
+          missing=""
+          [ -z "$CLIENT_ID" ] && missing="$missing AZUREAPPSERVICE_CLIENTID_F6607BB65D034140A480784B481B338B"
+          [ -z "$TENANT_ID" ] && missing="$missing AZUREAPPSERVICE_TENANTID_F145EFCA8AD64ED686BE309DA9DFE502"
+          [ -z "$SUBSCRIPTION_ID" ] && missing="$missing AZUREAPPSERVICE_SUBSCRIPTIONID_09482FCEC83B4AD880614EFC42AD11AD"
+          if [ -z "$missing" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "Missing secrets:$missing"
+          fi
+
       - name: Login to Azure
+        if: steps.check_oidc.outputs.present == 'true'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F6607BB65D034140A480784B481B338B }}
@@ -92,10 +118,15 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_09482FCEC83B4AD880614EFC42AD11AD }}
 
       - name: 'Deploy to Azure Functions'
+        if: steps.check_oidc.outputs.present == 'true'
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:
           app-name: 'hubspot-segment-agent'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          
+
+      - name: Skip deploy (missing Azure OIDC secrets)
+        if: steps.check_oidc.outputs.present != 'true'
+        run: |
+          echo "Skipping deployment: Azure OIDC secrets are not configured."
