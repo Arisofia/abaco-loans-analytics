@@ -155,12 +155,21 @@ class TestTracingSetup(unittest.TestCase):
             self.assertFalse(result, "Should return False when packages are not installed")
 
     def test_get_tracer_returns_value(self):
-        """Test get_tracer returns a value (either tracer or None)."""
+        """Test get_tracer returns None when OpenTelemetry is unavailable."""
         from python.tracing_setup import get_tracer
 
-        tracer = get_tracer("test_module")
-        
-        # Should return None when OpenTelemetry is not installed
+        import builtins
+
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name.startswith("opentelemetry"):
+                raise ImportError("No module named 'opentelemetry'")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=mock_import):
+            tracer = get_tracer("test_module")
+
         self.assertIsNone(tracer, "Should return None when OpenTelemetry is not available")
 
     def test_get_tracer_with_mocked_opentelemetry(self):
@@ -231,4 +240,3 @@ class TestTracingSetup(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
