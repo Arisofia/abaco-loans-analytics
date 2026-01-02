@@ -35,7 +35,21 @@ def init_tracing(
     )
 
     tracer_provider = TracerProvider(resource=resource)
-    trace.set_tracer_provider(tracer_provider)
+
+    # If another TracerProvider is already set (e.g. by auto-instrumentation or platform
+    # init), avoid overriding it. Prefer the existing provider but still attach span
+    # processors if possible.
+    try:
+        current_provider = trace.get_tracer_provider()
+        if not isinstance(current_provider, TracerProvider):
+            trace.set_tracer_provider(tracer_provider)
+        else:
+            # Use the existing provider instead of overriding
+            tracer_provider = current_provider
+            logger.info("Using existing tracer provider; not overriding.")
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not set tracer provider (it may already be initialized): %s", str(exc))
+        tracer_provider = trace.get_tracer_provider()
 
     if otlp_endpoint is None:
         otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318")
@@ -52,12 +66,28 @@ def init_tracing(
 
 def enable_auto_instrumentation() -> None:
     try:
-        from opentelemetry.instrumentation.httpx import HttpxInstrumentor
+        # HTTPX instrumentation API changed in some package versions: try the newer
+        # name first (HTTPXClientInstrumentor), then fall back to the older one
+        # (HttpxInstrumentor) for compatibility.
+        HTTPXInstrumentor = None
+        try:
+            from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor as HTTPXInstrumentor
+        except Exception:
+            try:
+                from opentelemetry.instrumentation.httpx import HttpxInstrumentor as HTTPXInstrumentor
+            except Exception:
+                HTTPXInstrumentor = None
+
         from opentelemetry.instrumentation.requests import RequestsInstrumentor
         from opentelemetry.instrumentation.urllib3 import URLLib3Instrumentor
         from opentelemetry.instrumentation.sqlite3 import SQLite3Instrumentor
 
-        HttpxInstrumentor().instrument()
+        if HTTPXInstrumentor is not None:
+            try:
+                HTTPXInstrumentor().instrument()
+            except Exception:
+                logger.exception("Failed to instrument httpx")
+
         RequestsInstrumentor().instrument()
         URLLib3Instrumentor().instrument()
         SQLite3Instrumentor().instrument()
