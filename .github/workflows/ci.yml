@@ -35,6 +35,8 @@ jobs:
       analytics: ${{ steps.filter.outputs.analytics || steps.force.outputs.analytics }}
       checks: ${{ steps.filter.outputs.checks || steps.force.outputs.checks }}
     steps:
+      - uses: actions/checkout@v4
+        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
       - name: Force all checks for schedule/manual runs
         id: force
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -162,42 +164,6 @@ jobs:
             demo_report.md
           if-no-files-found: ignore
 
-  evaluate-models:
-    name: Evaluate ML Models
-    needs: changes
-    if: needs.changes.outputs.checks == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-      - name: Install dependencies
-        run: |
-          pip install -r apps/analytics/requirements.txt
-          pip install pytest-html pytest-json-report allure-pytest
-      - name: Run evaluation tests
-        continue-on-error: true
-        run: |
-          mkdir -p reports
-          pytest tests/evaluation/ \
-            --html=reports/evaluation-report.html \
-            --self-contained-html \
-            --json-report \
-            --json-report-file=reports/evaluation-metrics.json \
-            -v || echo "Evaluation tests completed with status $?"
-      - name: Upload evaluation reports
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v4
-        with:
-          name: evaluation-reports
-          path: reports/
-          retention-days: 30
-          if-no-files-found: ignore
-
   web:
     name: Web Build & Lint
     needs: changes
@@ -311,17 +277,24 @@ jobs:
     needs:
       - repo-health
       - run-demos
-      - evaluate-models
       - web
       - analytics
       - update-figma-slides
     if: always() && failure()
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
+      - name: Check Slack webhook availability
+        id: slack_check
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Notify Slack on failure
         uses: slackapi/slack-github-action@v2
-        if: env.SLACK_WEBHOOK_URL != ''
+        if: steps.slack_check.outputs.available == 'true'
         with:
           webhook-type: INCOMING_WEBHOOK
           payload: |

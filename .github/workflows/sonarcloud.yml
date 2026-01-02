@@ -54,12 +54,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Set up JDK 21
-        if: steps.check-secrets.outputs.secrets_available == 'true'
-        uses: actions/setup-java@v4
-        with:
-          java-version: "21"
-          distribution: "temurin"
       - name: Install dependencies
         if: steps.check-secrets.outputs.secrets_available == 'true'
         run: |
