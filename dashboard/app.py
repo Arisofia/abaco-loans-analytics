@@ -14,11 +14,14 @@ if page == "health" or page == ["health"] or (isinstance(page, list) and "health
     st.stop()
 
 # HEAVY IMPORTS AND INITIALIZATION
-import pandas as pd
-import plotly.express as px
-import numpy as np
+import json
 import logging
 from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import plotly.express as px
 
 # Theme definition (as per design system)
 ABACO_THEME = {
@@ -59,6 +62,11 @@ ABACO_THEME = {
 
 st.set_page_config(page_title="ABACO Financial Intelligence Platform", page_icon="💰", layout="wide", initial_sidebar_state="expanded")
 
+ROOT_DIR = Path(__file__).resolve().parents[1]
+LOOKER_DIR = ROOT_DIR / "data" / "raw" / "looker_exports"
+EXPORTS_DIR = ROOT_DIR / "exports"
+SUPPORT_DIR = ROOT_DIR / "data" / "support"
+
 # Utility functions
 def apply_theme(fig):
     fig.update_layout(
@@ -75,8 +83,157 @@ def styled_df(df):
 
 def clean_numeric(col):
     if col.dtype == 'object':
-        col = pd.to_numeric(col.astype(str).str.replace(r'[$,€%₡,]', '', regex=True), errors='coerce')
+        sample = col.dropna().astype(str).head(50)
+        cleaned = sample.str.replace(r'[$,€%₡,]', '', regex=True)
+        numeric_ratio = pd.to_numeric(cleaned, errors='coerce').notna().mean()
+        if numeric_ratio >= 0.6:
+            col = pd.to_numeric(col.astype(str).str.replace(r'[$,€%₡,]', '', regex=True), errors='coerce')
     return col
+
+def normalize_dataframe(df):
+    df = df.copy()
+    df.columns = (
+        df.columns.astype(str)
+        .str.lower()
+        .str.strip()
+        .str.replace(' ', '_')
+        .str.replace(r'[^a-z0-9_]', '', regex=True)
+    )
+    for col in df.columns:
+        df[col] = clean_numeric(df[col])
+    return df
+
+def format_percent(value):
+    if abs(value) <= 1:
+        return f"{value:.2%}"
+    return f"{value:.2f}%"
+
+def format_kpi_value(name, value):
+    if value is None or pd.isna(value):
+        return "—"
+    if isinstance(value, str):
+        return value
+
+    name_lower = name.lower()
+    if name_lower in {"ltv_cac_ratio", "rotation"}:
+        return f"{value:.2f}x"
+
+    percent_hints = ("pct", "rate", "ratio", "yield", "apr", "penetration", "recurrence")
+    currency_hints = (
+        "usd",
+        "revenue",
+        "outstanding",
+        "disbursement",
+        "fee",
+        "interest",
+        "aum",
+        "capital",
+        "payment",
+        "received",
+        "sched",
+    )
+    count_hints = ("clients", "customers", "loans", "count", "early", "late", "on_time", "fte")
+
+    if any(hint in name_lower for hint in percent_hints):
+        return format_percent(float(value))
+    if any(hint in name_lower for hint in currency_hints):
+        return f"${float(value):,.2f}"
+    if any(hint in name_lower for hint in count_hints):
+        return f"{float(value):,.0f}"
+
+    return f"{float(value):,.2f}"
+
+KPI_LABEL_OVERRIDES = {
+    "total_aum_usd": "Total AUM (USD)",
+    "ltv_cac_ratio": "LTV / CAC",
+    "par_90_ratio_pct": "PAR 90 Ratio",
+    "mom_growth_pct": "MoM Growth",
+    "yoy_growth_pct": "YoY Growth",
+}
+
+def kpi_label(name):
+    return KPI_LABEL_OVERRIDES.get(name, name.replace("_", " ").title())
+
+@st.cache_data(show_spinner=False)
+def load_looker_exports():
+    candidates = {
+        "loan_data": [
+            LOOKER_DIR / "loan_data.csv",
+            LOOKER_DIR / "Abaco-Loan-Tape_Loan-Data_Table-6.csv",
+            ROOT_DIR / "data" / "abaco" / "loan_data.csv",
+        ],
+        "customer_data": [
+            LOOKER_DIR / "customer_data.csv",
+            LOOKER_DIR / "Abaco-Loan-Tape_Customer-Data_Table-6.csv",
+            ROOT_DIR / "data" / "abaco" / "customer_data.csv",
+        ],
+        "historic_payment_data": [
+            LOOKER_DIR / "historic_payment_data.csv",
+            LOOKER_DIR / "Abaco-Loan-Tape_Historic-Real-Payment_Table-6.csv",
+            ROOT_DIR / "data" / "abaco" / "real_payment.csv",
+        ],
+    }
+    data = {}
+    for key, paths in candidates.items():
+        path = next((p for p in paths if p.exists()), None)
+        if path is None:
+            continue
+        df = pd.read_csv(path)
+        data[key] = normalize_dataframe(df)
+    return data
+
+@st.cache_data(show_spinner=False)
+def load_analytics_facts():
+    facts_path = EXPORTS_DIR / "analytics_facts.csv"
+    if not facts_path.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(facts_path)
+    if "month" in df.columns:
+        df["month"] = pd.to_datetime(df["month"], errors="coerce")
+    return df
+
+@st.cache_data(show_spinner=False)
+def load_kpi_dashboard():
+    dashboard_path = EXPORTS_DIR / "complete_kpi_dashboard.json"
+    if not dashboard_path.exists():
+        return {}
+    return json.loads(dashboard_path.read_text())
+
+def build_kpi_snapshot(dashboard, facts_df):
+    metrics = {}
+    latest_month = None
+
+    if not facts_df.empty:
+        facts_sorted = facts_df.sort_values("month") if "month" in facts_df.columns else facts_df
+        latest = facts_sorted.iloc[-1]
+        latest_month = latest.get("month")
+        for col in facts_sorted.columns:
+            if col == "month":
+                continue
+            metrics[col] = latest[col]
+
+    if dashboard:
+        for key, value in dashboard.items():
+            if key == "timestamp":
+                continue
+            if isinstance(value, (int, float)):
+                metrics.setdefault(key, value)
+
+        exec_strip = dashboard.get("extended_kpis", {}).get("executive_strip", {})
+        for key, value in exec_strip.items():
+            metrics.setdefault(key, value)
+
+    return metrics, latest_month
+
+@st.cache_data(show_spinner=False)
+def load_agent_headcount():
+    headcount_path = SUPPORT_DIR / "headcount.csv"
+    if not headcount_path.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(headcount_path)
+    if "month" in df.columns:
+        df["month"] = pd.to_datetime(df["month"], errors="coerce")
+    return df
 
 # Initialize tracing
 logger = logging.getLogger(__name__)
@@ -111,34 +268,52 @@ if 'loaded' not in st.session_state:
 
 with st.sidebar:
     st.title("Data Ingestion")
-    uploaded_files = st.file_uploader("Upload Loan Tape CSVs and Financial XLSX", accept_multiple_files=True, type=['csv', 'xlsx'])
-    
-    if st.button("Ingest Data") or uploaded_files:
-        dfs = {}
-        for file in uploaded_files:
-            if file.name.endswith('.csv'):
-                dfs[file.name] = pd.read_csv(file)
-            elif file.name.endswith('.xlsx'):
-                dfs[file.name] = pd.read_excel(file, sheet_name=None)
-        
-        if dfs:
-            for name, df in dfs.items():
-                if isinstance(df, dict):
-                    for sheet, sdf in df.items():
-                        sdf.columns = sdf.columns.str.lower().str.strip().str.replace(' ', '_').str.replace(r'[^a-z0-9_]', '', regex=True)
-                        for col in sdf.columns:
-                            sdf[col] = clean_numeric(sdf[col])
-                else:
-                    df.columns = df.columns.str.lower().str.strip().str.replace(' ', '_').str.replace(r'[^a-z0-9_]', '', regex=True)
-                    for col in df.columns:
-                        df[col] = clean_numeric(df[col])
-            
-            st.session_state['data'] = dfs
-            st.session_state['loaded'] = True
-            st.success("Data ingested successfully.")
+    data_source = st.radio(
+        "Data Source",
+        ["Looker exports (auto)", "Manual upload"],
+        index=0,
+    )
 
-    if st.button("Refresh Ingestion"):
+    if data_source == "Looker exports (auto)":
+        looker_data = load_looker_exports()
+        if looker_data:
+            st.session_state['data'] = looker_data
+            st.session_state['loaded'] = True
+            st.caption(f"Loaded Looker exports: {', '.join(looker_data.keys())}")
+        else:
+            st.session_state['loaded'] = False
+            st.warning("No Looker exports found in data/raw/looker_exports.")
+            st.caption("Upload Looker exports or switch to Manual upload.")
+    else:
+        uploaded_files = st.file_uploader(
+            "Upload Loan Tape CSVs and Financial XLSX",
+            accept_multiple_files=True,
+            type=['csv', 'xlsx'],
+        )
+
+        if st.button("Ingest Data") or uploaded_files:
+            dfs = {}
+            for file in uploaded_files:
+                if file.name.endswith('.csv'):
+                    dfs[file.name] = pd.read_csv(file)
+                elif file.name.endswith('.xlsx'):
+                    dfs[file.name] = pd.read_excel(file, sheet_name=None)
+
+            if dfs:
+                for name, df in dfs.items():
+                    if isinstance(df, dict):
+                        for sheet, sdf in df.items():
+                            dfs[name][sheet] = normalize_dataframe(sdf)
+                    else:
+                        dfs[name] = normalize_dataframe(df)
+
+                st.session_state['data'] = dfs
+                st.session_state['loaded'] = True
+                st.success("Data ingested successfully.")
+
+    if st.button("Clear Data"):
         st.session_state['loaded'] = False
+        st.session_state.pop('data', None)
         st.rerun()
 
     st.divider()
@@ -150,8 +325,57 @@ with st.sidebar:
 # --- Main Dashboard ---
 st.title("💰 ABACO Financial Intelligence")
 
+dashboard_metrics = load_kpi_dashboard()
+analytics_facts = load_analytics_facts()
+kpi_snapshot, snapshot_month = build_kpi_snapshot(dashboard_metrics, analytics_facts)
+
+if kpi_snapshot:
+    st.header("📌 KPI Snapshot")
+    if snapshot_month is not None and not pd.isna(snapshot_month):
+        st.caption(f"Snapshot month: {snapshot_month.strftime('%Y-%m')}")
+    st.caption(f"KPI count: {len(kpi_snapshot)}")
+
+    kpi_items = sorted(kpi_snapshot.items(), key=lambda item: item[0])
+    kpi_cols = st.columns(4)
+    for idx, (name, value) in enumerate(kpi_items):
+        kpi_cols[idx % 4].metric(kpi_label(name), format_kpi_value(name, value))
+else:
+    st.info("KPI snapshot not available. Export analytics to populate KPI tiles.")
+
+if not analytics_facts.empty:
+    st.header("💸 Cashflow")
+    cash_cols = [
+        "recv_revenue_for_month",
+        "recv_interest_for_month",
+        "recv_fee_for_month",
+        "sched_revenue",
+    ]
+    available_cols = [col for col in cash_cols if col in analytics_facts.columns]
+    if available_cols:
+        cash_df = analytics_facts[["month"] + available_cols].copy()
+        cash_df = cash_df.dropna(subset=["month"])
+        fig_cash = px.line(
+            cash_df,
+            x="month",
+            y=available_cols,
+            title="Cashflow Trends",
+            markers=True,
+        )
+        st.plotly_chart(apply_theme(fig_cash), use_container_width=True)
+
+        latest_cash = cash_df.sort_values("month").iloc[-1]
+        c1, c2, c3, c4 = st.columns(4)
+        if "recv_revenue_for_month" in latest_cash:
+            c1.metric("Revenue (Received)", format_kpi_value("recv_revenue_for_month", latest_cash["recv_revenue_for_month"]))
+        if "recv_interest_for_month" in latest_cash:
+            c2.metric("Interest (Received)", format_kpi_value("recv_interest_for_month", latest_cash["recv_interest_for_month"]))
+        if "recv_fee_for_month" in latest_cash:
+            c3.metric("Fees (Received)", format_kpi_value("recv_fee_for_month", latest_cash["recv_fee_for_month"]))
+        if "sched_revenue" in latest_cash:
+            c4.metric("Revenue (Scheduled)", format_kpi_value("sched_revenue", latest_cash["sched_revenue"]))
+
 if not st.session_state['loaded']:
-    st.info("Please upload data files in the sidebar to begin analysis.")
+    st.info("Upload data files in the sidebar to unlock loan-level diagnostics.")
     st.stop()
 
 data = st.session_state['data']
@@ -220,7 +444,21 @@ if 'sales_agent' in merged.columns:
     fig_sales = px.treemap(sales_agg, path=['sales_agent'], values='Volume', color='Count', title="Sales Agent Volume Distribution")
     st.plotly_chart(apply_theme(fig_sales), use_container_width=True)
 else:
-    st.info("Sales agent data not found.")
+    headcount_df = load_agent_headcount()
+    if not headcount_df.empty and {"month", "function", "fte_count"}.issubset(headcount_df.columns):
+        st.subheader("Team Capacity")
+        latest_month = headcount_df["month"].max()
+        latest_headcount = headcount_df[headcount_df["month"] == latest_month]
+        fig_headcount = px.bar(
+            latest_headcount,
+            x="function",
+            y="fte_count",
+            color="team" if "team" in latest_headcount.columns else None,
+            title="Headcount by Function",
+        )
+        st.plotly_chart(apply_theme(fig_headcount), use_container_width=True)
+    else:
+        st.info("Sales agent data not found. Provide agent performance data to populate this section.")
 
 # --- 4. Risk Analysis ---
 st.header("⚠️ Risk Analysis")

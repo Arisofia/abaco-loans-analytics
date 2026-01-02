@@ -316,10 +316,12 @@ jobs:
       - analytics
       - update-figma-slides
     if: always() && failure()
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Notify Slack on failure
         uses: slackapi/slack-github-action@v2
-        if: secrets.SLACK_WEBHOOK_URL != ''
+        if: env.SLACK_WEBHOOK_URL != ''
         with:
           webhook-type: INCOMING_WEBHOOK
           payload: |

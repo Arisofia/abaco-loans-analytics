@@ -80,7 +80,7 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always() && (secrets.SLACK_BOT_TOKEN != '' || secrets.SLACK_WEBHOOK_URL != '')
+        if: always() && (env.SLACK_BOT_TOKEN != '' || env.SLACK_WEBHOOK_URL != '')
         run: |
           if [ -f scripts/post_to_slack.py ] && [ -n "$SLACK_BOT_TOKEN" ]; then
             python scripts/post_to_slack.py --channel "#ops-alerts"
