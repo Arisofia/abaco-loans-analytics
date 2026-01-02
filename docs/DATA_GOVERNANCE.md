@@ -93,7 +93,7 @@ This document establishes the golden rules for how data is documented, stored, a
 
 ### 4. Static Data Detection & Prevention
 
-#### How to identify static data in .md files:
+#### How to identify static data in .md files
 
 | Pattern | Example | Verdict | Action |
 |---------|---------|---------|--------|
@@ -108,7 +108,7 @@ This document establishes the golden rules for how data is documented, stored, a
 
 ### 5. Planning Documents: Special Handling
 
-#### All files in `/docs/planning/` must include a header:
+#### All files in `/docs/planning/` must include a header
 
 ```markdown
 ⚠️ **STRATEGIC PLANNING DOCUMENT - {YEAR} TARGETS ONLY**
@@ -155,7 +155,7 @@ archives/
 
 ### 7. Enforcement & Tooling
 
-#### Pre-commit hook to prevent static data:
+#### Pre-commit hook to prevent static data
 
 ```bash
 #!/bin/bash
@@ -168,7 +168,7 @@ if grep -r '\$[0-9]\+[KMB]\?' docs/ --include="*.md" \
 fi
 ```
 
-#### CI/CD check to flag static metrics:
+#### CI/CD check to flag static metrics
 
 - Scan .md files for patterns: `\$\d+[KMB]?`, `\d+\s+(customers|clients|users)`
 - Exclude /docs/planning/ and /archives/
@@ -190,7 +190,7 @@ fi
 
 ### 9. Migration Guide: Fixing Static Data
 
-#### For files with hard-coded metrics:
+#### For files with hard-coded metrics
 
 1. **Identify the metric** (e.g., "Current AUM is $7.4M")
 2. **Ask:** Is this current state or a planning target?

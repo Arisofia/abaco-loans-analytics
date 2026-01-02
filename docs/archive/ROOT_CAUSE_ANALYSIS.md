@@ -22,7 +22,7 @@ All three P0 production failures are rooted in **missing database configuration*
 
 ### Evidence
 
-#### Pipeline code explicitly requires Supabase:
+#### Pipeline code explicitly requires Supabase
 
 - `src/abaco_pipeline/output/supabase_writer.py` - Writes pipeline metadata to Supabase
 - `src/abaco_pipeline/settings.py` - Expects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE` env vars
@@ -91,7 +91,7 @@ az webapp config appsettings set \
 
 ### Evidence
 
-#### App Service Configuration (Azure Portal → App Settings):
+#### App Service Configuration (Azure Portal → App Settings)
 
 - HUBSPOT_API_KEY ✅
 - OPENAI_API_KEY ✅

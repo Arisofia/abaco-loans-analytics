@@ -56,6 +56,7 @@ Used by `.github/workflows/deploy-dashboard.yml`.
   - Notes: Must be valid JSON credentials for a service principal with access to the resource group.
 
 ### How to create App Service deploy secrets
+
 az resource update --resource-group "<RESOURCE_GROUP>" --name "<APP_NAME>/scm" \
   --resource-type "Microsoft.Web/sites/basicPublishingCredentialsPolicies" \
   --set properties.allow=true
@@ -63,6 +64,7 @@ az resource update --resource-group "<RESOURCE_GROUP>" --name "<APP_NAME>/scm" \
 az resource update --resource-group "<RESOURCE_GROUP>" --name "<APP_NAME>/ftp" \
   --resource-type "Microsoft.Web/sites/basicPublishingCredentialsPolicies" \
   --set properties.allow=true
+
 ```
 
 1) Generate publish profile and store as a repo secret:
