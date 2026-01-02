@@ -6,19 +6,47 @@ on:
     - cron: "0 3 * * *"
   workflow_dispatch:
 
-env:
-  SUPABASESERVICEROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-  CASCADEUSERNAME: ${{ secrets.CASCADEUSERNAME }}
-  CASCADEPASSWORD: ${{ secrets.CASCADEPASSWORD }}
-  HUBSPOTTOKEN: ${{ secrets.HUBSPOT_API_TOKEN }}
-  OPIKTOKEN: ${{ secrets.OPIK_TOKEN }}
-  SLACKBOTTOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
 jobs:
   ingest-all-sources:
     runs-on: ubuntu-latest
+    env:
+      SUPABASESERVICEROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+      CASCADEUSERNAME: ${{ secrets.CASCADEUSERNAME }}
+      CASCADEPASSWORD: ${{ secrets.CASCADEPASSWORD }}
+      HUBSPOTTOKEN: ${{ secrets.HUBSPOT_API_TOKEN }}
+      OPIKTOKEN: ${{ secrets.OPIK_TOKEN }}
+      SLACKBOTTOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
     steps:
+      - name: Check secrets availability
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.CASCADEUSERNAME }}" ] && [ -n "${{ secrets.CASCADEPASSWORD }}" ]; then
+            echo "cascade_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "cascade_available=false" >> $GITHUB_OUTPUT
+          fi
+          if [ -n "${{ secrets.HUBSPOT_API_TOKEN }}" ]; then
+            echo "hubspot_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "hubspot_available=false" >> $GITHUB_OUTPUT
+          fi
+          if [ -n "${{ secrets.SUPABASE_SERVICE_ROLE }}" ]; then
+            echo "supabase_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "supabase_available=false" >> $GITHUB_OUTPUT
+          fi
+          if [ -n "${{ secrets.SLACK_BOT_TOKEN }}" ]; then
+            echo "slack_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "slack_available=false" >> $GITHUB_OUTPUT
+          fi
+          if [ -n "${{ secrets.OPIK_TOKEN }}" ]; then
+            echo "opik_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "opik_available=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -35,7 +63,7 @@ jobs:
 
       - name: Ingest Cascade Data
         id: cascade
-        if: hashFiles('scripts/ingest_cascade.py') != '' && secrets.CASCADEUSERNAME != '' && secrets.CASCADEPASSWORD != ''
+        if: hashFiles('scripts/ingest_cascade.py') != '' && steps.check-secrets.outputs.cascade_available == 'true'
         continue-on-error: true
         run: |
           echo "Fetching loan data from Cascade..."
@@ -46,7 +74,7 @@ jobs:
 
       - name: Ingest HubSpot CRM Data
         id: hubspot
-        if: hashFiles('scripts/ingest_hubspot.py') != '' && secrets.HUBSPOT_API_TOKEN != ''
+        if: hashFiles('scripts/ingest_hubspot.py') != '' && steps.check-secrets.outputs.hubspot_available == 'true'
         continue-on-error: true
         run: |
           echo "Fetching deals, contacts, and pipeline data from HubSpot..."
@@ -56,7 +84,7 @@ jobs:
 
       - name: Refresh Supabase Views
         id: supabase
-        if: hashFiles('scripts/refresh_supabase_views.py') != '' && secrets.SUPABASE_SERVICE_ROLE != ''
+        if: hashFiles('scripts/refresh_supabase_views.py') != '' && steps.check-secrets.outputs.supabase_available == 'true'
         run: |
           echo "Refreshing materialized views for agent consumption..."
           python scripts/refresh_supabase_views.py
@@ -76,7 +104,7 @@ jobs:
           python scripts/generate_data_manifest.py
 
       - name: Signal Agents Data Ready
-        if: secrets.SLACK_BOT_TOKEN != ''
+        if: steps.check-secrets.outputs.slack_available == 'true'
         run: |
           echo "Broadcasting data-ready signal to agent workflows..."
           curl -X POST ${{ secrets.SLACK_BOT_TOKEN }} \
@@ -84,17 +112,17 @@ jobs:
             -d '{"text":"✅ Data pipeline completed at $(date). All agents can now run."}'
 
       - name: Log to Opik
-        if: always() && secrets.OPIK_TOKEN != '' && hashFiles('scripts/log_pipeline_metrics.py') != ''
+        if: always() && steps.check-secrets.outputs.opik_available == 'true' && hashFiles('scripts/log_pipeline_metrics.py') != ''
         run: |
           python scripts/log_pipeline_metrics.py \
-            --cascade-status ${{ steps.cascade.outcome }} \
-            --hubspot-status ${{ steps.hubspot.outcome }} \
-            --supabase-status ${{ steps.supabase.outcome }}
+            --cascade-status ${{ steps.cascade.outcome || 'skipped' }} \
+            --hubspot-status ${{ steps.hubspot.outcome || 'skipped' }} \
+            --supabase-status ${{ steps.supabase.outcome || 'skipped' }}
         env:
           OPIK_TOKEN: ${{ secrets.OPIK_TOKEN }}
 
       - name: Alert on Critical Failure
-        if: failure() && secrets.SLACK_BOT_TOKEN != ''
+        if: failure() && steps.check-secrets.outputs.slack_available == 'true'
         run: |
           curl -X POST ${{ secrets.SLACK_BOT_TOKEN }} \
             -H 'Content-Type: application/json' \
