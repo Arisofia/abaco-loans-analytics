@@ -33,7 +33,7 @@ jobs:
     name: Run Codex Review
     needs: assign_metadata
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: read
       pull-requests: write

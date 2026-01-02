@@ -108,7 +108,7 @@ jobs:
             echo "present=false" >> "$GITHUB_OUTPUT"
             echo "Missing secrets:$missing"
           fi
-        
+
       - name: Login to Azure
         if: steps.check_oidc.outputs.present == 'true'
         uses: azure/login@v2
@@ -130,4 +130,4 @@ jobs:
         if: steps.check_oidc.outputs.present != 'true'
         run: |
           echo "Skipping deployment: Azure OIDC secrets are not configured."
-          
+

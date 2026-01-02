@@ -6,7 +6,7 @@ on:
 
 jobs:
   comment-to-figma:
-    
+
     runs-on: ubuntu-latest
     steps:
       - name: Post comment to Figma

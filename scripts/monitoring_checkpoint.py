@@ -4,11 +4,12 @@
 Executes validation and records metrics for each checkpoint
 """
 
+import subprocess
 import sys
 import json
-import subprocess
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 sys.path.insert(0, "/Users/jenineferderas/Documents/abaco-loans-analytics")
 
@@ -16,10 +17,10 @@ sys.path.insert(0, "/Users/jenineferderas/Documents/abaco-loans-analytics")
 class MonitoringCheckpoint:
     """Track and record checkpoint metrics"""
 
-    def __init__(self, checkpoint_hour: int = None):
+    def __init__(self, checkpoint_hour: Optional[int] = None):
         self.checkpoint_hour = checkpoint_hour or self._current_hour()
         self.start_time = datetime.now()
-        self.metrics = {
+        self.metrics: Dict[str, Any] = {
             "checkpoint_hour": self.checkpoint_hour,
             "timestamp": self.start_time.isoformat(),
             "validation": None,
@@ -34,7 +35,7 @@ class MonitoringCheckpoint:
         hours = int((now - cutover_time).total_seconds() / 3600)
         return max(0, hours)
 
-    def _get_system_metrics(self) -> dict:
+    def _get_system_metrics(self) -> Dict[str, Any]:
         """Gather system resource metrics"""
         try:
             import psutil
@@ -48,31 +49,59 @@ class MonitoringCheckpoint:
                 "cpu_percent": process.cpu_percent(interval=0.1),
                 "num_threads": process.num_threads(),
             }
-        except Exception as e:
-            return {"error": str(e)}
+        except Exception as exc:
+            return {"error": str(exc)}
 
-    def run_validation(self) -> dict:
+    def run_validation(self) -> Dict[str, Any]:
         """Execute production validation script"""
         try:
-            # Use argument list, never shell=True, and do not interpolate untrusted input
-            subprocess.run(
-                [sys.executable, "scripts/production_validation.py"],
+            # Use argument list, never shell=True, and do not interpolate
+            # untrusted input.
+            script_path = Path("scripts") / "production_validation.py"
+            if not script_path.exists():
+                return {
+                    "status": "FAIL",
+                    "error": f"Missing validation script at {script_path}",
+                }
+            completed = subprocess.run(
+                [sys.executable, str(script_path)],
                 capture_output=True,
                 text=True,
                 timeout=30,
                 shell=False,
+                check=False,
             )
             validation_report_path = Path("production_validation_report.json")
-            if validation_report_path.exists():
-                with open(validation_report_path) as f:
-                    return json.load(f)
+
+            if completed.returncode == 0 and validation_report_path.exists():
+                with open(validation_report_path, encoding="utf-8") as handle:
+                    report = json.load(handle)
+                if completed.stdout:
+                    report["stdout"] = completed.stdout.strip()
+                if completed.stderr:
+                    report["stderr"] = completed.stderr.strip()
+                report["returncode"] = completed.returncode
+                return report
             else:
-                return {"status": "FAIL", "error": "No validation report generated"}
+                # Optionally: Delete any stale report if process failed
+                if validation_report_path.exists():
+                    try:
+                        validation_report_path.unlink()
+                    except Exception:
+                        pass
+                
+                return {
+                    "status": "FAIL",
+                    "error": f"Validation script failed (returncode={completed.returncode})",
+                    "returncode": completed.returncode,
+                    "stdout": completed.stdout.strip() if completed.stdout else "",
+                    "stderr": completed.stderr.strip() if completed.stderr else "",
+                }
 
         except subprocess.TimeoutExpired:
             return {"status": "FAIL", "error": "Validation script timeout"}
-        except Exception as e:
-            return {"status": "FAIL", "error": str(e)}
+        except Exception as exc:
+            return {"status": "FAIL", "error": str(exc)}
 
     def execute(self) -> dict:
         """Execute checkpoint validation and collect metrics"""
@@ -87,10 +116,11 @@ class MonitoringCheckpoint:
         print(f"Validation Status: {validation_status}")
 
         print("\nCollecting system metrics...")
-        self.metrics["system_metrics"] = self._get_system_metrics()
-        if "error" not in self.metrics["system_metrics"]:
-            print(f"  Memory: {self.metrics['system_metrics']['memory_rss_mb']:.1f} MB")
-            print(f"  CPU: {self.metrics['system_metrics']['cpu_percent']:.1f}%")
+        system_metrics = self._get_system_metrics()
+        self.metrics["system_metrics"] = system_metrics
+        if "error" not in system_metrics:
+            print(f"  Memory: {system_metrics['memory_rss_mb']:.1f} MB")
+            print(f"  CPU: {system_metrics['cpu_percent']:.1f}%")
 
         self.metrics["status"] = validation_status
         self.metrics["duration_seconds"] = (
@@ -118,39 +148,51 @@ class MonitoringCheckpoint:
         print(f"CHECKPOINT SUMMARY - Hour {self.checkpoint_hour}")
         print(f"{'─' * 80}")
 
-        print(
-            f"\nValidation Status: {self.metrics['validation'].get('status', 'UNKNOWN')}"
-        )
+        validation = self.metrics.get("validation") or {}
+        if not isinstance(validation, dict):
+            validation = {}
+        print(f"\nValidation Status: {validation.get('status', 'UNKNOWN')}")
 
-        if self.metrics["validation"].get("checks"):
+        if validation.get("checks"):
             print("\nValidation Checks:")
-            for check_name, check_result in self.metrics["validation"][
-                "checks"
-            ].items():
-                status = check_result.get("status", "UNKNOWN")
+            for check_name, check_result in validation["checks"].items():
+                if check_result:
+                    status = check_result.get("status", "UNKNOWN")
+                else:
+                    status = "UNKNOWN"
                 print(f"  ✓ {check_name}: {status}")
 
-        if (
-            self.metrics["system_metrics"]
-            and "error" not in self.metrics["system_metrics"]
-        ):
+        system_metrics = self.metrics.get("system_metrics") or {}
+        if isinstance(system_metrics, dict) and "error" not in system_metrics:
             print("\nSystem Metrics:")
-            metrics = self.metrics["system_metrics"]
-            print(f"  Memory: {metrics['memory_rss_mb']:.1f} MB (threshold: 200 MB)")
-            print(f"  CPU: {metrics['cpu_percent']:.1f}% (threshold: 80%)")
-            print(f"  Threads: {metrics['num_threads']}")
-
-        if self.metrics["validation"].get("checks", {}).get("performance"):
-            perf = self.metrics["validation"]["checks"]["performance"].get(
-                "metrics", {}
-            )
-            print("\nPerformance:")
-            print(f"  Latency: {perf.get('latency_ms', 'N/A')} ms (threshold: 100 ms)")
             print(
-                f"  Throughput: {perf.get('throughput_rows_per_sec', 'N/A')} rows/sec"
+                f"  Memory: {system_metrics['memory_rss_mb']:.1f} MB "
+                "(threshold: 200 MB)"
+            )
+            print(
+                f"  CPU: {system_metrics['cpu_percent']:.1f}% "
+                "(threshold: 80%)"
+            )
+            print(f"  Threads: {system_metrics['num_threads']}")
+
+        performance_checks = validation.get("checks", {}).get("performance")
+        if isinstance(performance_checks, dict):
+            perf = performance_checks.get("metrics", {})
+            print("\nPerformance:")
+            print(
+                f"  Latency: {perf.get('latency_ms', 'N/A')} ms "
+                "(threshold: 100 ms)"
+            )
+            print(
+                f"  Throughput: {perf.get('throughput_rows_per_sec', 'N/A')} "
+                "rows/sec"
             )
 
-        print(f"\nDuration: {self.metrics['duration_seconds']:.2f} seconds")
+        duration = self.metrics.get("duration_seconds")
+        if isinstance(duration, (int, float)):
+            print(f"\nDuration: {duration:.2f} seconds")
+        else:
+            print("\nDuration: N/A")
         print(f"{'─' * 80}\n")
 
 
