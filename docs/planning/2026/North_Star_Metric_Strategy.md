@@ -1,6 +1,6 @@
-⚠️ **STRATEGIC PLANNING DOCUMENT - 2026 TARGETS ONLY**
+# ⚠️ STRATEGIC PLANNING DOCUMENT - 2026 TARGETS ONLY
 
-**DO NOT USE THESE NUMBERS IN PRODUCTION WORKFLOWS**
+## DO NOT USE THESE NUMBERS IN PRODUCTION WORKFLOWS
 
 This document contains strategic goals and planning assumptions for 2026. All dollar amounts, metrics, and targets are planning hypotheses, not current state data.
 

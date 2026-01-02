@@ -1,11 +1,11 @@
 # Runbook: Pipeline Failure (GitHub Actions)
 
-**Symptoms**
+## Symptoms
 
 - Scheduled/dispatch workflows failing (often within seconds).
 - No new data landing in `data/raw/` or warehouse outputs.
 
-**Primary goals**
+## Primary goals
 
 1. Identify which layer failed: install/build vs runtime vs external dependency.
 2. Classify the failure: dependency, secret, permission, API outage, DB connectivity.

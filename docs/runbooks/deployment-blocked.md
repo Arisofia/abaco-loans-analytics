@@ -1,11 +1,11 @@
 # Runbook: Deployment Blocked (GitHub Actions / Azure)
 
-**Symptoms**
+## Symptoms
 
 - Deploy workflows fail (syntax errors, missing secrets, auth failures).
 - Azure deploy step completes but health check fails.
 
-**Primary goals**
+## Primary goals
 
 1. Restore deploy capability (CI green).
 2. Ensure deployment targets the correct hostname.
