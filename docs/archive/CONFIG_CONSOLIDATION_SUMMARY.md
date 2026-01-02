@@ -88,7 +88,7 @@ Archived 18 legacy configuration files into `config/LEGACY/` directory with clea
 
 Updated `src/pipeline/orchestrator.py`:
 
-#### New Features:
+#### New Features
 
 - `_deep_merge()` function for safe recursive merging
 - Environment variable support: `PIPELINE_ENV` (development|staging|production)
@@ -96,7 +96,7 @@ Updated `src/pipeline/orchestrator.py`:
 - Clear logging of configuration sources
 - Graceful fallback to base config if environment file missing
 
-#### How It Works:
+#### How It Works
 
 ```bash
 # Development (default)
