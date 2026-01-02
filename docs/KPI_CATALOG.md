@@ -99,7 +99,7 @@ Monthly portfolio pricing metrics:
 - `weighted_effective_rate`
   - `weighted_apr + weighted_fee_rate + weighted_other_income_rate`
 
-#### Grain — `analytics.kpi_monthly_risk` — `analytics.kpi_monthly_pricing`
+#### Grain — `analytics.kpi_monthly_pricing`
 
 - One row per `year_month`
 
