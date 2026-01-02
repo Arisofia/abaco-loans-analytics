@@ -113,7 +113,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_LEADERSHIP }}
-        if: success() && env.SLACK_WEBHOOK_URL != ''
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
         with:
           payload: |
             {
@@ -133,7 +133,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_LEADERSHIP }}
-        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
         with:
           payload: |
             {

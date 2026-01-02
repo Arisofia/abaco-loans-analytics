@@ -71,7 +71,7 @@ jobs:
           path: apps/web/.next
 
       - name: Upload build to S3 (cloud)
-        if: env.AWS_S3_BUCKET != ''
+        if: secrets.AWS_S3_BUCKET != ''
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl private --follow-symlinks

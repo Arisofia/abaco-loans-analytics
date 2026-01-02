@@ -155,18 +155,15 @@ jobs:
     if: failure()
     steps:
       - name: Notify Slack on failure
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: env.SLACK_WEBHOOK_URL != ''
-        continue-on-error: true
         uses: slackapi/slack-github-action@v2
+        if: secrets.SLACK_WEBHOOK_URL != ''
         with:
           webhook-type: INCOMING_WEBHOOK
           payload: |
             {
               "text": "🚨 CI Checks Workflow Failed",
               "blocks": [
-                { "type": "section", "text": { "type": "mrkdwn", "text": "#CI Checks Workflow Failed\\nRepository:# ${{ github.repository }}\\nBranch: ${{ github.ref_name }}\\nCommit: ${{ github.sha }}\\n<${{ github.event.head_commit.url }}|View Commit>" } }
+                { "type": "section", "text": { "type": "mrkdwn", "text": "*CI Checks Workflow Failed*\\nRepository: ${{ github.repository }}\\nBranch: ${{ github.ref_name }}\\nCommit: ${{ github.sha }}\\n<${{ github.event.head_commit.url }}|View Commit>" } }
               ]
             }
         env:

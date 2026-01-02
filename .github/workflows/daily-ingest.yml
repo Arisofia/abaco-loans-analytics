@@ -2,7 +2,7 @@ name: Daily Data Ingestion
 
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: "0 5 * * *"
   workflow_dispatch:
 
 jobs:
@@ -14,8 +14,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
           cache-dependency-path: |
             requirements.txt
             apps/analytics/requirements.txt
@@ -30,16 +30,13 @@ jobs:
         env:
           CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
           CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
-        if: hashFiles('scripts/scrape_cascade.py') != '' && env.CASCADE_USERNAME != '' && env.CASCADE_PASSWORD != ''
+        if: hashFiles('scripts/scrape_cascade.py') != '' && secrets.CASCADE_USERNAME != '' && secrets.CASCADE_PASSWORD != ''
         run: |
           pip install playwright
           playwright install chromium
-      
+
       - name: Run Cascade scraper
-        env:
-          CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
-          CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
-        if: hashFiles('scripts/scrape_cascade.py') != '' && env.CASCADE_USERNAME != '' && env.CASCADE_PASSWORD != ''
+        if: hashFiles('scripts/scrape_cascade.py') != '' && secrets.CASCADE_USERNAME != '' && secrets.CASCADE_PASSWORD != ''
         continue-on-error: true
         run: python scripts/scrape_cascade.py --loan-tape
         env:
@@ -55,7 +52,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: success() && env.SLACK_WEBHOOK_URL != ''
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
         with:
           payload: |

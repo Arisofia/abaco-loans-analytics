@@ -5,6 +5,7 @@ This folder contains short, action-oriented runbooks for the most common product
 ## Runbooks
 
 - [Dashboard Down](dashboard-down.md)
+- [App Service Diagnostics](app-service-diagnostics.md)
 - [Pipeline Failure](pipeline-failure.md)
 - [Deployment Blocked](deployment-blocked.md)
 

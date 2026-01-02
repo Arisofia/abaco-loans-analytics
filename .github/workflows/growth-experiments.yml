@@ -29,6 +29,6 @@ jobs:
                   NOTION_API_KEY: ${{ secrets.NOTION_INTEGRATION_TOKEN }}
                   NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
                   SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-              if: env.NOTION_API_KEY != ''
+              if: secrets.NOTION_API_KEY != ''
               run: |
                   python scripts/post_to_notion.py
