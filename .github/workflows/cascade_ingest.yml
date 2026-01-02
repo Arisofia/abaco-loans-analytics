@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.gate.outputs.run }}
+      slack_available: ${{ steps.gate.outputs.slack_available }}
     steps:
       - uses: actions/checkout@v4
       - name: Gate execution on secrets and scripts
@@ -31,6 +32,7 @@ jobs:
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
           CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
           CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
+          SLACK_WEBHOOK_OPS: ${{ secrets.SLACK_WEBHOOK_OPS }}
         run: |
           python3 << 'VALIDATION'
           import os
@@ -39,16 +41,20 @@ jobs:
           required = ["SUPABASE_SERVICE_ROLE", "CASCADE_USERNAME", "CASCADE_PASSWORD"]
           missing = [k for k in required if not os.getenv(k)]
           script_missing = not Path("scripts/ingest_cascade.py").exists()
+          slack_available = "true" if os.getenv("SLACK_WEBHOOK_OPS") else "false"
 
           if missing:
               print(f"Skipping: missing secrets: {', '.join(missing)}")
           if script_missing:
               print("Skipping: missing script scripts/ingest_cascade.py")
+          if slack_available == "false":
+              print("SLACK_WEBHOOK_OPS not configured - notifications will be skipped")
 
           run = "false" if missing or script_missing else "true"
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as handle:
               handle.write(f"run={run}\n")
+              handle.write(f"slack_available={slack_available}\n")
           VALIDATION
 
   kpi-extraction:
@@ -103,7 +109,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_OPS }}
-        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        if: failure() && needs.validate-secrets.outputs.slack_available == 'true'
         with:
           payload: |
             {
@@ -123,7 +129,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_OPS }}
-        if: success() && env.SLACK_WEBHOOK_URL != ''
+        if: success() && needs.validate-secrets.outputs.slack_available == 'true'
         with:
           payload: |
             {

@@ -32,6 +32,17 @@ jobs:
           fi
           pip install pytest psycopg[binary] pandas scipy numpy
 
+      - name: Check database availability
+        id: db_check
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            echo "db_available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "db_available=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate KPI JSON via Python engine
         run: |
           mkdir -p exports
@@ -40,7 +51,7 @@ jobs:
       - name: Apply SQL migrations (analytics views)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        if: env.DATABASE_URL != ''
+        if: steps.db_check.outputs.db_available == 'true'
         run: |
           echo "Applying analytics views migration to $DATABASE_URL"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260101_analytics_kpi_views.sql
@@ -49,14 +60,12 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           RUN_KPI_PARITY_TESTS: "1"
-        if: env.DATABASE_URL != ''
+        if: steps.db_check.outputs.db_available == 'true'
         run: |
           pytest -q tests/test_kpi_parity.py
 
       - name: Skip KPI parity tests (no database configured)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        if: env.DATABASE_URL == ''
+        if: steps.db_check.outputs.db_available != 'true'
         run: |
           echo "::warning::DATABASE_URL secret not configured - skipping KPI parity tests"
           echo "To enable these tests, add DATABASE_URL to repository secrets"

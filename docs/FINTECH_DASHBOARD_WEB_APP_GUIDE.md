@@ -68,7 +68,7 @@ This guide consolidates the dashboard requirements and maps them to the existing
 
 - Frontend: deploy `apps/web` to Vercel/Netlify; configure environment variables and API URL per environment.
 - Backend: deploy FastAPI to AWS/Azure/Heroku; include a `Procfile` or container spec plus health checks.
-- CI/CD: GitHub Actions job `ci-main.yml` orchestrates lint/test/build for Next.js, Python analytics, and Gradle jobs defined under `.github/workflows`, then handoffs to the deployment workflows.
+- CI/CD: GitHub Actions job `ci.yml` orchestrates lint/test/build for Next.js and Python analytics, then hands off to the deployment workflows.
 - Monitor error rates and add synthetic checks for key endpoints.
 
 ## 7) Quick Checklist (All Points)
@@ -81,6 +81,6 @@ This guide consolidates the dashboard requirements and maps them to the existing
 
 This automation ensures traceability, auditability, and continuous compliance for all dashboard and analytics code.
 
-For details, see `.github/workflows/ci-main.yml` and the scripts in `scripts/`.
+For details, see `.github/workflows/ci.yml` and the scripts in `scripts/`.
 
 Use this guide as the authoritative blueprint while keeping styling, data integrity, and AI features aligned with the corporate theme.
