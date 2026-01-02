@@ -1,3 +1,8 @@
+
+# SonarQube Configuration Security
+
+All SonarQube configuration and metadata is governed by the policy in `.sonarqube/conf/README.md`. No secrets, credentials, or raw data may be stored in `.sonarqube/conf/`. Any accidental commit of sensitive data must be reverted and treated as a security incident. See the README for retention, audit, and restoration procedures.
+
 ## Known Dependency Vulnerabilities
 
 ### DoS/ReDoS in body-parser and path-to-regexp
