@@ -80,12 +80,12 @@ Monthly portfolio pricing metrics:
 - Weighted other income rate
 - Weighted effective rate (all-in)
 
-**Source**
+#### Source
 
 - `analytics.loan_month`
 - `public.real_payment`
 
-**KPIs**
+#### KPIs
 
 - `weighted_apr`
   - APR weighted by outstanding
@@ -99,7 +99,7 @@ Monthly portfolio pricing metrics:
 - `weighted_effective_rate`
   - `weighted_apr + weighted_fee_rate + weighted_other_income_rate`
 
-**Grain**
+#### Grain
 
 - One row per `year_month`
 
@@ -113,11 +113,11 @@ Monthly portfolio pricing metrics:
 
 Global monthly delinquency KPIs.
 
-**Source**
+#### Source
 
 - `analytics.loan_month`
 
-**KPIs**
+#### KPIs
 
 - `total_outstanding`
 - `dpd7_amount`, `dpd7_pct`
