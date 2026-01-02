@@ -1,7 +1,7 @@
 """Utility functions for common loan analytics KPIs."""
 
 import logging
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Dict, Iterable
 
 import numpy as np
 import pandas as pd
