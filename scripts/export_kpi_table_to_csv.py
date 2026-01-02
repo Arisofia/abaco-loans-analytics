@@ -1,13 +1,15 @@
 import os
+import sys
 from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from python.config.paths import Paths
 
 # Paths
-KPI_MD_PATH = "docs/analytics/KPIs.md"
-EXPORTS_DIR = "exports"
-CSV_EXPORT_PATH = os.path.join(EXPORTS_DIR, "KPI_Mapping_Table.csv")
-
-# Ensure exports directory exists
-os.makedirs(EXPORTS_DIR, exist_ok=True)
+KPI_MD_PATH = Paths.docs_dir() / "analytics/KPIs.md"
+EXPORTS_DIR = Paths.exports_dir(create=True)
+CSV_EXPORT_PATH = EXPORTS_DIR / "KPI_Mapping_Table.csv"
 
 # Convert Markdown table to CSV
 

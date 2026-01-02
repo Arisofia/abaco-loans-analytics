@@ -52,6 +52,7 @@ class UnifiedOutput:
             return {}
 
         import os
+        from concurrent.futures import ThreadPoolExecutor
 
         from azure.core.exceptions import ResourceExistsError
         from azure.storage.blob import BlobServiceClient, ContentSettings
@@ -73,9 +74,9 @@ class UnifiedOutput:
         prefix = f"{self.azure_config.get('prefix', 'analytics')}/{run_id}"
         uploaded: Dict[str, str] = {}
 
-        for path in file_paths:
+        def _upload_single_file(path: Path):
             if not path.exists():
-                continue
+                return None
             blob_name = f"{prefix}/{path.name}"
             with path.open("rb") as data:
                 container_client.upload_blob(
@@ -84,7 +85,14 @@ class UnifiedOutput:
                     overwrite=True,
                     content_settings=ContentSettings(content_type=self._guess_content_type(path)),
                 )
-            uploaded[path.name] = f"{container_name}/{blob_name}"
+            return path.name, f"{container_name}/{blob_name}"
+
+        with ThreadPoolExecutor(max_workers=min(len(file_paths), 10)) as executor:
+            results = list(executor.map(_upload_single_file, file_paths))
+
+        for res in results:
+            if res:
+                uploaded[res[0]] = res[1]
 
         self._log_event("azure_upload", "success", uploaded_count=len(uploaded))
         return uploaded

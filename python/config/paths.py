@@ -1,10 +1,12 @@
 """Centralized path management with environment-specific overrides."""
 
 import os
+from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
 
+@lru_cache(maxsize=1)
 def get_project_root() -> Path:
     """Get project root directory."""
     current = Path(__file__).resolve()
@@ -47,6 +49,14 @@ class Paths:
         return resolve_path(os.getenv("DATA_RAW_PATH", "./data/raw"), env_var="DATA_RAW_DIR", create=create)
     
     @staticmethod
+    def data_dir(create: bool = False) -> Path:
+        return resolve_path(os.getenv("DATA_PATH", "./data"), env_var="DATA_DIR", create=create)
+    
+    @staticmethod
+    def scripts_dir() -> Path:
+        return get_project_root() / "scripts"
+    
+    @staticmethod
     def metrics_dir(create: bool = False) -> Path:
         return resolve_path(os.getenv("DATA_METRICS_PATH", "./data/metrics"), env_var="METRICS_DIR", create=create)
     
@@ -58,6 +68,18 @@ class Paths:
     @staticmethod
     def logs_dir(create: bool = False) -> Path:
         return resolve_path(os.getenv("LOGS_PATH", "./logs"), env_var="LOGS_DIR", create=create)
+    
+    @staticmethod
+    def docs_dir() -> Path:
+        return get_project_root() / "docs"
+    
+    @staticmethod
+    def exports_dir(create: bool = False) -> Path:
+        return resolve_path(os.getenv("EXPORTS_PATH", "./exports"), env_var="EXPORTS_DIR", create=create)
+    
+    @staticmethod
+    def reports_dir(create: bool = False) -> Path:
+        return resolve_path(os.getenv("REPORTS_PATH", "./reports"), env_var="REPORTS_DIR", create=create)
     
     @staticmethod
     def monitoring_logs_dir(create: bool = False) -> Path:

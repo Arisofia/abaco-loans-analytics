@@ -5,7 +5,9 @@ Monitors V2 pipeline in production and validates output integrity
 """
 
 import sys
-sys.path.insert(0, '/Users/jenineferderas/Documents/abaco-loans-analytics')
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pandas as pd
 import numpy as np

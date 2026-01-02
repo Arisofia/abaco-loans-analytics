@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from python.config.paths import Paths
+from python.config.paths import Paths, get_project_root
 
 
 class MonitoringCheckpoint:
@@ -59,7 +59,7 @@ class MonitoringCheckpoint:
         try:
             # Use argument list, never shell=True, and do not interpolate
             # untrusted input.
-            script_path = Path("scripts") / "production_validation.py"
+            script_path = Paths.scripts_dir() / "production_validation.py"
             if not script_path.exists():
                 return {
                     "status": "FAIL",
@@ -73,7 +73,7 @@ class MonitoringCheckpoint:
                 shell=False,
                 check=False,
             )
-            validation_report_path = Path("production_validation_report.json")
+            validation_report_path = get_project_root() / "production_validation_report.json"
 
             if completed.returncode == 0 and validation_report_path.exists():
                 with open(validation_report_path, encoding="utf-8") as handle:

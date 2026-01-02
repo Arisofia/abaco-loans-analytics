@@ -1,55 +1,55 @@
 name: Lint and Policy Enforcement
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
 
 jobs:
-  lint-and-policy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    lint-and-policy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
 
-      - name: Install linters and tools
-        run: |
-          pip install yamllint jsonlint flake8
-          npm install -g markdownlint-cli
+            - name: Install linters and tools
+              run: |
+                  pip install yamllint jsonlint flake8
+                  npm install -g markdownlint-cli
 
-      - name: Lint YAML
-        run: |
-          yamllint .
+            - name: Lint YAML
+              run: |
+                  yamllint .
 
-      - name: Lint JSON
-        run: |
-          find . -name '*.json' -not -path './node_modules/*' -exec jsonlint -q {} \;
+            - name: Lint JSON
+              run: |
+                  find . -name '*.json' -not -path './node_modules/*' -exec jsonlint -q {} \;
 
-      - name: Lint Markdown
-        run: |
-          markdownlint '**/*.md' --ignore node_modules
+            - name: Lint Markdown
+              run: |
+                  markdownlint '**/*.md' --ignore node_modules
 
-      - name: Lint Python
-        run: |
-          flake8 .
+            - name: Lint Python
+              run: |
+                  flake8 .
 
-      - name: Check for duplicate/stale README and config files
-        run: |
-          find . -type f \( -iname 'README*' -o -iname '*.example.*' -o -iname '*.sample.*' \) | grep -vE 'node_modules|.venv|.git|dist|build' > doc_files.txt
-          python scripts/security/check_doc_policy.py doc_files.txt
+            - name: Check for duplicate/stale README and config files
+              run: |
+                  find . -type f \( -iname 'README*' -o -iname '*.example.*' -o -iname '*.sample.*' \) | grep -vE 'node_modules|.venv|.git|dist|build' > doc_files.txt
+                  python scripts/security/check_doc_policy.py doc_files.txt
 
-      - name: Run secret scan
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          config-path: .gitleaks.toml
-          fail: true
+            - name: Run secret scan
+              uses: gitleaks/gitleaks-action@v2
+              with:
+                  config-path: .gitleaks.toml
+                  fail: true
 
-      - name: Fail if policy violations found
-        if: failure()
-        run: exit 1
+            - name: Fail if policy violations found
+              if: failure()
+              run: exit 1

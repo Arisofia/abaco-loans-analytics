@@ -31,6 +31,9 @@ class SecretsManager:
         "SLACK_BOT_TOKEN",
         "OPIK_TOKEN",
         "PHOENIX_TOKEN",
+        "FIGMA_TOKEN",
+        "FIGMA_FILE_KEY",
+        "CASCADE_TOKEN",
     ]
     
     AZURE_KEYS = [
@@ -49,7 +52,8 @@ class SecretsManager:
         """
         self.use_vault_fallback = use_vault_fallback
         self._vault_client = None
-        self._loaded_secrets = {}
+        self._cache = {}
+        self._status = {}
         
         if use_vault_fallback:
             self._init_vault_client()
@@ -91,21 +95,27 @@ class SecretsManager:
         Raises:
             ValueError: If required and not found
         """
+        if key in self._cache:
+            return self._cache[key]
+
         value = os.getenv(key)
         
         if value:
-            self._loaded_secrets[key] = "✅"
+            self._cache[key] = value
+            self._status[key] = "✅"
             return value
         
         if self.use_vault_fallback and self._vault_client:
             try:
                 secret = self._vault_client.get_secret(key)
-                self._loaded_secrets[key] = "✅ (vault)"
-                return secret.value
+                if secret and secret.value:
+                    self._cache[key] = secret.value
+                    self._status[key] = "✅ (vault)"
+                    return secret.value
             except Exception:
                 pass
         
-        self._loaded_secrets[key] = "❌"
+        self._status[key] = "❌"
         
         if required:
             raise ValueError(f"Required secret '{key}' not found in environment or Key Vault")
@@ -178,7 +188,7 @@ class SecretsManager:
         print("=" * 60)
         
         for key in keys:
-            status = self._loaded_secrets.get(key, "?")
+            status = self._status.get(key, "?")
             print(f"  {key:.<40} {status}")
         
         print("=" * 60 + "\n")

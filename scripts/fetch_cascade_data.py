@@ -9,8 +9,13 @@ and uploads it to Azure Blob Storage for further processing.
 import os
 import json
 import logging
+import sys
 from datetime import datetime
+from pathlib import Path
 from azure.storage.blob import BlobServiceClient
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from python.config.secrets import get_secrets_manager
 
 # Configure logging
 logging.basicConfig(
@@ -27,7 +32,12 @@ def fetch_cascade_data():
     Returns:
         dict: Cascade loan data
     """
-    # TODO: Implement Cascade API integration
+    secrets = get_secrets_manager()
+    cascade_token = secrets.get("CASCADE_TOKEN")
+    
+    if not cascade_token:
+        logger.warning("CASCADE_TOKEN not found, using placeholder data")
+        
     logger.info("Fetching Cascade data...")
     
     # Placeholder implementation
@@ -49,8 +59,9 @@ def upload_to_azure(data, container_name="cascade-data"):
         container_name (str): Container name in Azure
     """
     try:
-        # Get connection string from environment
-        connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        # Get connection string from SecretsManager
+        secrets = get_secrets_manager()
+        connection_string = secrets.get("AZURE_STORAGE_CONNECTION_STRING")
         
         if not connection_string:
             raise ValueError("AZURE_STORAGE_CONNECTION_STRING not set")

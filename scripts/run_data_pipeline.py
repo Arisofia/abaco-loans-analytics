@@ -31,10 +31,7 @@ DEFAULT_INPUT = os.getenv("PIPELINE_INPUT_FILE", str(Paths.raw_data_dir() / "aba
 def write_outputs(
     df, metrics: Dict[str, Any], manifest: Dict[str, Any], output_dir: Optional[str] = None
 ) -> Dict[str, Any]:
-    if output_dir is None:
-        output_dir = str(Paths.metrics_dir(create=True))
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
+    output_path = Path(output_dir) if output_dir else Paths.metrics_dir(create=True)
     run_id = manifest.get("run_id", "run")
     metrics_file = output_path / f"{run_id}.parquet"
     csv_file = output_path / f"{run_id}.csv"

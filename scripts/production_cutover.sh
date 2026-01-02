@@ -13,6 +13,8 @@ echo ""
 VENV_PATH="${VENV_PATH:-.venv}"
 PROD_DIR="${PROD_DIR:-.}"
 LOGS_PATH="${LOGS_PATH:-./logs}"
+CONFIG_FILE="${CONFIG_FILE:-config/pipeline.yml}"
+DATA_METRICS_DIR="${DATA_METRICS_DIR:-data/metrics}"
 ROLLBACK_DIR="${PROD_DIR}/.rollback"
 
 mkdir -p "$LOGS_PATH" "$ROLLBACK_DIR"
@@ -58,8 +60,8 @@ if [ ! -f "tests/test_kpi_calculators_v2.py" ]; then
 fi
 success "Test suite found"
 
-if [ ! -f "config/pipeline.yml" ]; then
-    error "Production configuration not found"
+if [ ! -f "$CONFIG_FILE" ]; then
+    error "Production configuration not found at $CONFIG_FILE"
     exit 1
 fi
 success "Production configuration found"
@@ -85,14 +87,14 @@ echo ""
 
 log "PHASE 1: Creating backups and snapshots"
 
-if [ -f "config/pipeline.yml" ]; then
-    cp "config/pipeline.yml" "$ROLLBACK_DIR/pipeline_backup_$(date +%Y%m%d_%H%M%S).yml"
+if [ -f "$CONFIG_FILE" ]; then
+    cp "$CONFIG_FILE" "$ROLLBACK_DIR/pipeline_backup_$(date +%Y%m%d_%H%M%S).yml"
     success "Configuration backup created"
 fi
 
-if [ -d "data/metrics" ]; then
+if [ -d "$DATA_METRICS_DIR" ]; then
     mkdir -p "$ROLLBACK_DIR/metrics_backup"
-    cp -r data/metrics/* "$ROLLBACK_DIR/metrics_backup/" 2>/dev/null || true
+    cp -r "$DATA_METRICS_DIR/"* "$ROLLBACK_DIR/metrics_backup/" 2>/dev/null || true
     success "Metrics backup created"
 fi
 

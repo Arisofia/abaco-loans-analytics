@@ -1,13 +1,16 @@
 import os
 import pandas as pd
 import psycopg
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from python.config.paths import Paths
 
 DB_DSN = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
 
 def load_data():
-    project_root = Path(__file__).parent.parent
-    data_dir = project_root / "data" / "abaco"
+    data_dir = Paths.data_dir() / "abaco"
     
     # Files
     customer_file = data_dir / "customer_data.csv"
