@@ -15,8 +15,8 @@ jobs:
         id: check-secrets
         env:
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-          CASCADE_USERNAME: ${{ secrets.CASCADEUSERNAME }}
-          CASCADE_PASSWORD: ${{ secrets.CASCADEPASSWORD }}
+          CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
+          CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_API_TOKEN }}
           OPIK_TOKEN: ${{ secrets.OPIK_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -67,8 +67,8 @@ jobs:
         if: hashFiles('scripts/ingest_cascade.py') != '' && steps.check-secrets.outputs.cascade_available == 'true'
         continue-on-error: true
         env:
-          CASCADE_USERNAME: ${{ secrets.CASCADEUSERNAME }}
-          CASCADE_PASSWORD: ${{ secrets.CASCADEPASSWORD }}
+          CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
+          CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
         run: |
           echo "Fetching loan data from Cascade..."
           python scripts/ingest_cascade.py

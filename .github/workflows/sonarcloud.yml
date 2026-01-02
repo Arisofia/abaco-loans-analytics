@@ -24,7 +24,7 @@ jobs:
       - name: Check secrets availability
         id: check-secrets
         run: |
-          if [ -n "${{ secrets.SONAR_TOKEN_GITHUB }}" ]; then
+          if [ -n "$SONAR_TOKEN" ]; then
             echo "secrets_available=true" >> $GITHUB_OUTPUT
           else
             echo "secrets_available=false" >> $GITHUB_OUTPUT
@@ -68,6 +68,7 @@ jobs:
       - name: Analytics coverage (pytest)
         if: steps.check-secrets.outputs.secrets_available == 'true'
         run: |
+          python -m pip install opentelemetry-sdk==1.39.1
           python -m pip install -r requirements.txt
           python -m pip install -r apps/analytics/requirements.txt pytest pytest-cov
           cd apps/analytics
