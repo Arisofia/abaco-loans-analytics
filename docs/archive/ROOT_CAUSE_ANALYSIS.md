@@ -22,7 +22,7 @@ All three P0 production failures are rooted in **missing database configuration*
 
 ### Evidence
 
-**Pipeline code explicitly requires Supabase**:
+#### Pipeline code explicitly requires Supabase:
 
 - `src/abaco_pipeline/output/supabase_writer.py` - Writes pipeline metadata to Supabase
 - `src/abaco_pipeline/settings.py` - Expects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE` env vars
@@ -58,7 +58,7 @@ cascade_token: str | None = os.getenv("CASCADE_TOKEN")
 
 ### Fix
 
-**Option A: Set up Supabase (Recommended for production)**
+#### Option A: Set up Supabase (Recommended for production)
 
 ```bash
 # 1. Create Supabase project at https://supabase.com
@@ -79,7 +79,7 @@ az webapp config appsettings set \
              SUPABASE_SERVICE_ROLE="sbp_xxxxxxxx..."
 ```
 
-**Option B: Modify pipeline to not require Supabase (Fallback)**
+#### Option B: Modify pipeline to not require Supabase (Fallback)
 
 - Edit `src/abaco_pipeline/main.py` to skip Supabase writer if env vars missing
 - Store outputs to Azure Blob Storage instead
@@ -91,7 +91,7 @@ az webapp config appsettings set \
 
 ### Evidence
 
-**App Service Configuration** (Azure Portal → App Settings):
+#### App Service Configuration (Azure Portal → App Settings):
 
 - HUBSPOT_API_KEY ✅
 - OPENAI_API_KEY ✅
@@ -236,25 +236,25 @@ If persistent: Click "Reemplazar instancia" for full replacement
 
 ## CRITICAL QUESTIONS FOR NEXT STEP
 
-**1. Supabase Status**
+#### 1. Supabase Status
 
 - [ ] Is Supabase already provisioned for this project?
 - [ ] If yes: What is the SUPABASE_URL and SERVICE ROLE KEY?
 - [ ] If no: Should we create new Supabase project, or use PostgreSQL instead?
 
-**2. Data Architecture**
+#### 2. Data Architecture
 
 - [ ] Are there other databases we should know about?
 - [ ] Is data currently being stored anywhere (even if not working)?
 - [ ] What is the desired data flow: Cascade → Supabase → Dashboard?
 
-**3. Integration Status**
+#### 3. Integration Status
 
 - [ ] Is HubSpot API integration working?
 - [ ] Is Cascade API integration working?
 - [ ] Any API keys need rotation?
 
-**4. App Service Instance**
+#### 4. App Service Instance
 
 - [ ] Has the instance recovered to "En ejecución" status yet?
 - [ ] Any startup errors in the log stream?
