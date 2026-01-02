@@ -2,7 +2,7 @@
 
 This guide lists the **exact GitHub Actions secrets** referenced by workflows in this repository, and where each is used.
 
-**Rules**
+## Rules
 
 - Never paste secret values into PRs/issues/logs.
 - Prefer **Repository secrets** for shared production workflows.
@@ -55,11 +55,7 @@ Used by `.github/workflows/deploy-dashboard.yml`.
   - Purpose: `azure/login` + `az webapp config set` and resolving the App Service `defaultHostName`.
   - Notes: Must be valid JSON credentials for a service principal with access to the resource group.
 
-**How to create App Service deploy secrets**
-
-1) Enable basic auth for SCM and FTP (required to view publish profiles):
-
-```bash
+### How to create App Service deploy secrets
 az resource update --resource-group "<RESOURCE_GROUP>" --name "<APP_NAME>/scm" \
   --resource-type "Microsoft.Web/sites/basicPublishingCredentialsPolicies" \
   --set properties.allow=true
@@ -92,7 +88,7 @@ az ad sp create-for-rbac \
 gh secret set AZURE_CREDENTIALS -f azure-credentials.json
 ```
 
-**Optional: local Git/FTP credentials**
+### Optional: local Git/FTP credentials
 
 - User-scope credentials (shared across apps):
 
