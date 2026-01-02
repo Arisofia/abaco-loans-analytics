@@ -57,8 +57,14 @@ class MonitoringCheckpoint:
         try:
             # Use argument list, never shell=True, and do not interpolate
             # untrusted input.
-            subprocess.run(
-                [sys.executable, "scripts/production_validation.py"],
+            script_path = Path("scripts") / "production_validation.py"
+            if not script_path.exists():
+                return {
+                    "status": "FAIL",
+                    "error": f"Missing validation script at {script_path}",
+                }
+            completed = subprocess.run(
+                [sys.executable, str(script_path)],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -66,13 +72,30 @@ class MonitoringCheckpoint:
                 check=False,
             )
             validation_report_path = Path("production_validation_report.json")
-            if validation_report_path.exists():
+
+            if completed.returncode == 0 and validation_report_path.exists():
                 with open(validation_report_path, encoding="utf-8") as handle:
-                    return json.load(handle)
+                    report = json.load(handle)
+                if completed.stdout:
+                    report["stdout"] = completed.stdout.strip()
+                if completed.stderr:
+                    report["stderr"] = completed.stderr.strip()
+                report["returncode"] = completed.returncode
+                return report
             else:
+                # Optionally: Delete any stale report if process failed
+                if validation_report_path.exists():
+                    try:
+                        validation_report_path.unlink()
+                    except Exception:
+                        pass
+                
                 return {
                     "status": "FAIL",
-                    "error": "No validation report generated",
+                    "error": f"Validation script failed (returncode={completed.returncode})",
+                    "returncode": completed.returncode,
+                    "stdout": completed.stdout.strip() if completed.stdout else "",
+                    "stderr": completed.stderr.strip() if completed.stderr else "",
                 }
 
         except subprocess.TimeoutExpired:
@@ -165,7 +188,11 @@ class MonitoringCheckpoint:
                 "rows/sec"
             )
 
-        print(f"\nDuration: {self.metrics['duration_seconds']:.2f} seconds")
+        duration = self.metrics.get("duration_seconds")
+        if isinstance(duration, (int, float)):
+            print(f"\nDuration: {duration:.2f} seconds")
+        else:
+            print("\nDuration: N/A")
         print(f"{'─' * 80}\n")
 
 

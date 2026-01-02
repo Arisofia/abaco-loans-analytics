@@ -23,11 +23,13 @@ All three P0 production failures are rooted in **missing database configuration*
 ### Evidence
 
 **Pipeline code explicitly requires Supabase**:
+
 - `python/abaco_pipeline/output/supabase_writer.py` - Writes pipeline metadata to Supabase
 - `python/abaco_pipeline/settings.py` - Expects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE` env vars
 - `python/abaco_pipeline/main.py` (line 15) - Imports `SupabaseAuth, SupabaseWriter`
 
 ### Expected Environment Variables
+
 ```python
 # From settings.py
 supabase_url: str | None = os.getenv("SUPABASE_URL")
@@ -36,12 +38,14 @@ cascade_token: str | None = os.getenv("CASCADE_TOKEN")
 ```
 
 ### Current Status
+
 - **SUPABASE_URL**: ❌ NOT SET in GitHub Actions
 - **SUPABASE_SERVICE_ROLE**: ❌ NOT SET in GitHub Actions  
 - **CASCADE_TOKEN**: ❌ NOT SET in GitHub Actions
 - App Service config: ❌ NO database connections configured
 
 ### Failure Sequence
+
 ```
 1. GitHub Actions pipeline runs
 2. Python code imports supabase_writer.py
@@ -53,7 +57,9 @@ cascade_token: str | None = os.getenv("CASCADE_TOKEN")
 ```
 
 ### Fix
+
 **Option A: Set up Supabase (Recommended for production)**
+
 ```bash
 # 1. Create Supabase project at https://supabase.com
 # 2. Get credentials:
@@ -74,6 +80,7 @@ az webapp config appsettings set \
 ```
 
 **Option B: Modify pipeline to not require Supabase (Fallback)**
+
 - Edit `python/abaco_pipeline/main.py` to skip Supabase writer if env vars missing
 - Store outputs to Azure Blob Storage instead
 - Less ideal for audit trail compliance
@@ -85,6 +92,7 @@ az webapp config appsettings set \
 ### Evidence
 
 **App Service Configuration** (Azure Portal → App Settings):
+
 - HUBSPOT_API_KEY ✅
 - OPENAI_API_KEY ✅
 - SCM_DO_BUILD_DURING_DEPLOYMENT=1 ✅
@@ -92,11 +100,13 @@ az webapp config appsettings set \
 - **SUPABASE_URL**: ❌ MISSING
 
 **Dashboard code expects database connection**:
+
 - `dashboard/utils/ingestion.py` imports database modules
 - Likely tries to fetch KPIs from database on startup
 - Fails with connection error → app doesn't respond to health checks
 
 ### Failure Sequence
+
 ```
 1. App Service restarts with new code
 2. startup.sh runs: bash startup.sh
@@ -109,6 +119,7 @@ az webapp config appsettings set \
 ```
 
 ### Fix
+
 ```bash
 # Add Supabase connection to Azure App Service
 az webapp config appsettings set \
@@ -125,6 +136,7 @@ az webapp config appsettings set \
 ### Evidence
 
 **Expected Supabase Schema** (`supabase_writer.py` lines 10-12):
+
 ```
 Database: analytics (schema)
 Tables:
@@ -135,14 +147,17 @@ Tables:
 ```
 
 **Database Migrations** found in repo:
+
 - `supabase/migrations/00_init_base_tables.sql` ← CREATE TABLE statements
 - `supabase/migrations/20251231_pipeline_audit_tables.sql` ← Audit tables
 - `supabase/migrations/20260101_analytics_kpi_views.sql` ← KPI views
 
 ### Current Status
+
 🤔 **Unknown** - Migrations exist but unclear if applied to production Supabase
 
 ### Fix
+
 ```bash
 # 1. Log into Supabase dashboard
 # 2. Go to SQL Editor
@@ -160,12 +175,14 @@ supabase migration up --db-url "postgres://[user]:[password]@db.xxx.supabase.co:
 ## ROOT CAUSE #4: APP SERVICE INSTANCE RESTART NEEDED 🟡
 
 ### Current State
+
 - **Instance**: LW1SDLWK0006XP
 - **Status**: "Desconocido" (Disconnected/Unknown)
 - **Action Taken**: Restart initiated ~20 minutes ago
 - **Expected**: Should recover within 5-10 minutes
 
 ### Diagnosis
+
 ```
 Azure Portal → App Services → abaco-analytics-dashboard → Instances
 Look for: Instance status should change to "En ejecución" (Running)
@@ -178,6 +195,7 @@ If persistent: Click "Reemplazar instancia" for full replacement
 ## COMPLETE REMEDIATION PLAN
 
 ### Immediate (Next 30 Minutes)
+
 ```
 1. ✅ PROD-002 (CI/CD): FIXED - deploy-dashboard.yml corrected
 2. Verify PROD-001 (Dashboard): Check Azure Portal for instance recovery
@@ -195,6 +213,7 @@ If persistent: Click "Reemplazar instancia" for full replacement
 ```
 
 ### Short Term (Next 2 Hours)
+
 ```
 1. Apply Supabase migrations (if new project)
 2. Manually trigger pipeline from GitHub Actions
@@ -204,6 +223,7 @@ If persistent: Click "Reemplazar instancia" for full replacement
 ```
 
 ### Medium Term (This Week)
+
 ```
 1. Document data architecture (COMPLETE: docs/ARCHITECTURE.md)
 2. Set up automated backups for Supabase
@@ -217,21 +237,25 @@ If persistent: Click "Reemplazar instancia" for full replacement
 ## CRITICAL QUESTIONS FOR NEXT STEP
 
 **1. Supabase Status**
+
 - [ ] Is Supabase already provisioned for this project?
 - [ ] If yes: What is the SUPABASE_URL and SERVICE ROLE KEY?
 - [ ] If no: Should we create new Supabase project, or use PostgreSQL instead?
 
 **2. Data Architecture**
+
 - [ ] Are there other databases we should know about?
 - [ ] Is data currently being stored anywhere (even if not working)?
 - [ ] What is the desired data flow: Cascade → Supabase → Dashboard?
 
 **3. Integration Status**
+
 - [ ] Is HubSpot API integration working?
 - [ ] Is Cascade API integration working?
 - [ ] Any API keys need rotation?
 
 **4. App Service Instance**
+
 - [ ] Has the instance recovered to "En ejecución" status yet?
 - [ ] Any startup errors in the log stream?
 
@@ -240,6 +264,7 @@ If persistent: Click "Reemplazar instancia" for full replacement
 ## MONITORING & PREVENTION
 
 ### Alert on Missing Environment Variables
+
 ```bash
 # GitHub Actions: Check env vars before running pipeline
 - name: Validate pipeline configuration
@@ -252,10 +277,20 @@ If persistent: Click "Reemplazar instancia" for full replacement
 ```
 
 ### Automated Secret Scanning (Already Implemented)
+
 - `.github/workflows/security-secret-scan.yml` prevents committing secrets
 - But doesn't prevent missing required secrets
 
+### Platform certificate warnings
+
+- During App Service startup you may see messages like: `rehash: warning: skipping duplicate certificate in azl_*.pem`.
+- These warnings are generated by the platform's certificate update step and are benign in most cases; no immediate action is required.
+- If these warnings are persistent and you need them removed, consider one of:
+  - Set `WEBSITES_INCLUDE_CLOUD_CERTS=true` in App Service settings to include platform certs explicitly, or
+  - Contact Azure support to remove duplicate certificates from the platform image.
+
 ### Configuration Validation Test
+
 - Add pytest test to verify all required env vars set before pipeline runs
 - Location: `tests/test_pipeline_config.py`
 

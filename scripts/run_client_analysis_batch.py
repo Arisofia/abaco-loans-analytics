@@ -85,7 +85,7 @@ def _rest_get(
     limit: int = 50000,
 ) -> pd.DataFrame:
     url = f"{SUPABASE_URL}/rest/v1/{relation}"
-    params = {"select": select, "limit": limit}
+    params: dict[str, str | int] = {"select": select, "limit": limit}
     if where:
         for k, v in where.items():
             params[k] = f"eq.{v}"
@@ -112,7 +112,7 @@ def _rest_upsert(
         url,
         headers=headers,
         params=params,
-        data=json.dumps(payload),
+        json=payload,
         timeout=60,
     )
     if r.status_code >= 300:
