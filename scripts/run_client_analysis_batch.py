@@ -29,8 +29,6 @@ except ImportError:
             return func
 
         return decorator
-
-
 # -----------------
 # Logging
 # -----------------
@@ -53,7 +51,6 @@ def _setup_logger(level: str) -> logging.Logger:
     h.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
     logger.addHandler(h)
     return logger
-
 
 def _env(name: str) -> str:
     v = os.getenv(name)

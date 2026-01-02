@@ -21,6 +21,9 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from src.agents.agent import Agent
 from src.agents.llm_provider import MockLLM
 from src.agents.tools import registry as global_registry
+from src.tracing_setup import get_tracer
+
+tracer = get_tracer(__name__)
 
 Base = declarative_base()
 
@@ -68,45 +71,70 @@ class AgentOrchestrator:
         agent_config: Optional[Dict[str, str]] = None,
         max_retries: int = 3,
     ) -> Dict[str, Any]:
-        start_time = datetime.now(timezone.utc)
+        with tracer.start_as_current_span("agent_orchestrator.run") as span:
+            start_time = datetime.now(timezone.utc)
 
-        # Configure the agent
-        name = agent_config.get("name", "DefaultAgent") if agent_config else "DefaultAgent"
-        role = (
-            agent_config.get("role", "General Assistant") if agent_config else "General Assistant"
-        )
-        goal = (
-            agent_config.get("goal", "Help the user with their request")
-            if agent_config
-            else "Help the user with their request"
-        )
+            # Configure the agent
+            name = agent_config.get("name", "DefaultAgent") if agent_config else "DefaultAgent"
+            role = (
+                agent_config.get("role", "General Assistant")
+                if agent_config
+                else "General Assistant"
+            )
+            goal = (
+                agent_config.get("goal", "Help the user with their request")
+                if agent_config
+                else "Help the user with their request"
+            )
 
-        agent = Agent(name=name, role=role, goal=goal, llm=self.llm, registry=self.registry)
+            # Add attributes to span for observability
+            span.set_attribute("agent.name", name)
+            span.set_attribute("agent.role", role)
+            span.set_attribute("agent.max_retries", max_retries)
+            span.set_attribute("input.data_hash", _hash_input(input_data))
 
-        user_query = input_data.get("query", str(input_data))
+            agent = Agent(name=name, role=role, goal=goal, llm=self.llm, registry=self.registry)
 
-        agent_output = "Error: Failed to generate output."
-        for attempt in range(max_retries):
-            try:
-                agent_output = agent.run(user_query)
-                if not agent_output.startswith("Error:"):
-                    break
-            except Exception as e:
-                print(f"[Orchestrator] Attempt {attempt + 1} failed for {name}: {str(e)}")
+            user_query = input_data.get("query", str(input_data))
 
-        output = {
-            "output": agent_output,
-            "input": input_data,
-            "prompt_version": self.spec.get("version", "v2.0"),
-            "model_used": "mock-llm",
-            "citations": [],
-            "accuracy_score": None,
-            "requires_human_review": agent_output.startswith("Error:"),
-        }
+            agent_output = "Error: Failed to generate output."
+            for attempt in range(max_retries):
+                try:
+                    with tracer.start_as_current_span(
+                        f"agent.run.attempt_{attempt + 1}"
+                    ) as attempt_span:
+                        attempt_span.set_attribute("attempt.number", attempt + 1)
+                        agent_output = agent.run(user_query)
+                        attempt_span.set_attribute(
+                            "attempt.success", not agent_output.startswith("Error:")
+                        )
+                        if not agent_output.startswith("Error:"):
+                            break
+                except Exception as exc:
+                    print(
+                        f"[Orchestrator] Attempt {attempt + 1} failed for {name}: {str(exc)}"
+                    )
+                    span.record_exception(exc)
 
-        completed_at = datetime.now(timezone.utc)
-        self._log_agent_run(start_time, completed_at, input_data, output)
-        return output
+            output = {
+                "output": agent_output,
+                "input": input_data,
+                "prompt_version": self.spec.get("version", "v2.0"),
+                "model_used": "mock-llm",
+                "citations": [],
+                "accuracy_score": None,
+                "requires_human_review": agent_output.startswith("Error:"),
+            }
+
+            completed_at = datetime.now(timezone.utc)
+            span.set_attribute(
+                "execution.duration_ms",
+                (completed_at - start_time).total_seconds() * 1000,
+            )
+            span.set_attribute("output.requires_review", output["requires_human_review"])
+
+            self._log_agent_run(start_time, completed_at, input_data, output)
+            return output
 
     def _log_agent_run(
         self,

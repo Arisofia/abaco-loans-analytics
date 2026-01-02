@@ -43,6 +43,7 @@ data/metrics/
 data_samples/*.csv
 logs/
 exports/
+outputs/
 
 # Build / tooling
 .next/
@@ -93,3 +94,4 @@ AzuriteConfig
 __azurite_db_*.json
 __azurite_db_*_extent__.json
 scripts/setup_azure.sh
+.azure
