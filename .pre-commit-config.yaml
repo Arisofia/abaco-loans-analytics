@@ -32,16 +32,16 @@ repos:
         additional_dependencies: [numpy, pandas, alembic]
         stages: [commit]
 
-# YAML linting
-- repo: https://github.com/adrienverge/yamllint.git
-  rev: v1.32.0
-  hooks:
-    - id: yamllint
-      files: \.(yml|yaml)$
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.32.0
+    hooks:
+      - id: yamllint
+        files: \.(yml|yaml)$
 
-# Secret scanning
-- repo: https://github.com/gitleaks/gitleaks
-  rev: v8.18.2
-  hooks:
-    - id: gitleaks
-      stages: [commit]
+  # Secret scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+        stages: [commit]

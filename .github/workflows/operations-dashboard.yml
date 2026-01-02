@@ -28,6 +28,6 @@ jobs:
               run: |
                   python scripts/operations_dashboard.py
             - name: Post to Slack
-
+              if: hashFiles('scripts/post_to_slack.py') != '' && env.SLACK_BOT_TOKEN != ''
               run: |
                   python scripts/post_to_slack.py --channel "#ops-dashboard"
