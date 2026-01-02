@@ -24,31 +24,31 @@ make install-dev
 
 ### Code Quality Checks
 
-**Quick lint (non-blocking)**
+#### Quick lint (non-blocking)
 
 ```bash
 make lint
 ```
 
-**Auto-format code**
+#### Auto-format code
 
 ```bash
 make format
 ```
 
-**Type checking with mypy**
+#### Type checking with mypy
 
 ```bash
 make type-check
 ```
 
-**Full quality audit** (runs lint, type-check, and coverage)
+#### Full quality audit (runs lint, type-check, and coverage)
 
 ```bash
 make audit-code
 ```
 
-**Complete quality check** (format, lint, type-check, test)
+#### Complete quality check (format, lint, type-check, test)
 
 ```bash
 make quality
@@ -56,13 +56,13 @@ make quality
 
 ### Testing
 
-**Run all tests**
+#### Run all tests
 
 ```bash
 make test
 ```
 
-**Tests with coverage report**
+#### Tests with coverage report
 
 ```bash
 make test-cov
@@ -96,7 +96,7 @@ make test-cov
 
 ## Phase 5: Operational Deliverables
 
-**Pending deliverables**:
+### Pending deliverables
 
 1. OPERATIONS.md - Operational Runbook
 2. MIGRATION.md - Migration Guide
@@ -107,12 +107,12 @@ make test-cov
 
 ## Recent Changes (Phase 4)
 
-**Commits**:
+### Commits
 
 1. PHASE 4: Fix test suite for config-aware UnifiedIngestion and UnifiedTransformation
 2. Code quality audit and standards documentation
 
-**Key Files Created/Modified**:
+### Key Files Created/Modified
 
 - `docs/ENGINEERING_STANDARDS.md` - Best practices and coding standards
 - `docs/PHASE_4_AUDIT_FINDINGS.md` - Detailed code quality audit with remediation plan
