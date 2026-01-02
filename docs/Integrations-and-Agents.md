@@ -11,6 +11,7 @@ Use this checklist to connect the project’s external services and to start the
   - `AZURE_COSMOS_CONNECTION_STRING`
   - `AZURE_STORAGE_CONNECTION_STRING`
 - Run the Deno guard to validate required directories and environment wiring:
+
   ```bash
   deno run --allow-all main.ts
   ```
@@ -41,6 +42,7 @@ Use this checklist to connect the project’s external services and to start the
 - Create the project in SonarCloud and grab the token.
 - Add `SONAR_TOKEN` as a GitHub Actions secret and confirm `sonar-project.properties` matches the organization key.
 - Trigger the scan locally for a dry run:
+
   ```bash
   npm run lint
   # then
@@ -51,7 +53,7 @@ Use this checklist to connect the project’s external services and to start the
 
 - Ensure the following secrets exist in the repo/org: Azure credentials, database/storage connection strings, Supabase keys, OpenAI/Gemini/Claude tokens, `SONAR_TOKEN`.
 - Run the workflows manually once to validate credentials:
-  - `ci-main.yml` for the centralized lint/test/build pipeline that runs the Next.js app, Python analytics jobs, and Java/Gradle builds.
+  - `ci.yml` for the centralized lint/test/build pipeline that runs the Next.js app and Python analytics jobs.
   - Any deployment workflow that pushes the Docker image to ACR.
 - Capture the run URLs for audit and agent summaries.
 
@@ -60,9 +62,11 @@ Use this checklist to connect the project’s external services and to start the
 - Place the model artifacts on a secure path and reference it in `fitten.config.toml`.
 - Set `FITTEN_CONFIG` in your shell/CI to point at the config file.
 - Add a CI step (or local command) to run a scan:
+
   ```bash
   fitten sniff apps/web
   ```
+
 - Keep the Fitten output with SonarCloud results in the PR discussion for traceability.
 
 ## 8. Copilot and agent triggers
@@ -70,9 +74,11 @@ Use this checklist to connect the project’s external services and to start the
 - Invite teammates via GitHub Copilot for Business and confirm acceptance.
 - Add the `@copilot` account to the GitHub Enterprise org so enterprise prompts and inline guidance stay enabled for this repo.
 - Run `scripts/export_copilot_slide_payload.py` after analytics updates so presentation agents receive refreshed content:
+
   ```bash
   python scripts/export_copilot_slide_payload.py
   ```
+
 - When opening PRs, ask Copilot (or another agent) to summarize CI results, SonarCloud issues, and Fitten findings using the payload above plus workflow logs.
 - Assign `@codex` to the commit/PR so the automation that posts summaries and links has a consistent owner.
 - Maintain an `Enterprise-README.md` snippet (or PR description) that links to the latest Copilot prompt, workflow runs, and preview URLs.

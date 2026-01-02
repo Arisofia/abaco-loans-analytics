@@ -5,13 +5,13 @@ on:
     branches: [main, develop]
     paths:
       - 'data/**'
-      - 'python/**'
+      - 'src/**'
       - 'scripts/**'
   pull_request:
     branches: [main]
     paths:
       - 'data/**'
-      - 'python/**'
+      - 'src/**'
       - 'scripts/**'
   schedule:
     - cron: '0 6 * * *'

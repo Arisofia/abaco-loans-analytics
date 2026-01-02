@@ -6,6 +6,7 @@ on:
 
 jobs:
   coderabbit-pr-review:
+
     runs-on: ubuntu-latest
     permissions:
       contents: read

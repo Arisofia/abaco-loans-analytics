@@ -6,7 +6,7 @@ description: |
   Output: Figma-ready deck (via Figma API), Notion page (exec summary), Slack message.
 tools:
   - sql_runner:
-      interface: python.sql_runner.run_query
+      interface: src.sql_runner.run_query
   - figma:
       interface: node.figma.create_from_template
   - notion:

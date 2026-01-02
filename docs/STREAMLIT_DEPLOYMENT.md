@@ -74,7 +74,7 @@ This guide covers deploying a Streamlit dashboard alongside the Next.js applicat
    ```
 
 2. **Deploy on Streamlit Cloud**
-   - Go to https://share.streamlit.io
+   - Go to <https://share.streamlit.io>
    - Click "New app"
    - Select your repository
    - Choose main branch
@@ -316,7 +316,7 @@ echo $SUPABASE_URL
 echo $SUPABASE_SERVICE_KEY
 ```
 
-- Verify `SUPABASE_URL` format (https://xxx.supabase.co)
+- Verify `SUPABASE_URL` format (<https://xxx.supabase.co>)
 - Check `SUPABASE_SERVICE_KEY` is not empty
 - Ensure Supabase project is active (not paused)
 - Verify network connectivity to Supabase

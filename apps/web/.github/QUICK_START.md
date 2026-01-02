@@ -37,7 +37,7 @@ git push origin feature/your-feature
 
 ## What Happens After You Push
 
-### If Your PR is to `develop`:
+### If Your PR is to `develop`
 
 ```
 You push code
@@ -56,7 +56,7 @@ Auto-deploy to staging
 QA validates for 24 hours
 ```
 
-### If Merging into `develop` (Auto):
+### If Merging into `develop` (Auto)
 
 ```
 ✅ CI passed
@@ -74,7 +74,7 @@ Slack: #dev-alerts notified
 QA: Starts 24-hour validation
 ```
 
-### After 24-hour Staging Validation:
+### After 24-hour Staging Validation
 
 ```
 ✅ QA validation complete
@@ -216,6 +216,7 @@ hotfix/critical-issue         # Urgent production fixes (rare)
 ```
 
 Example:
+
 ```bash
 git checkout -b feature/user-authentication
 git checkout -b bugfix/login-timeout-issue
@@ -227,6 +228,7 @@ git checkout -b chore/update-dependencies
 ## PR Title & Description
 
 **Title**: Clear, concise (< 60 chars)
+
 ```
 ✅ "Add user authentication"
 ✅ "Fix login timeout error"
@@ -235,6 +237,7 @@ git checkout -b chore/update-dependencies
 ```
 
 **Description**:
+
 ```
 ## What
 Brief description of what you changed.
@@ -260,16 +263,19 @@ Closes #123
 ## Code Review Tips
 
 **When requesting review**:
+
 - Tag 2 people: @person1 @person2
 - Link any related issues: "Closes #123"
 - Explain any non-obvious decisions
 
 **When reviewing code**:
+
 - ✅ Approve if it's good
 - 🔄 Request changes if issues
 - 💬 Comment on specific lines
 
 **Responding to feedback**:
+
 - Answer each comment (threaded reply)
 - Push fixes to same branch
 - CI re-runs automatically
@@ -280,17 +286,20 @@ Closes #123
 ## Deployment Roles
 
 **Frontend Developer**: You are here ↓
+
 - Push code to feature branch
 - Create PRs to develop
 - Respond to code review
 - Watch staging deployment (24h validation)
 
 **QA**: After your merge
+
 - Validates in staging for 24 hours
 - Tests the feature thoroughly
 - Signs off for production
 
 **DevOps**: After QA signs off
+
 - Creates version tag
 - Approves production deployment
 - Monitors health checks
@@ -301,6 +310,7 @@ Closes #123
 ## During Code Review
 
 **If reviewer requests changes**:
+
 1. Read the comment carefully
 2. Make the requested change
 3. Push to same branch (new commit)
@@ -308,6 +318,7 @@ Closes #123
 5. Request re-review
 
 **If reviewer approves**:
+
 1. Ready to merge!
 2. Click "Merge pull request"
 3. Wait for auto-deployment to staging
@@ -320,8 +331,8 @@ Closes #123
 - **GitHub**: [Repository](https://github.com/[owner]/[repo])
 - **Actions**: [Workflows](https://github.com/[owner]/[repo]/actions)
 - **Deployments**: [Environments](https://github.com/[owner]/[repo]/deployments)
-- **Staging**: https://staging.abaco-loans-analytics.com
-- **Production**: https://abaco-loans-analytics.com
+- **Staging**: <https://staging.abaco-loans-analytics.com>
+- **Production**: <https://abaco-loans-analytics.com>
 - **Slack**: #dev-alerts, #prod-alerts, #dev-help
 
 ---
@@ -348,17 +359,20 @@ Closes #123
 ## Troubleshooting
 
 ### "pnpm: command not found"
+
 ```bash
 npm install -g pnpm
 ```
 
 ### "node_modules corruption"
+
 ```bash
 rm -rf node_modules pnpm-lock.yaml
 pnpm install
 ```
 
 ### "Merge conflict"
+
 ```bash
 git pull origin develop        # Get latest
 git rebase origin/develop      # Rebase your changes
@@ -369,6 +383,7 @@ git push -f origin feature/name
 ```
 
 ### "Accidentally committed to main"
+
 ```bash
 git reset HEAD~1              # Undo commit, keep changes
 git checkout -b feature/name  # Create feature branch
@@ -376,6 +391,7 @@ git push origin feature/name  # Push feature branch
 ```
 
 ### "Forgot to commit something"
+
 ```bash
 # Edit files...
 git add .
@@ -387,12 +403,12 @@ git push -f origin feature/name
 
 ## Don't
 
-❌ Push to main or develop directly (create PR)  
-❌ Merge your own PR  
-❌ Commit secrets or keys  
-❌ Force push after code review  
-❌ Ignore CI failures  
-❌ Disable security checks  
+❌ Push to main or develop directly (create PR)
+❌ Merge your own PR
+❌ Commit secrets or keys
+❌ Force push after code review
+❌ Ignore CI failures
+❌ Disable security checks
 ❌ Deploy manually (let CI do it)
 
 ---
@@ -404,4 +420,3 @@ git push -f origin feature/name
 - **Slack Coordination**: `.github/DEPLOYMENT_COORDINATION.md`
 - **Engineering Standards**: `ENGINEERING_STANDARDS.md`
 - **Operations Guide**: `OPERATIONS.md`
-

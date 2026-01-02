@@ -19,6 +19,7 @@
    - Add to `.env.local`
 
 3. **Start Development**
+
    ```bash
    npm run dev
    ```
@@ -65,13 +66,14 @@
 | `OPENAI_API_KEY` | Enables OpenAI-powered summaries inside the Streamlit app and other agents. |
 | `GOOGLE_API_KEY` | Required by the Gemini client in `scripts/clients.py`. |
 | `GROK_API_KEY` | Required by the Grok client used by `StandaloneAIEngine`. |
-| `DATABASE_URL` | Connection string used by `python/agents/orchestrator.py` and other automation helpers. |
+| `DATABASE_URL` | Connection string used by `src/agents/orchestrator.py` and other automation helpers. |
 | `LOG_LEVEL` | Sets the logging verbosity for the Notion importer (defaults to `INFO`). |
 
 ### Vercel & GitHub secrets
 
 - Store all production and preview variables in the Vercel dashboard or via `vercel env`.
 - Example CLI workflow:
+
   ```bash
   vercel login
   vercel env add NEXT_PUBLIC_SUPABASE_URL production
@@ -84,6 +86,7 @@
   vercel env add NEXT_PUBLIC_DRILLDOWN_BASE_URL production
   vercel env pull .env.local
   ```
+
 - `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` are required by the automated GitHub Action that deploys to Vercel and by any `vercel` CLI commands.
 - Keep the same set of `NEXT_PUBLIC_*` variables in preview/staging environments so the data flows can be tested before hitting production.
 
@@ -108,7 +111,7 @@
 - `services/slack_bot` relies on `KPI_WEBHOOK_URL`, `API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, and `SLACK_BOT_AUTOSTART`. Ensure these are synchronized across the deployed bot and GitHub Secrets so KPI mentions and alerts work.
 - The Notion metrics importer requires `NOTION_DATABASE_ID`, `NOTION_META_TOKEN`, and `NOTION_VERSION`. Keep these scoped to the Notion workspace that houses the KPI database.
 - AI helpers (`StandaloneAIEngine`, `scripts/clients.py`, and `streamlit_app.py`) look for `GROK_API_KEY`, `GOOGLE_API_KEY`, and `OPENAI_API_KEY`. Provide these values only in environments that should reach external AI services.
-- `python/agents/orchestrator.py` expects `DATABASE_URL` so agent runs can persist traceability data.
+- `src/agents/orchestrator.py` expects `DATABASE_URL` so agent runs can persist traceability data.
 
 ## Code Style
 

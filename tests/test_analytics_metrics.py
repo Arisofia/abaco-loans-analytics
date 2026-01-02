@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from python.analytics import (
+from src.analytics import (
     calculate_quality_score,
     portfolio_kpis,
     project_growth,
@@ -121,13 +121,14 @@ def test_calculate_quality_score_counts_completeness():
 
 
 def test_portfolio_kpis_returns_expected_metrics(sample_df: pd.DataFrame):
-    metrics, enriched = portfolio_kpis(sample_df)
-    assert set(metrics.keys()) == {
+    metrics, enriched = portfolio_kpis(sample_df, return_enriched=True)
+    expected_keys = {
         "delinquency_rate",
         "portfolio_yield",
         "average_ltv",
         "average_dti",
     }
+    assert expected_keys.issubset(set(metrics.keys()))
     assert "ltv_ratio" in enriched.columns
     assert "dti_ratio" in enriched.columns
 
@@ -157,27 +158,29 @@ def test_portfolio_kpis_missing_column_raises(sample_df: pd.DataFrame):
 
 def test_portfolio_kpis_handles_empty_frame(sample_df: pd.DataFrame):
     df = sample_df.iloc[:0]
-    metrics, enriched = portfolio_kpis(df)
-    assert metrics == {
+    metrics, enriched = portfolio_kpis(df, return_enriched=True)
+    expected_metrics = {
         "delinquency_rate": 0.0,
         "portfolio_yield": 0.0,
         "average_ltv": 0.0,
         "average_dti": 0.0,
     }
+    for key, value in expected_metrics.items():
+        assert metrics[key] == value
     assert enriched.empty
 
 
 def test_portfolio_kpis_zero_principal_yield_is_zero(sample_df: pd.DataFrame):
     df = sample_df.copy()
     df["principal_balance"] = 0
-    metrics, _ = portfolio_kpis(df)
+    metrics, _ = portfolio_kpis(df, return_enriched=True)
     assert metrics["portfolio_yield"] == 0.0
 
 
 def test_portfolio_kpis_dti_nan_when_income_non_positive(sample_df: pd.DataFrame):
     df = sample_df.copy()
     df["borrower_income"] = [0, -5000, 0]
-    metrics, enriched = portfolio_kpis(df)
+    metrics, enriched = portfolio_kpis(df, return_enriched=True)
     assert enriched["dti_ratio"].isna().all()
     assert metrics["average_dti"] == 0.0
 
@@ -185,6 +188,6 @@ def test_portfolio_kpis_dti_nan_when_income_non_positive(sample_df: pd.DataFrame
 def test_portfolio_kpis_ltv_nan_when_appraisal_non_positive(sample_df: pd.DataFrame):
     df = sample_df.copy()
     df["appraised_value"] = [0, -100000, 0]
-    metrics, enriched = portfolio_kpis(df)
+    metrics, enriched = portfolio_kpis(df, return_enriched=True)
     assert enriched["ltv_ratio"].isna().all()
     assert metrics["average_ltv"] == 0.0

@@ -4,8 +4,8 @@ on:
   push:
     paths:
       - 'scripts/export_presentation.py'
-      - 'python/analytics/project_growth.py'
-      - 'python/theme.py'
+      - 'src/analytics/project_growth.py'
+      - 'src/theme.py'
       - 'docs/analytics/KPIs.md'
   schedule:
     - cron: '0 6,18 * * *'

@@ -1,4 +1,3 @@
-import os
 import sys
 import tempfile
 import unittest
@@ -9,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.repo_maturity_summary import determine_level
+# Import after path modification to avoid E402
+from scripts.repo_maturity_summary import determine_level  # noqa: E402
 
 
 class TestRepoMaturitySummary(unittest.TestCase):

@@ -1,7 +1,7 @@
 # Deployment & Operations Documentation
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
+**Version**: 2.0
+**Date**: 2025-12-26
 **Status**: Complete CI/CD automation with team runbooks
 
 ---
@@ -19,14 +19,14 @@
 
 ### For All Roles
 
-2. **[TEAM_RUNBOOKS.md](./TEAM_RUNBOOKS.md)** (Role-specific guides)
+1. **[TEAM_RUNBOOKS.md](./TEAM_RUNBOOKS.md)** (Role-specific guides)
    - **Frontend Developer**: Daily workflow, fixing CI, code review
    - **QA**: Staging validation checklist, 24-hour testing
    - **DevOps**: Pre-deployment, production approval, rollback
    - **Infrastructure**: Secrets management, environment config
    - **Read time**: 15-30 minutes (read your role section)
 
-3. **[DEPLOYMENT_COORDINATION.md](./DEPLOYMENT_COORDINATION.md)** (Slack notifications)
+2. **[DEPLOYMENT_COORDINATION.md](./DEPLOYMENT_COORDINATION.md)** (Slack notifications)
    - What to post in which channel
    - Notification templates
    - Incident escalation
@@ -34,14 +34,14 @@
 
 ### For Operations & DevOps
 
-4. **[DEPLOYMENT_CONFIG.md](./DEPLOYMENT_CONFIG.md)** (Technical reference)
+1. **[DEPLOYMENT_CONFIG.md](./DEPLOYMENT_CONFIG.md)** (Technical reference)
    - All workflow details
    - Required GitHub secrets
    - Environment configuration
    - Troubleshooting guide
    - **Read time**: 15 minutes
 
-5. **[OPERATIONS.md](../OPERATIONS.md)** (In parent directory)
+2. **[OPERATIONS.md](../OPERATIONS.md)** (In parent directory)
    - Deployment procedures
    - Monitoring & alerts
    - Incident response
@@ -53,6 +53,7 @@
 ## 🔄 Workflow Files
 
 ### CI Workflow
+
 - **File**: `ci.yml`
 - **Trigger**: Push to main/develop, all PRs
 - **Duration**: 5-10 minutes
@@ -60,6 +61,7 @@
 - **Gates**: 85% code coverage required
 
 ### Staging Deployment
+
 - **File**: `deploy-staging.yml`
 - **Trigger**: Auto on develop branch merge
 - **Duration**: 2-3 minutes
@@ -67,6 +69,7 @@
 - **Gates**: CI must pass first
 
 ### Production Deployment
+
 - **File**: `deploy-production.yml`
 - **Trigger**: Git tag (v*.*.*)
 - **Duration**: 5-10 minutes total
@@ -74,6 +77,7 @@
 - **Gates**: All quality checks + staging validation
 
 ### Rollback
+
 - **File**: `rollback.yml`
 - **Trigger**: Manual workflow dispatch
 - **Duration**: < 5 minutes
@@ -81,6 +85,7 @@
 - **Use**: Emergency recovery only
 
 ### Reusable Steps
+
 - **File**: `reusable-steps.yml`
 - **Purpose**: Shared workflows for modular testing
 - **Used by**: CI, staging, and production workflows
@@ -89,9 +94,10 @@
 
 ## 📋 Common Tasks
 
-### I want to...
+### I want to
 
 **Deploy a new feature**
+
 1. Follow QUICK_START.md → "Your Daily Workflow"
 2. Create feature branch
 3. Push code → PR → Code review → Merge
@@ -99,17 +105,20 @@
 5. Create tag for production (DevOps role)
 
 **Fix a CI failure**
+
 1. Go to QUICK_START.md → "CI Check Failures"
 2. See specific fix for your error type
 3. Run locally, fix, and push
 
 **Test in staging**
+
 1. Follow TEAM_RUNBOOKS.md → "QA" section
 2. Use staging URL provided in workflow
 3. Run 24-hour validation checklist
 4. Post results in #dev-alerts
 
 **Deploy to production**
+
 1. Follow TEAM_RUNBOOKS.md → "DevOps" section
 2. Verify 24-hour staging validation complete
 3. Create version tag
@@ -117,12 +126,14 @@
 5. Monitor health checks
 
 **Emergency rollback**
+
 1. Follow TEAM_RUNBOOKS.md → "DevOps / Emergency Rollback"
 2. Workflow dispatch → Enter previous version
 3. Approve rollback
 4. Monitor health checks
 
 **Report an issue during deployment**
+
 1. Go to DEPLOYMENT_COORDINATION.md
 2. Find appropriate severity level (P1/P2/P3)
 3. Post in correct Slack channel
@@ -263,23 +274,27 @@
 ## 📚 Reference by Role
 
 ### Frontend Developer
+
 1. Start: QUICK_START.md
 2. Daily: TEAM_RUNBOOKS.md → "Frontend Developer"
 3. Issues: Slack #dev-help
 4. Reference: TEAM_RUNBOOKS.md → "Common Scenarios"
 
 ### QA / Testing
+
 1. Start: QUICK_START.md (overview)
 2. Daily: TEAM_RUNBOOKS.md → "QA / Quality Assurance"
 3. Reference: TEAM_RUNBOOKS.md → "Staging Validation (24-hour window)"
 
 ### DevOps / Release Engineer
+
 1. Start: DEPLOYMENT_CONFIG.md
 2. Daily: TEAM_RUNBOOKS.md → "DevOps / Release Engineer"
 3. Reference: OPERATIONS.md → "Deployment" section
 4. Troubleshooting: DEPLOYMENT_CONFIG.md → "Troubleshooting"
 
 ### Infrastructure / Secrets
+
 1. Start: TEAM_RUNBOOKS.md → "DevOps / Infrastructure"
 2. Reference: DEPLOYMENT_CONFIG.md → "Required GitHub Secrets"
 3. Troubleshooting: DEPLOYMENT_CONFIG.md → "Troubleshooting"
@@ -318,20 +333,24 @@ See: TEAM_RUNBOOKS.md → "Checklists"
 ## 📞 Getting Help
 
 ### Quick Questions
+
 - Slack: #dev-help
 - Response: Real-time (team members)
 
 ### CI/CD Issues
+
 - GitHub issue: Label `deployment`
 - Read: QUICK_START.md → "CI Check Failures"
 - Slack: #dev-alerts
 
 ### Production Issues
+
 - Slack: #incidents (P1/P2 only)
 - Read: TEAM_RUNBOOKS.md → "Incident Response"
 - GitHub: Create issue + link in #incidents
 
 ### General Questions
+
 - Start: QUICK_START.md
 - Then: Read role-specific section in TEAM_RUNBOOKS.md
 - Finally: Search other docs using Cmd/Ctrl + F
@@ -340,12 +359,12 @@ See: TEAM_RUNBOOKS.md → "Checklists"
 
 ## 🎯 Key Metrics
 
-**Deployment Frequency**: Multiple per day (develop → staging)  
-**Staging Validation**: 24 hours  
-**Production Approval**: < 5 minutes (after validation)  
-**Deployment Duration**: 5-10 minutes total  
-**Rollback Time**: < 5 minutes  
-**Mean Time To Recovery**: < 5 minutes  
+**Deployment Frequency**: Multiple per day (develop → staging)
+**Staging Validation**: 24 hours
+**Production Approval**: < 5 minutes (after validation)
+**Deployment Duration**: 5-10 minutes total
+**Rollback Time**: < 5 minutes
+**Mean Time To Recovery**: < 5 minutes
 **Quality Gates**: 0% error tolerance (lint, type, test, coverage)
 
 ---
@@ -358,4 +377,3 @@ See: TEAM_RUNBOOKS.md → "Checklists"
 - **Next review**: Q1 2026
 
 Questions or feedback? Post in #dev-help
-

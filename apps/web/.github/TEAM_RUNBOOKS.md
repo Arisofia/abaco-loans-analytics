@@ -1,7 +1,7 @@
 # Team Deployment Runbooks
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
+**Version**: 2.0
+**Date**: 2025-12-26
 **Audience**: All development, QA, and operations teams
 
 ---
@@ -19,6 +19,7 @@
 ## Quick Reference
 
 ### Deployment Flow
+
 ```
 Feature Development
     ↓
@@ -38,6 +39,7 @@ Health checks + monitoring
 ```
 
 ### Key Commands
+
 ```bash
 # Local development
 pnpm install           # Install dependencies
@@ -63,6 +65,7 @@ git push origin v1.0.0
 #### Daily Workflow
 
 **1. Start Your Day**
+
 ```bash
 cd apps/web
 git fetch origin
@@ -73,12 +76,14 @@ pnpm dev
 ```
 
 **2. Create Feature Branch**
+
 ```bash
 git checkout -b feature/feature-name
 # Follow: feature/, bugfix/, or chore/ prefixes
 ```
 
 **3. Before Pushing**
+
 ```bash
 # Run all checks locally
 pnpm check-all
@@ -90,6 +95,7 @@ pnpm format
 ```
 
 **4. Create Pull Request**
+
 - Push to your feature branch
 - Open PR against `develop` branch
 - Link any related issues
@@ -97,12 +103,14 @@ pnpm format
 - Request review from team
 
 **5. During Code Review**
+
 - Address review comments
 - Push fixes to same branch
 - CI runs automatically on each push
 - Wait for approval before merge
 
 **6. After Merge**
+
 - Delete feature branch
 - Monitor staging deployment (auto)
 - Participate in 24-hour validation
@@ -110,6 +118,7 @@ pnpm format
 #### Fixing Lint/Type Errors
 
 **If CI fails on lint**:
+
 ```bash
 pnpm lint:fix          # Auto-fix most issues
 git add .
@@ -118,6 +127,7 @@ git push
 ```
 
 **If CI fails on types**:
+
 ```bash
 pnpm type-check        # Show errors
 # Edit files to fix TypeScript errors
@@ -127,6 +137,7 @@ git push
 ```
 
 **If tests fail**:
+
 ```bash
 npm test               # Run tests locally
 npm test -- --watch   # Debug specific test
@@ -143,10 +154,12 @@ You don't deploy directly. Production deployments follow this process:
 1. **Wait for staging validation**: 24 hours of testing in staging
 2. **QA sign-off**: Quality assurance team approves
 3. **Tag creation** (DevOps/Team Lead):
+
    ```bash
    git tag -a v1.2.3 -m "Release v1.2.3"
    git push origin v1.2.3
    ```
+
 4. **Approve deployment**: GitHub Actions prompts for approval
 5. **Monitor**: Watch health checks pass in GitHub Actions
 
@@ -156,11 +169,12 @@ You don't deploy directly. Production deployments follow this process:
 
 #### Staging Validation (24-hour window)
 
-**When**: Immediately after develop branch merge  
-**Duration**: 24 hours  
-**Environment**: https://staging.abaco-loans-analytics.com
+**When**: Immediately after develop branch merge
+**Duration**: 24 hours
+**Environment**: <https://staging.abaco-loans-analytics.com>
 
 **1. Validation Checklist**
+
 - [ ] Application loads without errors
 - [ ] All links and navigation work
 - [ ] Data displays correctly
@@ -174,6 +188,7 @@ You don't deploy directly. Production deployments follow this process:
 **2. Testing Scenarios**
 
 **User Authentication**
+
 ```
 1. Navigate to login page
 2. Try invalid credentials → Error displays
@@ -183,6 +198,7 @@ You don't deploy directly. Production deployments follow this process:
 ```
 
 **Data Display**
+
 ```
 1. View portfolio dashboard
 2. Verify all KPI cards display
@@ -192,6 +208,7 @@ You don't deploy directly. Production deployments follow this process:
 ```
 
 **Error Handling**
+
 ```
 1. Try network disconnect (DevTools → Offline)
 2. Verify error message displays
@@ -202,6 +219,7 @@ You don't deploy directly. Production deployments follow this process:
 **3. Document Findings**
 
 **If issues found**:
+
 ```
 Create GitHub issue:
 Title: [Staging] Brief description
@@ -218,6 +236,7 @@ Label: staging-issue
 ```
 
 **If no issues**:
+
 ```
 Post comment on GitHub Actions:
 ✅ 24-hour staging validation complete
@@ -230,6 +249,7 @@ Post comment on GitHub Actions:
 **4. Sign-off Process**
 
 When validation is complete:
+
 1. Post ✅ approval in GitHub Actions
 2. Notify #dev-alerts Slack channel
 3. Production team proceeds with deployment tag
@@ -240,10 +260,11 @@ When validation is complete:
 
 #### Pre-Production Release
 
-**Timeline**: After 24-hour staging validation  
+**Timeline**: After 24-hour staging validation
 **Responsibility**: Coordinate and execute release
 
 **1. Pre-Release Checklist**
+
 - [ ] 24-hour staging validation complete
 - [ ] All QA issues resolved (none blocking)
 - [ ] Security scan passed
@@ -273,9 +294,10 @@ git push origin v1.3.0
 
 **3. Monitor CI/CD Pipeline**
 
-Go to: https://github.com/[owner]/[repo]/actions
+Go to: <https://github.com/[owner]/[repo]/actions>
 
 **When deploy-production workflow starts**:
+
 - ✅ Pre-deployment checks
 - ✅ Quality verification
 - ⏳ Awaiting approval (manual step)
@@ -283,6 +305,7 @@ Go to: https://github.com/[owner]/[repo]/actions
 **4. Approve Production Deployment**
 
 In GitHub Actions:
+
 1. Find `deploy-production` workflow run
 2. Click "Review deployments"
 3. Select `production` environment
@@ -292,6 +315,7 @@ In GitHub Actions:
 **5. Post-Deployment Validation**
 
 Workflow automatically runs health checks. If they pass:
+
 - ✅ Deployment successful
 - ✅ Health checks passed
 - ✅ GitHub release created
@@ -299,6 +323,7 @@ Workflow automatically runs health checks. If they pass:
 **6. Notify Team**
 
 Post to Slack #prod-alerts:
+
 ```
 🚀 Production Deployment Complete
 
@@ -319,6 +344,7 @@ Rollback procedure: See OPERATIONS.md
 #### Emergency Rollback
 
 **When to rollback**:
+
 - Health checks failing after 15 minutes
 - Critical functionality broken
 - Major performance degradation
@@ -326,7 +352,7 @@ Rollback procedure: See OPERATIONS.md
 
 **1. Rollback Procedure**
 
-Go to: https://github.com/[owner]/[repo]/actions
+Go to: <https://github.com/[owner]/[repo]/actions>
 
 1. Click "Workflows" → "Rollback - Emergency Recovery"
 2. Click "Run workflow"
@@ -341,6 +367,7 @@ Go to: https://github.com/[owner]/[repo]/actions
 **2. Monitor Rollback**
 
 Expected timeline:
+
 - 0-2 min: Version checkout and build
 - 2-4 min: Deployment to Azure
 - 4-5 min: Health checks
@@ -349,6 +376,7 @@ Expected timeline:
 **3. Post-Rollback**
 
 Post to Slack #incidents:
+
 ```
 🔄 Emergency Rollback Completed
 
@@ -373,6 +401,7 @@ Next steps:
 **Required Secrets** (set in repo Settings → Secrets):
 
 **Staging**:
+
 ```
 STAGING_SUPABASE_URL              # https://[project].supabase.co
 STAGING_SUPABASE_KEY              # anon key from Supabase dashboard
@@ -380,6 +409,7 @@ AZURE_STATIC_WEB_APPS_TOKEN_STAGING
 ```
 
 **Production**:
+
 ```
 PROD_SUPABASE_URL                 # https://[project].supabase.co
 PROD_SUPABASE_KEY                 # anon key from Supabase dashboard
@@ -388,6 +418,7 @@ AZURE_STATIC_WEB_APPS_TOKEN_PROD
 ```
 
 **To add/update secrets**:
+
 1. Go to repository Settings
 2. Click Secrets and variables → Actions
 3. Click "New repository secret"
@@ -399,6 +430,7 @@ AZURE_STATIC_WEB_APPS_TOKEN_PROD
 #### Environment Configuration
 
 **Staging `.env.staging`**:
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://[staging].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[staging-key]
@@ -407,6 +439,7 @@ NODE_ENV=production
 ```
 
 **Production `.env.production`**:
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://[prod].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[prod-key]
@@ -424,12 +457,14 @@ NODE_ENV=production
 **Trigger**: Merge PR to develop
 
 **What happens automatically**:
+
 1. GitHub Actions runs CI checks
 2. If all pass → Deploys to staging
 3. Smoke tests run (health check)
 4. 24-hour validation window starts
 
 **Your role**:
+
 1. Create PR (feature branch → develop)
 2. Request code review
 3. Wait for CI ✅
@@ -447,6 +482,7 @@ NODE_ENV=production
 **Problem**: Test failed, blocking merge
 
 **Steps**:
+
 ```bash
 # 1. Pull latest develop
 git fetch origin
@@ -471,6 +507,7 @@ git push
 ```
 
 **Don't**:
+
 - Force push over review comments
 - Merge with failing CI
 - Ignore type errors
@@ -483,17 +520,20 @@ git push
 
 1. Don't merge until approved
 2. Address comments:
+
    ```bash
    git add [modified files]
    git commit -m "refactor: address review feedback"
    git push
    ```
+
 3. CI re-runs automatically
 4. Request re-review
 5. Wait for approval
 6. Merge when ready
 
 **Resolution options**:
+
 - ✅ **Approve**: Merge when ready
 - 🔄 **Request changes**: Fix required before merge
 - 💬 **Comment**: Question or suggestion (can merge)
@@ -545,7 +585,7 @@ git push origin develop
 
 ### Scenario 5: Production Issue, Need to Rollback
 
-**When**: Critical issue detected after deployment  
+**When**: Critical issue detected after deployment
 **Who**: DevOps with approval
 
 **Steps**:
@@ -573,12 +613,14 @@ git push origin develop
 **Symptoms**: Service down, data loss, security breach
 
 **Immediate Actions** (< 5 min):
+
 1. Create GitHub issue: [CRITICAL] Issue title
 2. Post #incidents Slack: Issue description + link
 3. Trigger rollback if needed (see Scenario 5)
 4. Page on-call engineer
 
 **Follow-up** (< 30 min):
+
 1. Assess root cause
 2. Notify stakeholders
 3. Document timeline
@@ -591,12 +633,14 @@ git push origin develop
 **Symptoms**: Major feature broken, data incorrect
 
 **Immediate Actions** (< 15 min):
+
 1. Create GitHub issue with reproduction steps
 2. Post #dev-alerts Slack
 3. Assess if rollback needed
 4. Notify team lead
 
 **Follow-up** (< 2 hours):
+
 1. Root cause analysis
 2. Fix implementation
 3. Testing in staging
@@ -609,6 +653,7 @@ git push origin develop
 **Symptoms**: Functionality degraded, minor issues
 
 **Actions** (within business day):
+
 1. Create GitHub issue
 2. Post in #dev-alerts
 3. Add to sprint backlog
@@ -621,6 +666,7 @@ git push origin develop
 **Symptoms**: Cosmetic issues, typos
 
 **Actions** (within week):
+
 1. Create GitHub issue
 2. Label: `low-priority`
 3. Add to backlog for future sprint
@@ -662,7 +708,7 @@ git push origin develop
 
 ### Post-Deployment Checklist
 
-- [ ] Application loads (https://abaco-loans-analytics.com)
+- [ ] Application loads (<https://abaco-loans-analytics.com>)
 - [ ] Login works
 - [ ] Data displays correctly
 - [ ] No console errors
@@ -690,18 +736,21 @@ git push origin develop
 ## Getting Help
 
 **Questions?**
+
 1. Check this guide and related docs
 2. Ask in #dev-help Slack
 3. Create GitHub issue with `question` label
 4. Contact team lead
 
 **Documentation**
+
 - `.github/DEPLOYMENT_CONFIG.md`: CI/CD configuration
 - `OPERATIONS.md`: Operational procedures
 - `ENGINEERING_STANDARDS.md`: Code standards
 - `MIGRATION.md`: Migration procedures
 
 **On-Call**
+
 - During incidents: Follow incident response procedures
 - Escalate P1 issues immediately
 - Page on-call engineer if service down

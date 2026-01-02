@@ -7,10 +7,13 @@ logic while providing minimal ergonomics for invoking Grok or Gemini models.
 import json
 import logging
 import os
+import warnings
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-import google.generativeai as genai
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)
+    import google.generativeai as genai
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -61,7 +64,10 @@ class GrokClient:
         logger.debug("Sending Grok request", extra={"model": self.model})
 
         response = self.session.post(
-            f"{self.base_url}/chat/completions", headers=headers, json=payload, timeout=30
+            f"{self.base_url}/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=30,
         )
         response.raise_for_status()
         data = response.json()
@@ -84,7 +90,10 @@ class GeminiClient:
     def generate_text(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> AIResponse:
         logger.debug("Sending Gemini request", extra={"model": self.model.model_name})
         gen_context = context or {}
-        response = self.model.generate_content(prompt, generation_config=gen_context)
+        # Casting to Any to avoid mypy type mismatch with Google SDK's internal types
+        from typing import cast
+
+        response = self.model.generate_content(prompt, generation_config=cast(Any, gen_context))
 
         text = getattr(response, "text", None) or "".join(getattr(response, "candidates", []) or [])
         raw = (

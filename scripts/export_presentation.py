@@ -11,8 +11,8 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 
-from python.analytics import project_growth
-from python.theme import ABACO_THEME
+from src.analytics import project_growth
+from src.theme import ABACO_THEME
 
 
 def apply_theme(fig: px.Figure) -> px.Figure:
@@ -29,10 +29,10 @@ def apply_theme(fig: px.Figure) -> px.Figure:
 
 def build_growth_chart(output_dir: Path) -> Path:
     projection = project_growth(
-        current_yield=1.2,
-        target_yield=2.1,
-        current_loan_volume=120,
-        target_loan_volume=205,
+        yield_start=1.2,
+        yield_end=2.1,
+        volume_start=120,
+        volume_end=205,
         periods=6,
     )
     projection["month_label"] = projection["date"].dt.strftime("%b %Y")

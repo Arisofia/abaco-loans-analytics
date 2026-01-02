@@ -18,6 +18,7 @@ This document establishes the golden rules for how data is documented, stored, a
 **Rule:** `.md` files describe **HOW to get data**, not **WHAT the data is**.
 
 ✅ **Acceptable in .md files:**
+
 - Process descriptions ("Calculate AUM by summing outstanding_principal...")
 - Formulas and calculations ("NPL = total_defaults / total_loans")
 - Timestamps for documentation updates ("Last Updated: 2025-12-26")
@@ -25,6 +26,7 @@ This document establishes the golden rules for how data is documented, stored, a
 - Configuration references ("See config/pipeline.yml for...")
 
 ❌ **Prohibited in .md files:**
+
 - Hard-coded metrics ("Current AUM is $7.4M")
 - Specific customer counts ("We have 56 customers")
 - Target numbers without "TARGET" or "PLANNING" labels
@@ -37,18 +39,21 @@ This document establishes the golden rules for how data is documented, stored, a
 ### 2. Source of Truth Hierarchy
 
 **Priority 1 (Highest): Live Database Tables**
+
 - `fact_loans` — Loan and disbursement source data
 - `kpi_timeseries_daily` — Daily KPI snapshots
 - `fact_cash_flows` — Payment and collection records
 - All other operational tables
 
 **Priority 2: Configuration Files**
+
 - `config/pipeline.yml` — Pipeline parameters
 - `config/kpis.yml` — KPI definitions
 - `config/environments/*.yml` — Environment configurations
 - `.env`, secrets, and system configs
 
 **Priority 3 (Lowest): Documentation**
+
 - `.md` files — Process guides, how-tos, reference materials
 - Release notes and changelogs
 - Architecture decision records (ADRs)
@@ -60,22 +65,26 @@ This document establishes the golden rules for how data is documented, stored, a
 ### 3. File Organization
 
 **Operational Documentation** (`/docs/`)
+
 - `process/` — How to run pipelines, workflows, and manual tasks
 - `api/` — API documentation and integration guides
 - `architecture/` — System design and decision records
 - `data-dictionary/` — Schema definitions (generated from code, not hand-written)
 
 **Strategic Planning** (`/docs/planning/`)
+
 - `2026/` — 2026 strategic targets and North Star metrics
 - `2025/` — 2025 OKRs and executive planning documents
 - All files in this directory include warnings: "⚠️ PLANNING TARGETS ONLY"
 
 **Historical Records** (`/archives/`)
+
 - `extractions/` — Past data extraction snapshots
 - `compliance/` — Historical audit reports and validation summaries
 - `snapshots/` — Point-in-time operational snapshots
 
 **Live Data** (`/data/`)
+
 - Daily exports and fresh data files
 - Current metrics and dashboards
 - Source of truth for time-series data
@@ -123,12 +132,14 @@ All dollar amounts, metrics, and targets are planning hypotheses, not current st
 ### 6. Archive Policy
 
 **When to archive:**
+
 - Documentation older than 6 months and no longer actively used
 - Historical snapshots or reports (compliance, audits, validation)
 - Past extraction processes or deprecated procedures
 - Point-in-time metrics that are no longer relevant
 
 **Archive structure:**
+
 ```
 archives/
 ├── extractions/2025-12-04/     # Dated extractions
@@ -158,6 +169,7 @@ fi
 ```
 
 **CI/CD check to flag static metrics:**
+
 - Scan .md files for patterns: `\$\d+[KMB]?`, `\d+\s+(customers|clients|users)`
 - Exclude /docs/planning/ and /archives/
 - Warn if found; fail if in core operational docs
@@ -201,25 +213,27 @@ To determine current Assets Under Management:
 
 1. Query all active loans:
    ```sql
-   SELECT 
+   SELECT
      SUM(outstanding_principal) as aum
-   FROM fact_loans 
+   FROM fact_loans
    WHERE status = 'active'
      AND created_at <= NOW();
    ```
 
-2. Group by client for portfolio breakdown:
+1. Group by client for portfolio breakdown:
+
    ```sql
-   SELECT 
+   SELECT
      client_id,
      SUM(outstanding_principal) as client_aum
-   FROM fact_loans 
+   FROM fact_loans
    WHERE status = 'active'
    GROUP BY client_id
    ORDER BY client_aum DESC;
    ```
 
 Last Updated: 2025-12-26
+
 ```
 
 #### ❌ Bad: Static Data in Operational Docs

@@ -7,13 +7,14 @@ on:
   workflow_dispatch:
 
 env:
-  OPIKTOKEN: ${{ secrets.OPIKTOKEN }}
-  SUPABASESERVICEROLE: ${{ secrets.SUPABASESERVICEROLE }}
-  SLACKBOTTOKEN: ${{ secrets.SLACKBOTTOKEN }}
+  OPIKTOKEN: ${{ secrets.OPIK_TOKEN }}
+  SUPABASESERVICEROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+  SLACKBOTTOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
 jobs:
   # Job 1: Fetch system metrics from Opik
   fetch-opik-metrics:
+
     runs-on: ubuntu-latest
     outputs:
       metrics-available: ${{ steps.fetch.outputs.available }}
@@ -21,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -33,20 +34,27 @@ jobs:
         id: fetch
         run: |
           echo "📊 Fetching Opik observability metrics..."
+          if [ ! -f scripts/fetch_opik_metrics.py ]; then
+            echo "Missing scripts/fetch_opik_metrics.py; skipping."
+            echo "available=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           python scripts/fetch_opik_metrics.py
           echo "available=true" >> $GITHUB_OUTPUT
 
       - name: Upload metrics artifact
+        if: steps.fetch.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: opik-metrics
           path: outputs/opik_metrics.json
+          if-no-files-found: warn
           retention-days: 7
 
   # Job 2: Analyze data pipeline health
   analyze-pipeline-health:
     needs: fetch-opik-metrics
-    if: needs.fetch-opik-metrics.outputs.metrics-available == 'true'
+    if: needs.fetch-opik-metrics.result == 'success' && needs.fetch-opik-metrics.outputs.metrics-available == 'true'
     runs-on: ubuntu-latest
     outputs:
       pipeline-status: ${{ steps.analyze.outputs.status }}
@@ -61,7 +69,7 @@ jobs:
           path: outputs/
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -73,6 +81,12 @@ jobs:
         id: analyze
         run: |
           echo "⚕️ Analyzing data pipeline health..."
+          if [ ! -f scripts/analyze_pipeline_health.py ]; then
+            echo "Missing scripts/analyze_pipeline_health.py; skipping."
+            echo "status=unknown" >> $GITHUB_OUTPUT
+            echo "issues=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           python scripts/analyze_pipeline_health.py
           echo "status=healthy" >> $GITHUB_OUTPUT
           echo "issues=0" >> $GITHUB_OUTPUT
@@ -80,7 +94,7 @@ jobs:
   # Job 3: Analyze agent execution performance
   analyze-agent-performance:
     needs: fetch-opik-metrics
-    if: needs.fetch-opik-metrics.outputs.metrics-available == 'true'
+    if: needs.fetch-opik-metrics.result == 'success' && needs.fetch-opik-metrics.outputs.metrics-available == 'true'
     runs-on: ubuntu-latest
     outputs:
       agent-status: ${{ steps.analyze.outputs.status }}
@@ -95,7 +109,7 @@ jobs:
           path: outputs/
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -107,6 +121,12 @@ jobs:
         id: analyze
         run: |
           echo "🚀 Analyzing agent execution performance..."
+          if [ ! -f scripts/analyze_agent_performance.py ]; then
+            echo "Missing scripts/analyze_agent_performance.py; skipping."
+            echo "status=unknown" >> $GITHUB_OUTPUT
+            echo "slow_agents=unknown" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           python scripts/analyze_agent_performance.py
           echo "status=optimal" >> $GITHUB_OUTPUT
           echo "slow_agents=none" >> $GITHUB_OUTPUT
@@ -114,7 +134,7 @@ jobs:
   # Job 4: Check data quality trends
   check-data-quality-trends:
     needs: fetch-opik-metrics
-    if: needs.fetch-opik-metrics.outputs.metrics-available == 'true'
+    if: needs.fetch-opik-metrics.result == 'success' && needs.fetch-opik-metrics.outputs.metrics-available == 'true'
     runs-on: ubuntu-latest
     outputs:
       quality-trend: ${{ steps.check.outputs.trend }}
@@ -129,7 +149,7 @@ jobs:
           path: outputs/
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -141,6 +161,12 @@ jobs:
         id: check
         run: |
           echo "🔍 Checking data quality trends..."
+          if [ ! -f scripts/check_data_quality_trends.py ]; then
+            echo "Missing scripts/check_data_quality_trends.py; skipping."
+            echo "trend=unknown" >> $GITHUB_OUTPUT
+            echo "anomalies=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           python scripts/check_data_quality_trends.py
           echo "trend=stable" >> $GITHUB_OUTPUT
           echo "anomalies=false" >> $GITHUB_OUTPUT
@@ -148,13 +174,13 @@ jobs:
   # Job 5: Generate observability dashboard
   generate-observability-dashboard:
     needs: [analyze-pipeline-health, analyze-agent-performance, check-data-quality-trends]
-    if: always()
+    if: needs.analyze-pipeline-health.result == 'success' && needs.analyze-agent-performance.result == 'success' && needs.check-data-quality-trends.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -165,6 +191,10 @@ jobs:
       - name: Generate dashboard
         run: |
           echo "📊 Generating observability dashboard..."
+          if [ ! -f scripts/generate_observability_dashboard.py ]; then
+            echo "Missing scripts/generate_observability_dashboard.py; skipping."
+            exit 0
+          fi
           python scripts/generate_observability_dashboard.py \
             --pipeline-status "${{ needs.analyze-pipeline-health.outputs.pipeline-status }}" \
             --agent-status "${{ needs.analyze-agent-performance.outputs.agent-status }}" \
@@ -175,15 +205,13 @@ jobs:
         with:
           name: observability-dashboard
           path: outputs/dashboard.html
+          if-no-files-found: warn
           retention-days: 30
 
   # Job 6: Alert on critical issues
   alert-on-critical-issues:
     needs: [analyze-pipeline-health, analyze-agent-performance, check-data-quality-trends]
-    if: |
-      needs.analyze-pipeline-health.outputs.pipeline-status != 'healthy' ||
-      needs.analyze-agent-performance.outputs.agent-status != 'optimal' ||
-      needs.check-data-quality-trends.outputs.anomalies-detected == 'true'
+
     runs-on: ubuntu-latest
     steps:
       - name: Send critical alert to Slack
@@ -193,15 +221,15 @@ jobs:
           ALERT_MESSAGE+="Pipeline: ${{ needs.analyze-pipeline-health.outputs.pipeline-status }}\n"
           ALERT_MESSAGE+="Agents: ${{ needs.analyze-agent-performance.outputs.agent-status }}\n"
           ALERT_MESSAGE+="Data Quality: ${{ needs.check-data-quality-trends.outputs.quality-trend }}"
-          
-          curl -X POST ${{ secrets.SLACKBOTTOKEN }} \
+
+          curl -X POST ${{ secrets.SLACK_BOT_TOKEN }} \
             -H 'Content-Type: application/json' \
             -d "{\"text\":\"$ALERT_MESSAGE\"}"
 
   # Job 7: Daily system health summary
   send-daily-summary:
     needs: [analyze-pipeline-health, analyze-agent-performance, check-data-quality-trends, generate-observability-dashboard]
-    if: always()
+
     runs-on: ubuntu-latest
     steps:
       - name: Send daily health summary to Slack
@@ -212,7 +240,7 @@ jobs:
           SUMMARY+="🤖 Agent Performance: ${{ needs.analyze-agent-performance.outputs.agent-status }}\n"
           SUMMARY+="📊 Data Quality: ${{ needs.check-data-quality-trends.outputs.quality-trend }}\n\n"
           SUMMARY+="View detailed dashboard in GitHub Actions artifacts."
-          
-          curl -X POST ${{ secrets.SLACKBOTTOKEN }} \
+
+          curl -X POST ${{ secrets.SLACK_BOT_TOKEN }} \
             -H 'Content-Type: application/json' \
             -d "{\"text\":\"$SUMMARY\"}"

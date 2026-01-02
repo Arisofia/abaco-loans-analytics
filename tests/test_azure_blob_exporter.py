@@ -3,8 +3,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from apps.analytics.src.azure_blob_exporter import AzureBlobKPIExporter
-from apps.analytics.src.enterprise_analytics_engine import LoanAnalyticsEngine
+from src.analytics.azure_blob_exporter import AzureBlobKPIExporter
+from src.analytics.enterprise_analytics_engine import LoanAnalyticsEngine
 
 
 def test_upload_metrics_uses_blob_service_client():
