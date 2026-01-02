@@ -26,6 +26,22 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GEMINI_API_KEY_SIMPLE }}
         run: |
+          sanitize_secret() {
+            local var_name="$1"
+            local raw="$2"
+            local norm
+            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
+            case "$norm" in
+              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
+                printf -v "$var_name" '%s' ""
+                ;;
+              *)
+                printf -v "$var_name" '%s' "$raw"
+                ;;
+            esac
+          }
+          sanitize_secret GEMINI_API_KEY "$GEMINI_API_KEY"
+
           if [ -n "$GEMINI_API_KEY" ]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           else

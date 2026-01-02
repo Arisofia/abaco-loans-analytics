@@ -34,6 +34,23 @@ jobs:
                 AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
                 AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
               run: |
+                sanitize_secret() {
+                  local var_name="$1"
+                  local raw="$2"
+                  local norm
+                  norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
+                  case "$norm" in
+                    ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
+                      printf -v "$var_name" '%s' ""
+                      ;;
+                    *)
+                      printf -v "$var_name" '%s' "$raw"
+                      ;;
+                  esac
+                }
+                sanitize_secret AZURE_CREDENTIALS "$AZURE_CREDENTIALS"
+                sanitize_secret AZURE_WEBAPP_PUBLISH_PROFILE "$AZURE_WEBAPP_PUBLISH_PROFILE"
+
                   if [ -n "$AZURE_CREDENTIALS" ] || [ -n "$AZURE_WEBAPP_PUBLISH_PROFILE" ]; then
                     echo "has_azure_secrets=true" >> "$GITHUB_OUTPUT"
                   else
