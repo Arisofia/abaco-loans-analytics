@@ -278,9 +278,6 @@ Replace actual credentials with placeholders:
 
 ```bash
 # Remove real values, keep structure for documentation
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY
-ANTHROPIC_API_KEY=your-anthropic-key-here
-HUBSPOT_API_KEY=your-hubspot-key-here
 ```
 
 ---

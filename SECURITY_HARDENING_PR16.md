@@ -178,10 +178,6 @@ All secrets via **environment variables** (from GitHub Secrets → workflow → 
 
 ```bash
 # .env.example (for documentation only)
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY
-ANTHROPIC_API_KEY=your-anthropic-key-here
-AZURE_CLIENT_SECRET=your-azure-client-secret-here
-HUBSPOT_API_KEY=your-hubspot-key-here
 
 # Actual deployment: GitHub Secrets or K8s/container secrets
 ```

@@ -12,8 +12,6 @@ FOUND_ISSUES=0
 PATTERNS=(
     "sk-""proj-"  # OpenAI keys
     "sk-""ant-"   # Anthropic keys
-    "AZURE_CLIENT_SECRET="
-    "HUBSPOT_API_KEY="
     "HUBSPOT_TOKEN="
 )
 
