@@ -367,6 +367,15 @@ with st.sidebar:
                 st.session_state['data'] = dfs
                 st.session_state['loaded'] = True
                 st.success("Data ingested successfully.")
+                                
+                # Auto-generate KPI exports from uploaded data
+                with st.spinner("Generating KPI exports from uploaded data..."):
+                    try:
+                        output_path = generate_kpi_exports(dfs)
+                        st.cache_data.clear()
+                        st.info(f"✅ KPI exports generated: {output_path}")
+                    except Exception as exc:
+                        st.warning(f"⚠️ KPI auto-generation skipped: {exc}")
 
     if st.button("Clear Data"):
         st.session_state['loaded'] = False
@@ -461,7 +470,15 @@ col1, col2, col3, col4 = st.columns(4)
 
 total_loans = merged['loan_id'].nunique() if 'loan_id' in merged else 0
 total_outstanding = merged['outstanding_loan_value'].sum() if 'outstanding_loan_value' in merged else 0
-avg_apr = merged['interest_rate_apr'].mean() if 'interest_rate_apr' in merged else 0
+# Calculate weighted average APR (weighted by outstanding loan value)
+if 'interest_rate_apr' in merged.columns and 'outstanding_loan_value' in merged.columns:
+    total_balance = merged['outstanding_loan_value'].sum()
+    if total_balance > 0:
+        avg_apr = (merged['interest_rate_apr'] * merged['outstanding_loan_value']).sum() / total_balance
+    else:
+        avg_apr = 0
+else:
+    avg_apr = 0
 default_rate = (merged['loan_status'] == 'Default').mean() * 100 if 'loan_status' in merged else 0
 
 col1.metric("Total Loans", f"{total_loans:,}")
