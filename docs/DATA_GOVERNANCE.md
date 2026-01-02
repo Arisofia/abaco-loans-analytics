@@ -201,19 +201,19 @@ To determine current Assets Under Management:
 
 1. Query all active loans:
    ```sql
-   SELECT 
+   SELECT
      SUM(outstanding_principal) as aum
-   FROM fact_loans 
+   FROM fact_loans
    WHERE status = 'active'
      AND created_at <= NOW();
    ```
 
 2. Group by client for portfolio breakdown:
    ```sql
-   SELECT 
+   SELECT
      client_id,
      SUM(outstanding_principal) as client_aum
-   FROM fact_loans 
+   FROM fact_loans
    WHERE status = 'active'
    GROUP BY client_id
    ORDER BY client_aum DESC;

@@ -6,9 +6,5 @@ Guidelines:
 - Include a README and appropriate licensing information within each package for traceability and auditability.
 - Keep dependencies minimal and documented to support predictable CI behavior.
 - Add tests alongside package code to maintain coverage quality.
-<<<<<<< HEAD
-=======
 - Document any Cosmos DB data-access helpers with partition-key guidance and RU/cost considerations to keep analytics pipelines predictable.
-
->>>>>>> main
 If the directory is unused, leave this file in place so automated checks referencing `packages` continue to succeed.

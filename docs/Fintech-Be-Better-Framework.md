@@ -13,16 +13,6 @@ The "Be Better" framework unifies commercial outcomes with engineering rigor. It
 - Enforce immutable, GPG-signed commits and linear git history for non-repudiation and traceability.
 - Treat passing quality gates as preconditions for partnership approvals and fundraising diligence.
 ## Engineering ↔ finance correlation matrix
-<<<<<<< HEAD
-| Engineering metric | Financial KPI | Economic impact | Tooling |
-| --- | --- | --- | --- |
-| Change Failure Rate (CFR) | Customer churn, brand equity | Incidents degrade trust and raise future CAC | SonarQube quality gates, CodeRabbit review |
-| Technical Debt Ratio (TDR) | EBITDA margin, R&D ROI | High remediation spend lowers yield on engineering capital | Sourcery refactoring, Codex auto-fix |
-| Deployment frequency | Time to Value, revenue velocity | Faster releases unlock pricing and growth experiments | Codex automation, linear git history |
-| Mean Time to Recovery (MTTR) | Transaction volume at risk | Downtime halts revenue in payment/trading flows | CodeRabbit debugging |
-| Code coverage | Operational risk | Untested financial logic increases error probability | SonarQube coverage enforcement |
-=======
-
 | Engineering metric           | Financial KPI                   | Economic impact                                            | Tooling                                    |
 | ---------------------------- | ------------------------------- | ---------------------------------------------------------- | ------------------------------------------ |
 | Change Failure Rate (CFR)    | Customer churn, brand equity    | Incidents degrade trust and raise future CAC               | SonarQube quality gates, CodeRabbit review |
@@ -31,7 +21,6 @@ The "Be Better" framework unifies commercial outcomes with engineering rigor. It
 | Mean Time to Recovery (MTTR) | Transaction volume at risk      | Downtime halts revenue in payment/trading flows            | CodeRabbit debugging                       |
 | Code coverage                | Operational risk                | Untested financial logic increases error probability       | SonarQube coverage enforcement             |
 
->>>>>>> main
 **TDR formula**: `TDR = (Remediation Cost / Development Cost) × 100`. Target <5% to minimize the "interest" paid on past shortcuts.
 ## Automated intelligence toolchain
 
@@ -49,15 +38,6 @@ The "Be Better" framework unifies commercial outcomes with engineering rigor. It
 
 A shell function (FISP v2.0) encapsulates the loop by running Sourcery, rebasing on `origin/main`, signing commits, force-with-lease pushing, creating PRs with compliance checklists, and enabling auto-merge. It halts on rebase conflicts to protect history integrity.
 ## Dashboarding for commercial intelligence
-<<<<<<< HEAD
-| Panel | Data source | Visualization | Insight → action |
-| --- | --- | --- | --- |
-| Velocity vs. quality | Git deploy rate + SonarQube CFR | Dual-axis line | If CFR rises with velocity, throttle deployments and invest in Codex-driven auto-tests. |
-| Technical debt valuation | SonarQube remediation minutes × avg hourly rate | Big-number currency | If debt exceeds 5% of R&D budget, schedule Sourcery refactoring sprints. |
-| Security posture | SonarQube OWASP + GPG audit logs | Heatmap | Focus assertive reviews and extra human sign-offs on red modules. |
-| Review efficiency | CodeRabbit time-saved + git merge time | Bar | Quantify AI ROI to justify more Codex/Copilot seats. |
-=======
-
 | Panel                    | Data source                                     | Visualization       | Insight → action                                                                        |
 | ------------------------ | ----------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------- |
 | Velocity vs. quality     | Git deploy rate + SonarQube CFR                 | Dual-axis line      | If CFR rises with velocity, throttle deployments and invest in Codex-driven auto-tests. |
@@ -65,7 +45,6 @@ A shell function (FISP v2.0) encapsulates the loop by running Sourcery, rebasing
 | Security posture         | SonarQube OWASP + GPG audit logs                | Heatmap             | Focus assertive reviews and extra human sign-offs on red modules.                       |
 | Review efficiency        | CodeRabbit time-saved + git merge time          | Bar                 | Quantify AI ROI to justify more Codex/Copilot seats.                                    |
 
->>>>>>> main
 ## Future outlook
 
 Agentic DevOps will progress toward self-healing pipelines that auto-repair failing deployments via Codex + SonarQube, and predictive compliance that flags GDPR/PCI risks during ideation. The goal remains market-leading code that is cryptographically verified, automated, and financially intelligent.

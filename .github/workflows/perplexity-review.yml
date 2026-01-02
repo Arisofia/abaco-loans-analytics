@@ -12,19 +12,33 @@ jobs:
       contents: read
 
     steps:
+      - name: Check secrets availability
+        id: check-secrets
+        env:
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+        run: |
+          if [ -n "$PERPLEXITY_API_KEY" ]; then
+            echo "secrets_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "secrets_available=false" >> $GITHUB_OUTPUT
+            echo "::warning::PERPLEXITY_API_KEY not configured - skipping review"
+          fi
+
       - name: Checkout code
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Get PR diff
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         id: diff
         run: |
           git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
           echo "diff_size=$(wc -c < pr_diff.txt)" >> $GITHUB_OUTPUT
 
       - name: Review with Perplexity
-        if: fromJSON(steps.diff.outputs.diff_size) < 50000
+        if: steps.check-secrets.outputs.secrets_available == 'true' && fromJSON(steps.diff.outputs.diff_size || '0') < 50000
         env:
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,13 +76,13 @@ jobs:
             echo "❌ Invalid JSON response from Perplexity API"
             exit 1
           fi
-          
+
           review_text=$(jq -r '.choices[0].message.content' review_response.json)
           if [ -z "$review_text" ] || [ "$review_text" = "null" ]; then
             echo "❌ No review content in API response"
             exit 1
           fi
-          
+
           gh pr comment ${{ github.event.pull_request.number }} \
             --body "## 🤖 Perplexity AI Review\n\n$review_text" || {
               echo "❌ Failed to post comment to PR"

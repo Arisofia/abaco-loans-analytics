@@ -63,6 +63,6 @@ jobs:
           SLACK_WEBHOOK_OPS: ${{ secrets.SLACK_WEBHOOK_OPS }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          python3 python/agents/c_suite_agent.py \
+          python3 src/agents/c_suite_agent.py \
             --run-id "${{ github.run_id }}" \
             --date-range "last 30 days"

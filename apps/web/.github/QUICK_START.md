@@ -387,12 +387,12 @@ git push -f origin feature/name
 
 ## Don't
 
-❌ Push to main or develop directly (create PR)  
-❌ Merge your own PR  
-❌ Commit secrets or keys  
-❌ Force push after code review  
-❌ Ignore CI failures  
-❌ Disable security checks  
+❌ Push to main or develop directly (create PR)
+❌ Merge your own PR
+❌ Commit secrets or keys
+❌ Force push after code review
+❌ Ignore CI failures
+❌ Disable security checks
 ❌ Deploy manually (let CI do it)
 
 ---
@@ -404,4 +404,3 @@ git push -f origin feature/name
 - **Slack Coordination**: `.github/DEPLOYMENT_COORDINATION.md`
 - **Engineering Standards**: `ENGINEERING_STANDARDS.md`
 - **Operations Guide**: `OPERATIONS.md`
-

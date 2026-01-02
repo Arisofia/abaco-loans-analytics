@@ -1,8 +1,7 @@
-import numpy as np
 import pandas as pd
 import pytest
 
-from python.kpis.collection_rate import calculate_collection_rate
+from src.kpis.collection_rate import calculate_collection_rate
 
 
 def test_calculate_collection_rate_standard():

@@ -1,5 +1,5 @@
 # Configuration Consolidation Strategy
-**Status**: PHASE 3.4E In Progress  
+**Status**: PHASE 3.4E In Progress
 **Date**: 2025-12-26
 
 ---
@@ -109,8 +109,7 @@ kpis = config["kpis"]
 
 - [ ] Extend config/pipeline.yml with integrations, agents, KPI sections
 - [ ] Create config/environments/development.yml|staging.yml|production.yml
-- [ ] Update python/pipeline/orchestrator.py to use new structure
+- [ ] Update src/pipeline/orchestrator.py to use new structure
 - [ ] Move old configs to /config/LEGACY/ with deprecation warnings
 - [ ] Update documentation with new config loading pattern
 - [ ] Test all environments to confirm configuration works
-

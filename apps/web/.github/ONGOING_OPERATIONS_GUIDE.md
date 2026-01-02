@@ -1,8 +1,8 @@
 # Ongoing Operations Guide - Week 4 and Beyond
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
-**Audience**: DevOps, QA, Developers, Tech Lead  
+**Version**: 2.0
+**Date**: 2025-12-26
+**Audience**: DevOps, QA, Developers, Tech Lead
 **Duration**: Ongoing (30 min/day + weekly review)
 
 ---
@@ -47,7 +47,7 @@ curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" \
 # Check: Latest version is still active
 ```
 
-**If all checks pass**: Continue normal work  
+**If all checks pass**: Continue normal work
 **If any check fails**: See troubleshooting section
 
 ### Continuous Monitoring (Ongoing)
@@ -83,7 +83,7 @@ Before leaving:
 [ ] No incidents opened today (or all resolved)
 [ ] #prod-alerts has no outstanding issues
 
-If all checked: Good to go! 
+If all checked: Good to go!
 If any unchecked: Investigate before leaving
 ```
 
@@ -747,7 +747,7 @@ After establishing operations, you should see:
 
 ---
 
-**Status**: 🟢 Ready for ongoing operations  
+**Status**: 🟢 Ready for ongoing operations
 **Created**: 2025-12-26
 
 Good luck with production operations! 🚀

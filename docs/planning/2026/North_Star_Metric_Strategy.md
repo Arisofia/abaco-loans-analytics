@@ -9,7 +9,7 @@ This document contains strategic goals and planning assumptions for 2026. All do
 - NPL: `SELECT * FROM kpi_timeseries_daily WHERE metric='npl_180' ORDER BY date DESC LIMIT 1`
 - Portfolio Health: See production validation report
 
-**Document Status:** Strategic Planning (Resolved: 2025-12-26)  
+**Document Status:** Strategic Planning (Resolved: 2025-12-26)
 **Last Review:** 2025-12-26
 
 ---

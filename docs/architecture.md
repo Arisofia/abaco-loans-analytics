@@ -1,466 +1,351 @@
-# Abaco Loans Analytics - System Architecture
-**Version**: 2.0 (Unified Pipeline)  
-**Status**: Production Ready  
-**Last Updated**: 2025-12-26
+# ABACO LOANS ANALYTICS - SYSTEM ARCHITECTURE
+
+**Status**: 🟡 IN DISCOVERY (Updated January 1, 2026)
+**Owner**: DevOps / Platform Engineering
+**Last Updated**: 2026-01-01
 
 ---
 
-## Executive Summary
+## 1. DATA ARCHITECTURE (CRITICAL - NEEDS COMPLETION)
 
-The Abaco Loans Analytics platform provides real-time KPI calculations and portfolio analytics for debt factoring operations. The V2 unified pipeline consists of 4 sequential phases: Ingestion → Transformation → Calculation → Output, coordinated by a single orchestrator.
+### Current State
+🔴 **CRITICAL GAP**: Production database storage location is NOT DOCUMENTED
 
-**Key Metrics:**
-- Pipeline execution: <10 minutes
-- Data latency: <6 hours  
-- KPI calculation precision: 4 decimal places
-- Test coverage: 85%+
-- Type hint coverage: 95%+
+**Evidence Collected**:
+- No Azure SQL Database in resource group
+- No PostgreSQL/MySQL managed services detected
+- No connection strings in App Service configuration
+- Blob Storage accounts exist but unclear if used for structured data
 
----
+### Questions to Answer
+- [ ] Where are production loan records stored? (Database? Blob Storage files? External API?)
+- [ ] What is the connection string for production data?
+- [ ] How do data pipelines write transformed data?
+- [ ] How does dashboard query KPIs for display?
+- [ ] What is the data retention policy?
 
-## Architecture Overview
+### Data Sources (Known)
+| Source | Type | Purpose | Integration |
+|--------|------|---------|-------------|
+| Cascade API | External API | Loan origination data | Via `cascade_client.py` |
+| HubSpot | External API | Customer/marketing data | Via `segment_manager.py` |
+| Manual CSV uploads | File uploads | Financial statements, payment schedules | Via `data/raw/` folders |
 
+### Data Storage Layers (To Be Determined)
+
+#### Layer 1: Raw Data Storage
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    UnifiedPipeline (Orchestrator)               │
-│                   [orchestrator.py, 216 lines]                  │
-└──────────────────────────────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 1: INGESTION                                             │
-│  ├─ Cascade API HTTP client (with rate limiting, retry logic)   │
-│  ├─ CSV file ingestion                                          │
-│  ├─ Schema validation (Pydantic)                                │
-│  ├─ Duplicate detection (SHA256 checksums)                      │
-│  └─ Input: Cascade Risk Analytics exports → Output: Raw DataFrame│
-│     [ingestion.py, 287 lines]                                   │
-└──────────────────────────────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 2: TRANSFORMATION                                        │
-│  ├─ Null value imputation                                       │
-│  ├─ Outlier detection & flagging                                │
-│  ├─ Data type normalization                                     │
-│  ├─ Business rule application                                   │
-│  └─ Input: Raw DataFrame → Output: Cleaned, enriched DataFrame  │
-│     [transformation.py, 155 lines]                              │
-└──────────────────────────────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 3: CALCULATION & ENRICHMENT                              │
-│  ├─ KPI Computations:                                           │
-│  │   ├─ PAR30: Principal at Risk (30+ days delinquent)         │
-│  │   ├─ PAR90: Principal at Risk (90+ days delinquent)         │
-│  │   ├─ Collection Rate: Payment collection percentage         │
-│  │   └─ Portfolio Health: Composite portfolio score (0-10)     │
-│  ├─ Time series aggregations (daily/weekly/monthly)            │
-│  ├─ Cross-validation vs historical data                        │
-│  ├─ Formula traceability audit trail                           │
-│  └─ Input: Clean DataFrame → Output: Metrics + Calculations    │
-│     [calculation_v2.py, 210 lines] + [kpi_engine_v2.py, 101 lines]
-└──────────────────────────────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 4: OUTPUT & DISTRIBUTION                                 │
-│  ├─ Parquet file export (with schema metadata)                  │
-│  ├─ Supabase PostgreSQL writes (transactional)                 │
-│  ├─ JSON reports (validation, audit)                            │
-│  ├─ Dashboard trigger signals                                   │
-│  └─ Input: Metrics → Output: Persisted + Distributed           │
-│     [output.py, 162 lines]                                      │
-└──────────────────────────────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  COMPLIANCE & OBSERVABILITY (Cross-Phase)                       │
-│  ├─ Audit trail logging (all operations, timestamps)            │
-│  ├─ Data lineage tracking (input hash → output hash)            │
-│  ├─ PII masking (compliance.py)                                 │
-│  ├─ Structured logging (JSON format)                            │
-│  └─ Error handling with circuit breaker pattern                 │
-└──────────────────────────────────────────────────────────────────┘
+Status: ❌ UNKNOWN
+Question: Where does raw Cascade/HubSpot data land?
+  Option A: Azure Blob Storage (ADLS) - File-based
+  Option B: PostgreSQL database - Structured
+  Option C: Cosmos DB - NoSQL
+  Option D: External (keep in APIs)
+```
+
+#### Layer 2: Processed Data Storage
+```
+Status: ❌ UNKNOWN
+Question: Where are transformed KPIs stored?
+  Option A: Same database as raw data
+  Option B: Separate analytical database
+  Option C: Blob Storage (Parquet files)
+  Option D: Supabase (mentioned in code but not configured)
+```
+
+#### Layer 3: Cache/Query Layer
+```
+Status: ❌ UNKNOWN
+Question: How does dashboard query data?
+  Option A: Direct database queries
+  Option B: API endpoints
+  Option C: Pre-computed exports
+  Option D: Real-time calculation from raw data
 ```
 
 ---
 
-## Module Inventory
+## 2. COMPUTE ARCHITECTURE
 
-### Core Pipeline Modules
+### Frontend (Dashboard)
 
-| Module | Lines | Purpose | Status |
-|--------|-------|---------|--------|
-| `orchestrator.py` | 216 | Pipeline orchestration, phase coordination | ✅ Production |
-| `ingestion.py` | 287 | Cascade API + file ingestion | ✅ Production |
-| `transformation.py` | 155 | Data cleaning & enrichment | ✅ Production |
-| `calculation_v2.py` | 210 | KPI calculations | ✅ Production |
-| `output.py` | 162 | Export to Supabase, Parquet, JSON | ✅ Production |
-| `utils.py` | 144 | Retry logic, circuit breaker, config loading | ✅ Production |
+**Type**: Streamlit/React Application
+**Location**: Azure App Service - `abaco-analytics-dashboard`
+**Status**: 🔴 OFFLINE (DNS_PROBE_FINISHED_NXDOMAIN)
 
-### KPI Engine & Calculation
-
-| Module | Lines | Purpose | Status |
-|--------|-------|---------|--------|
-| `kpi_engine_v2.py` | 101 | KPI orchestrator (V2, production) | ✅ Production |
-| `kpi_engine.py` | 182 | KPI orchestrator (V1, legacy) | ⚠️ **Deprecated** |
-| `kpis/base.py` | 82 | Base KPI calculator class | ✅ Production |
-| `kpis/par_30.py` | 66 | 30-day past due calculation | ✅ Production |
-| `kpis/par_90.py` | 57 | 90-day past due calculation | ✅ Production |
-| `kpis/collection_rate.py` | 61 | Collection rate calculation | ✅ Production |
-| `kpis/portfolio_health.py` | 39 | Composite portfolio score | ✅ Production |
-
-### Support Modules
-
-| Module | Lines | Purpose | Status |
-|--------|-------|---------|--------|
-| `validation.py` | 266 | DataFrame schema validation | ✅ Production |
-| `compliance.py` | 86 | PII masking, access logging | ✅ Production |
-| `analytics.py` | 91 | Quality scoring, growth projections | ✅ Production |
-| `financial_analysis.py` | 259 | DPD bucketing, financial rules | ✅ Production |
-
-### Legacy/Deprecated Modules ⚠️
-
-| Module | Lines | Status | Action |
-|--------|-------|--------|--------|
-| `ingestion.py` (root) | 122 | **Duplicate** | Remove - use `/pipeline/ingestion.py` |
-| `transformation.py` (root) | 52 | **Duplicate** | Remove - use `/pipeline/transformation.py` |
-| `kpi_engine.py` | 182 | **Deprecated** | Migrate to `kpi_engine_v2.py`, then delete |
-| `agents/` | ~250 | **Separate branch** | Integrate with pipeline |
-
----
-
-## Data Flow & Contracts
-
-### Phase 1 → 2: Ingestion Output
-
-```python
-# Input to Transformation
-DataFrame columns:
-├─ loan_id: str (unique identifier)
-├─ client_id: str (customer reference)
-├─ total_receivable_usd: float
-├─ dpd_0_7_usd: float (0-7 days past due amount)
-├─ dpd_7_30_usd: float
-├─ dpd_30_60_usd: float
-├─ dpd_60_90_usd: float
-├─ dpd_90_plus_usd: float
-├─ cash_available_usd: float
-├─ last_payment_date: datetime
-├─ next_payment_date: datetime
-└─ ... (20+ additional fields)
-
-Validation:
-✓ No null values in critical fields
-✓ total_receivable > 0
-✓ All DPD amounts < total_receivable
-✓ Duplicate loan_ids detected via SHA256(loan_data)
-```
-
-### Phase 2 → 3: Transformation Output
-
-```python
-# Input to Calculation
-Same DataFrame with enriched columns:
-├─ (all Ingestion columns)
-├─ normalized_dpd_0_7: float (as % of total_receivable)
-├─ normalized_dpd_7_30: float
-├─ ... (same for all DPD buckets)
-├─ quality_score: float (0-100, internal metric)
-├─ data_quality_flags: list[str] (["outlier_detected", ...])
-└─ transformation_hash: str (SHA256 of transformation inputs)
-```
-
-### Phase 3 → 4: Calculation Output
-
-```python
-# Input to Output
-Metrics Dictionary:
-{
-  "PAR30": {
-    "value": 0.1158,  # 11.58%
-    "precision": 4,
-    "formula": "SUM(DPD30+) / SUM(Total Receivable)",
-    "source_rows": 247,
-    "timestamp": "2025-12-26T02:00:00Z"
-  },
-  "PAR90": {
-    "value": 0.0608,
-    ...
-  },
-  "CollectionRate": {
-    "value": 0.2911,
-    ...
-  },
-  "PortfolioHealth": {
-    "value": 10.0,
-    "calculation": "min(10, 10 * (1 - PAR90) * (1 + CollectionRate))"
-    ...
-  }
-}
-
-Audit Trail:
-[
-  {"timestamp": "...", "phase": "ingestion", "event": "file_loaded", "rows": 247},
-  {"timestamp": "...", "phase": "transformation", "event": "cleaned", "nulls_imputed": 3},
-  {"timestamp": "...", "phase": "calculation", "event": "kpi_calculated", "kpi": "PAR30"},
-  ...
-]
-```
-
----
-
-## Configuration Architecture
-
-### Single Source of Truth: `/config/pipeline.yml`
-
+**Configuration**:
 ```yaml
-version: "1.0"
-name: "abaco_unified_pipeline"
-
-cascade:
-  base_url: "https://app.cascadedebt.com"
-  portfolio_id: "${PORTFOLIO_ID}"  # Env var substitution
-  endpoints:
-    risk_analytics: "/portfolio/${portfolio_id}/risk-analytics"
-  auth:
-    token_secret: "META_SYSTEM_USER_TOKEN"
-    refresh_threshold_hours: 24
-
-ingestion:
-  sources:
-    - type: "cascade_api"
-      retry_policy: "exponential_backoff"
-      max_retries: 3
-      timeout_seconds: 30
-    - type: "csv_file"
-      path: "data/raw/"
-  validation:
-    required_columns: [loan_id, total_receivable_usd, dpd_90_plus_usd]
-    type_enforcement: true
-
-transformation:
-  null_handling: "impute_zero"  # or "drop_row"
-  outlier_detection: true
-  business_rules:
-    - rule: "total_receivable > 0"
-      action: "flag"
-    - rule: "all_dpd_values < total_receivable"
-      action: "normalize"
-
-calculation:
-  kpis:
-    - name: "PAR30"
-      formula: "SUM(principal WHERE days_past_due >= 30) / SUM(principal)"
-      precision: 4
-      validation_range: [0, 1]
-    - name: "PAR90"
-      formula: "SUM(principal WHERE days_past_due >= 90) / SUM(principal)"
-      precision: 4
-      validation_range: [0, 1]
-    - name: "CollectionRate"
-      formula: "SUM(payments_received) / SUM(scheduled_payments)"
-      precision: 4
-      validation_range: [0, 1]
-    - name: "PortfolioHealth"
-      formula: "min(10, 10 * (1 - PAR90) * (1 + CollectionRate))"
-      composite: true
-      validation_range: [0, 10]
-
-output:
-  targets:
-    - type: "supabase"
-      schema: "analytics"
-      tables: [fact_loans, kpi_timeseries_daily]
-      transaction_guarantee: true
-    - type: "parquet"
-      path: "data/metrics/"
-      compression: "snappy"
-    - type: "json"
-      path: "logs/validation/"
-
-logging:
-  level: "INFO"
-  format: "json"
-  audit_trail: true
+App Service Plan: ASP-AIMultiAgentEcosystemRG-b676
+Tier: Basic B1 (🔴 SEVERELY UNDER-PROVISIONED for production)
+Instance: LW1SDLWK0006XP (Status: Desconocido → restart pending)
+Python: 3.12
+Region: Canada Central
+Health Check Path: /?page=health
+Startup Command: bash startup.sh
 ```
+
+**Environment Variables Configured**:
+- HUBSPOT_API_KEY ✅
+- OPENAI_API_KEY ✅
+- SCM_DO_BUILD_DURING_DEPLOYMENT=1 ✅
+
+**Missing Configuration**:
+- DATABASE_URL / database connection string ❌
+- SUPABASE_URL / SUPABASE_KEY ❌
+- Storage account connection strings ❌
+
+### Data Pipelines
+
+**Orchestration**: GitHub Actions (Scheduled workflows)
+
+**Pipeline Jobs**:
+| Pipeline | Schedule | Status | Duration | Purpose |
+|----------|----------|--------|----------|---------|
+| `cascade_ingest.yml` | Daily 06:00 CET | 🔴 FAILING | 11s | Cascade loan data ingestion |
+| `daily-ingest.yml` | Daily 07:00 CET | 🔴 FAILING | 16s | Daily data refresh |
+| `kpi-daily.yml` | Daily 07:30 CET | 🔴 FAILING | 14s | KPI calculation |
+| `meta_ingest.yaml` | Daily 08:00 CET | 🔴 FAILING | 19s | Meta marketing data |
+
+**Pipeline Code Locations**:
+- Orchestration: `src/pipeline/orchestrator.py`
+- Ingestion: `src/abaco_pipeline/ingestion/`
+- Transformation: `src/abaco_pipeline/transform/`
+- Output: `src/abaco_pipeline/output/`
+
+**Current Issues**:
+- Very short runtimes (11-19 seconds) suggest immediate failures
+- Likely root causes: authentication error, missing dependency, data validation failure
 
 ---
 
-## Dependency Graph
+## 3. INTEGRATION ARCHITECTURE
 
-### Clean Dependencies (No Cycles)
+### External Services
 
-```
-orchestrator.py
-├── ingestion.py
-│   ├── validation.py
-│   └── utils.py
-├── transformation.py
-│   ├── compliance.py
-│   ├── validation.py
-│   └── utils.py
-├── calculation_v2.py
-│   ├── kpi_engine_v2.py
-│   │   ├── kpis/par_30.py
-│   │   ├── kpis/par_90.py
-│   │   ├── kpis/collection_rate.py
-│   │   ├── kpis/portfolio_health.py
-│   │   └── kpis/base.py
-│   │       └── validation.py
-│   └── utils.py
-├── output.py
-│   └── utils.py
-└── compliance.py
-```
+**Active Integrations**:
+| Service | Type | Purpose | Key | Status |
+|---------|------|---------|-----|--------|
+| HubSpot | CRM API | Customer data, segments | HUBSPOT_API_KEY | ✅ Configured |
+| OpenAI | LLM API | AI insights generation | OPENAI_API_KEY | ✅ Configured |
+| Azure Key Vault | Secrets | Central secret management | aiagent-secrets-kv | ✅ Active |
+| Application Insights | Monitoring | Logging & telemetry | abaco-insights | ✅ Deployed but minimal logging |
 
-**Key Principle**: Dependencies flow downward only. No module imports its parent or siblings.
+**Inactive Integrations** (referenced but not configured):
+| Service | Purpose | Evidence | Status |
+|---------|---------|----------|--------|
+| Supabase | Database | Mentioned in code | ❌ No connection string |
+| Slack | Notifications | Discussed in planning | ❌ No webhook |
+| Notion | Documentation | Discussed in planning | ❌ No API key |
+| Figma | Design sync | `.exports/` folder exists | ❌ Unknown status |
+| Vercel | Hosting | `.vercel` folder exists | ⚠️ Unknown if active |
 
----
+### Secrets Management
 
-## Error Handling & Resilience
-
-### Retry Strategy
-
-```python
-# Implemented in utils.py: RetryPolicy class
-exponential_backoff(
-    initial_delay=1s,
-    max_delay=60s,
-    base=2,
-    max_retries=3
-)
-# Example: 1s → 2s → 4s → fail
-```
-
-### Circuit Breaker Pattern
-
-```python
-# Implemented in utils.py: CircuitBreaker class
-States:
-├── CLOSED: Normal operation (pass requests through)
-├── OPEN: Failure threshold exceeded (reject requests)
-└── HALF_OPEN: Recovery mode (test single request)
-
-Thresholds:
-├── failure_count: 5
-├── recovery_timeout: 60s
-└── success_count_to_close: 2
-```
-
-### Error Handling Strategy
-
-```python
-# In each phase:
-try:
-    result = execute_phase()
-except SpecificError as e:
-    log_error(e, context={"phase": "transformation", "row_id": row.id})
-    escalate_if_critical(e)
-    retry_or_skip(e)
-except Exception as e:
-    # Never bare except
-    log_error(e, severity="CRITICAL")
-    raise
-```
+**Implemented**: Azure Key Vault (`aiagent-secrets-kv`)
+**Issues**:
+- GitHub Actions can't access Key Vault properly (requires proper authentication fix)
+- Some secrets in App Service config instead of Key Vault
+- CI/CD syntax error prevented credential passing
 
 ---
 
-## Testing Strategy
+## 4. DEPLOYMENT ARCHITECTURE
 
-### Test Coverage Goals
-- **Unit tests**: 80%+ (individual functions)
-- **Integration tests**: Core pipeline phases
-- **End-to-end tests**: Full pipeline execution
-- **Data quality tests**: Validation suite
+### CI/CD Pipeline
 
-### Test Organization
+**Status**: 🔴 BROKEN (Now Fixed - PROD-002)
 
+**Tool**: GitHub Actions
+**Issue**: Invalid secrets context syntax in `deploy-dashboard.yml`
+**Fix Applied**: Replaced `if: ${{ secrets.AZURE_CREDENTIALS != '' }}` with proper output check
+
+**Deployment Flow**:
 ```
-tests/
-├── unit/
-│   ├── test_kpi_calculations.py
-│   ├── test_validation.py
-│   └── test_utils.py
-├── integration/
-│   ├── test_ingestion_transformation.py
-│   ├── test_transformation_calculation.py
-│   └── test_full_pipeline.py
-└── data/
-    ├── test_fixtures/
-    └── expected_outputs/
+1. Code push to main branch
+2. GitHub Actions trigger (on dashboard/* or workflow changes)
+3. Build: Install Python dependencies
+4. Deploy: Push to Azure App Service
+5. Health Check: Verify app responds on health endpoint
+6. Notify: Comment on PR if failure
 ```
 
----
-
-## Production Readiness Checklist
-
-- [x] Type hints on all public functions (95%+)
-- [x] Docstrings for all public APIs (92%+)
-- [x] Error handling with specific exceptions (no bare except)
-- [x] Structured logging (JSON format)
-- [x] Configuration-driven design (no hard-coded values)
-- [x] Data validation with Pydantic schemas
-- [x] Audit trail logging (all operations)
-- [x] Retry logic with exponential backoff
-- [x] Circuit breaker for external APIs
-- [x] Comprehensive test coverage (85%+)
-- [x] Performance targets met (0.65ms latency, 1.5M rows/sec)
-- [x] Deployment procedures documented
-- [x] Rollback strategy (<5 minutes)
+**Deployment Method**: Azure Deployment Center (GitHub integration)
+**Publish Profile**: `secrets.AZURE_WEBAPP_PUBLISH_PROFILE`
 
 ---
 
-## Known Technical Debt & Remediation
+## 5. INFRASTRUCTURE AS CODE
 
-### CRITICAL PRIORITY 🔴
+**Current State**: Bicep (Azure's IaC language)
+**Main Template**: `infra/azure/main.bicep`
+**Monitoring Config**: `infra/azure/monitoring-alerts.yaml`
+**Deployment Script**: `scripts/deploy-monitoring-alerts.sh`
 
-1. **Module Duplication**
-   - Issue: `ingestion.py` (root) duplicates `/pipeline/ingestion.py`
-   - Impact: Maintenance burden, potential inconsistency
-   - Fix: Delete root version, consolidate to `/pipeline/ingestion.py`
-   - Timeline: Complete by 2025-12-30
-
-2. **Deprecated KPI Engine**
-   - Issue: `kpi_engine.py` (old) still in codebase
-   - Impact: Confusion about which to use, maintenance burden
-   - Fix: Add deprecation marker, migrate callers to `kpi_engine_v2.py`, delete old
-   - Timeline: Complete by 2025-12-31
-
-### MEDIUM PRIORITY 🟡
-
-3. **Agent Framework Integration**
-   - Issue: `/agents/` modules run independently from pipeline
-   - Impact: Separate audit trails, data consistency risk
-   - Fix: Integrate agents to consume pipeline outputs
-   - Timeline: Q1-2026
-
-4. **Configuration Consolidation**
-   - Issue: Config scattered across `/config/agents/`, `/config/pipelines/`, etc.
-   - Impact: Unclear which config is active
-   - Fix: Consolidate to single `/config/pipeline.yml` with environment variable overrides
-   - Timeline: Complete by 2025-12-30
+**Resources Managed**:
+- App Service & App Service Plan
+- Key Vault
+- Application Insights
+- Storage Accounts
+- Managed Identities
+- Function Apps
 
 ---
 
-## Performance Characteristics
+## 6. MONITORING & OBSERVABILITY
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| Pipeline execution | <10 min | ~2 min | ✅ Exceeds |
-| KPI latency (1k rows) | <100ms | 0.65ms | ✅ Exceeds (154x) |
-| Throughput | >100k rows/sec | 1.5M rows/sec | ✅ Exceeds (15x) |
-| Memory peak | <500MB | 105.5MB | ✅ Exceeds (4.7x) |
-| CPU utilization | <80% | <50% | ✅ Exceeds |
-| Data quality | >95% | 100% | ✅ Exceeds |
+### Current Setup
+- **Monitoring**: Azure Monitor + Application Insights
+- **Dashboards**: None currently configured
+- **Alerts**: None currently configured (PLANNED)
+- **Logging**: Application Insights (minimal telemetry)
+
+### Planned Setup (Week 1-2)
+- [ ] Response time alerts (> 5 seconds)
+- [ ] Error rate alerts (> 1% 5xx errors)
+- [ ] Availability alerts (< 99%)
+- [ ] Pipeline failure alerts
+- [ ] Data quality alerts (row counts, schema validation)
+
+### Audit & Compliance Logging
+- **Audit Hooks Module**: `src/pipeline/audit_hooks.py` (IMPLEMENTED)
+- **Features**:
+  - Immutable audit logging (JSONL format)
+  - Data lineage tracking
+  - Access control audit trails
+  - Compliance reporting
 
 ---
 
-## Next Steps
+## 7. SECURITY & ACCESS CONTROL
 
-1. **Consolidate modules** (Tasks 3.1-3.4)
-2. **Build comprehensive tests** (Task 4.2)
-3. **Document operations runbook** (Task 5.2)
-4. **Create migration guide** (Task 5.3)
+### Azure RBAC
+- **Key Vault Access**: Managed Identity (oidc-msi-*)
+- **App Service**: System-assigned managed identity
+- **Storage**: Azure RBAC roles
 
-**Timeline**: Complete by 2026-01-15  
-**Owner**: Engineering Lead  
-**Status**: On Track
+### Secrets Management
+- **Location**: Azure Key Vault (`aiagent-secrets-kv`)
+- **Rotation**: Manual (should be automated)
+- **Access**: GitHub Actions (via secrets context - NOW FIXED)
 
+### Branch Protection
+- **Current**: ❌ None (main branch unprotected)
+- **Recommended**:
+  - Require pull requests
+  - Require status checks to pass
+  - Dismiss stale pull request approvals
+  - Require code review from code owners
+
+---
+
+## 8. DISASTER RECOVERY & BACKUP
+
+### Current State
+- **Data Backup**: ❌ NOT DOCUMENTED
+- **RTO Target**: 4 hours (per runbook)
+- **RPO Target**: 4 hours (per runbook)
+- **DR Plan**: 📄 See `docs/runbooks/data-loss.md`
+
+### Backup Strategy (To Be Implemented)
+- [ ] Daily database backups (automated)
+- [ ] Cross-region blob storage replication
+- [ ] Backup validation tests
+- [ ] Recovery procedure runbooks
+
+---
+
+## 9. CAPACITY & SCALING
+
+### Current State
+- **App Service Tier**: Basic B1 (1 core, 1.75 GB RAM, $13/month)
+- **Status**: 🔴 SEVERELY UNDER-PROVISIONED
+
+### Scaling Plan
+| Phase | Timeline | Tier | Cores | RAM | Est. Cost |
+|-------|----------|------|-------|-----|-----------|
+| Emergency | Now | Basic B1 | 1 | 1.75 GB | $13/mo |
+| Stabilization | Week 1 | Standard S1 | 1 | 1.75 GB | $70/mo |
+| Production | Week 2 | Premium P1V2 | 2 | 3.5 GB | $200/mo |
+| High Availability | Week 4 | Premium P1V2 x 2 | 4 | 7 GB | $400/mo |
+
+### Pipeline Parallelization
+- **Current**: Sequential execution
+- **Target**: Parallel ingestion (Cascade + HubSpot + Meta simultaneously)
+- **Tools**: Azure Data Factory or GitHub Actions matrix builds
+
+---
+
+## 10. COMPLIANCE & GOVERNANCE
+
+### Regulatory Requirements
+- **Primary**: Fintech/Financial Services (loan data)
+- **Frameworks**: ISO 27001, SOX, GDPR (if EU customers)
+
+### Implemented Controls
+- ✅ Data classification module (`src/data_classification.py`)
+- ✅ Audit logging module (`src/pipeline/audit_hooks.py`)
+- ✅ RBAC access control
+- ✅ Secrets in Key Vault
+- ✅ Risk register and runbooks
+
+### Outstanding Controls
+- [ ] Automated backups
+- [ ] Encryption at rest verification
+- [ ] Data retention policies
+- [ ] Access audit reports
+- [ ] Incident response automation
+
+---
+
+## 11. KNOWN ISSUES & ACTION ITEMS
+
+### P0 - CRITICAL (Fix Today)
+- [ ] Dashboard offline - DNS error (awaiting Azure instance restart)
+- [ ] Data pipelines failing - root cause unknown (awaiting log review)
+- [ ] Production database location unknown (awaiting clarification)
+
+### P1 - HIGH (Fix This Week)
+- [ ] App Service tier under-provisioned (upgrade to Standard S1)
+- [ ] No monitoring/alerting configured
+- [ ] No branch protection on main
+- [ ] CI/CD secrets handling needs improvement
+- [ ] Database connection configuration missing
+
+### P2 - MEDIUM (Address in Phase 2)
+- [ ] Geographic resource distribution inconsistent
+- [ ] No disaster recovery plan
+- [ ] No high availability (single instance)
+- [ ] Integration documentation incomplete
+
+---
+
+## 12. NEXT STEPS
+
+**Immediate (Next 2 Hours)**:
+1. ✅ Deploy CI/CD fix (DONE)
+2. Verify dashboard service restore (Azure Portal)
+3. Review pipeline failure logs (GitHub Actions)
+4. Provide production database connection details
+
+**Short Term (This Week)**:
+1. Document data architecture (this file - COMPLETE SECTION 1)
+2. Set up monitoring and alerts
+3. Enable branch protection
+4. Configure automated backups
+5. Upgrade App Service tier to Standard S1
+
+**Medium Term (Weeks 2-4)**:
+1. Implement high availability setup
+2. Configure automated disaster recovery tests
+3. Optimize pipeline performance with parallelization
+4. Complete compliance control implementation
+5. Create comprehensive runbooks for all failure scenarios
+
+---
+
+## References
+
+- 📄 Risk Register: `docs/RISK_REGISTER.md`
+- 📄 Emergency Response Plan: `EMERGENCY_RESPONSE_PLAN.md`
+- 📄 Runbooks: `docs/runbooks/`
+- 📄 Audit Integration Guide: `src/pipeline/AUDIT_INTEGRATION_GUIDE.md`

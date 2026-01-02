@@ -1,8 +1,8 @@
 # Week 1 Setup Guide
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
-**Duration**: 2-4 hours  
+**Version**: 2.0
+**Date**: 2025-12-26
+**Duration**: 2-4 hours
 **Audience**: DevOps, Infrastructure, Team Lead
 
 ---
@@ -139,11 +139,11 @@ The script will:
 
 ### What the Script Does
 
-✅ Creates 7 GitHub repository secrets  
-✅ Validates each secret before creating  
-✅ Verifies successful creation  
-✅ Does NOT modify any code or configuration  
-✅ Can be run multiple times (will update existing secrets)  
+✅ Creates 7 GitHub repository secrets
+✅ Validates each secret before creating
+✅ Verifies successful creation
+✅ Does NOT modify any code or configuration
+✅ Can be run multiple times (will update existing secrets)
 
 ### Troubleshooting
 
@@ -249,7 +249,7 @@ cascade:
 supabase:
   url: ${STAGING_SUPABASE_URL}
   anon_key: ${STAGING_SUPABASE_KEY}
-  
+
 sentry:
   enabled: false
   dsn: null
@@ -469,12 +469,12 @@ mkdir -p config/environments
 
 Week 1 setup is complete when:
 
-✅ 7 GitHub secrets created and verified  
-✅ 3 GitHub environments created  
-✅ Staging environment file created  
-✅ Production environment file created  
-✅ All team members read documentation  
-✅ Slack channels ready (optional)  
+✅ 7 GitHub secrets created and verified
+✅ 3 GitHub environments created
+✅ Staging environment file created
+✅ Production environment file created
+✅ All team members read documentation
+✅ Slack channels ready (optional)
 
 ---
 
@@ -537,7 +537,7 @@ Once Week 1 is complete, proceed to Week 2:
 
 ## Timeline
 
-**Expected duration**: 2-4 hours for one person  
+**Expected duration**: 2-4 hours for one person
 **Best practice**: Have 2-3 people involved (DevOps + Tech Lead)
 
 **Breakdown**:
@@ -553,9 +553,8 @@ Once Week 1 is complete, proceed to Week 2:
 
 ---
 
-**Setup Owner**: _______________  
-**Completion Date**: _______________  
-**Verified By**: _______________  
+**Setup Owner**: _______________
+**Completion Date**: _______________
+**Verified By**: _______________
 
 **Next**: Follow Week 2 dry-runs in POST_IMPLEMENTATION_CHECKLIST.md
-

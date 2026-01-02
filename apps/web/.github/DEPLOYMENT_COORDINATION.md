@@ -1,7 +1,7 @@
 # Deployment Coordination Guide
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
+**Version**: 2.0
+**Date**: 2025-12-26
 **Purpose**: Team communication during deployments
 
 ---
@@ -41,7 +41,7 @@
 
 ### Feature Development → Staging Deployment
 
-**When**: Developer merges PR to develop  
+**When**: Developer merges PR to develop
 **Channel**: #dev-alerts
 
 ```
@@ -61,7 +61,7 @@ Actions:
 
 ### Staging Validation Period
 
-**Status Update at 12h (mid-way)**  
+**Status Update at 12h (mid-way)**
 **Channel**: #dev-alerts
 
 ```
@@ -75,7 +75,7 @@ Next: Final validation in 12h
 
 ### Staging Validation Complete
 
-**When**: 24-hour window ends  
+**When**: 24-hour window ends
 **Channel**: #dev-alerts
 
 ```
@@ -92,7 +92,7 @@ DevOps: Proceed with release tag when ready
 
 ### Production Release Started
 
-**When**: Version tag created  
+**When**: Version tag created
 **Channel**: #prod-alerts
 
 ```
@@ -449,23 +449,23 @@ Link: [PR link with comments]
 
 ### DO
 
-✅ Post updates in correct channel  
-✅ Use clear, concise language  
-✅ Include relevant links  
-✅ Mention specific people when action needed  
-✅ Update regularly during deployments/incidents  
-✅ Tag issues/PRs properly  
-✅ Use emoji for quick status scanning  
+✅ Post updates in correct channel
+✅ Use clear, concise language
+✅ Include relevant links
+✅ Mention specific people when action needed
+✅ Update regularly during deployments/incidents
+✅ Tag issues/PRs properly
+✅ Use emoji for quick status scanning
 
 ### DON'T
 
-❌ Post secrets or API keys  
-❌ Spam multiple channels with same message  
-❌ Use all-caps (unless CRITICAL)  
-❌ Post personal opinions in official channels  
-❌ Ignore incidents for > 5 minutes  
-❌ Deploy without notifying team  
-❌ Mix incident and non-incident discussions  
+❌ Post secrets or API keys
+❌ Spam multiple channels with same message
+❌ Use all-caps (unless CRITICAL)
+❌ Post personal opinions in official channels
+❌ Ignore incidents for > 5 minutes
+❌ Deploy without notifying team
+❌ Mix incident and non-incident discussions
 
 ---
 
@@ -473,34 +473,34 @@ Link: [PR link with comments]
 
 ### #prod-alerts
 
-**Purpose**: Production notifications only  
-**Ping**: Yes (relevant teams)  
-**Frequency**: As needed (quality > quantity)  
-**Urgency**: High  
+**Purpose**: Production notifications only
+**Ping**: Yes (relevant teams)
+**Frequency**: As needed (quality > quantity)
+**Urgency**: High
 **Audience**: DevOps, engineering leads, on-call
 
 ### #incidents
 
-**Purpose**: P1/P2 incident coordination  
-**Ping**: Yes (immediately for P1)  
-**Frequency**: Only during incidents  
-**Urgency**: Critical  
+**Purpose**: P1/P2 incident coordination
+**Ping**: Yes (immediately for P1)
+**Frequency**: Only during incidents
+**Urgency**: Critical
 **Audience**: On-call, engineering, DevOps, leadership
 
 ### #dev-alerts
 
-**Purpose**: Development notifications  
-**Ping**: No (use threads for replies)  
-**Frequency**: Regular  
-**Urgency**: Medium  
+**Purpose**: Development notifications
+**Ping**: No (use threads for replies)
+**Frequency**: Regular
+**Urgency**: Medium
 **Audience**: All developers
 
 ### #dev-help
 
-**Purpose**: Questions and learning  
-**Ping**: No  
-**Frequency**: Ongoing  
-**Urgency**: Low to medium  
+**Purpose**: Questions and learning
+**Ping**: No
+**Frequency**: Ongoing
+**Urgency**: Low to medium
 **Audience**: All developers
 
 ---
@@ -551,4 +551,3 @@ Escalation path:
 - Link GitHub Actions runs
 - Link PRs with [Title](URL)
 - Reference issues with #[number]
-

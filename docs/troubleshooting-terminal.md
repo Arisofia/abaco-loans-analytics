@@ -22,7 +22,7 @@ If environment variables from `.env` are not injected into VS Code terminals, en
 1. Open **Settings (JSON)** in VS Code.
 2. Add the following entry:
    ```json
-   "python.terminal.useEnvFile": true
+   "src.terminal.useEnvFile": true
    ```
 3. Open a new terminal; it will now include variables from `.env`.
 ## Sourcery configuration version error

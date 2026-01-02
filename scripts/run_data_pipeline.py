@@ -6,14 +6,20 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import pandas as pd
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from python.compliance import build_compliance_report, write_compliance_report
-from python.pipeline.ingestion import UnifiedIngestion
-from python.kpi_engine_v2 import KPIEngineV2
-from python.kpis.portfolio_health import calculate_portfolio_health
-from python.pipeline.orchestrator import UnifiedPipeline
-from python.pipeline.transformation import UnifiedTransformation
+from src.compliance import build_compliance_report, write_compliance_report
+from src.config.paths import Paths
+from src.kpi_engine_v2 import KPIEngineV2 as KPIEngine
+from src.pipeline.data_ingestion import UnifiedIngestion
+from src.pipeline.data_transformation import UnifiedTransformation
+from src.pipeline.orchestrator import UnifiedPipeline
+
+# Legacy aliases for backward compatibility with tests/patching
+CascadeIngestion = UnifiedIngestion
+DataTransformation = UnifiedTransformation
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,14 +27,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DEFAULT_INPUT = os.getenv("PIPELINE_INPUT_FILE", "data/abaco_portfolio_calculations.csv")
+DEFAULT_INPUT = os.getenv(
+    "PIPELINE_INPUT_FILE", str(Paths.raw_data_dir() / "abaco_portfolio_calculations.csv")
+)
 
 
 def write_outputs(
-    df, metrics: Dict[str, Any], manifest: Dict[str, Any], output_dir: str = "data/metrics"
+    df, metrics: Dict[str, Any], manifest: Dict[str, Any], output_dir: Optional[str] = None
 ) -> Dict[str, Any]:
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
+    output_path = Path(output_dir) if output_dir else Paths.metrics_dir(create=True)
     run_id = manifest.get("run_id", "run")
     metrics_file = output_path / f"{run_id}.parquet"
     csv_file = output_path / f"{run_id}.csv"
@@ -71,21 +78,21 @@ def run_pipeline(
     azure_connection_string: Optional[str] = None,
     azure_blob_prefix: Optional[str] = None,
 ) -> bool:
-    ingestion = UnifiedIngestion(data_dir=str(Path(input_file).parent))
+    ingestion = CascadeIngestion(data_dir=str(Path(input_file).parent))
     ingested = ingestion.ingest_csv(Path(input_file).name)
     validated = ingestion.validate_loans(ingested)
 
-    if validated.empty or not bool(validated.get("_validation_passed", True).all()):
+    if validated.empty or not pd.Series(validated.get("_validation_passed", True)).all():
         return False
 
-    transformer = UnifiedTransformation()
+    transformer = DataTransformation()
     kpi_df = transformer.transform_to_kpi_dataset(validated)
 
-    kpi_engine = KPIEngineV2(kpi_df)
+    kpi_engine = KPIEngine(kpi_df)
     par_30, par_30_ctx = kpi_engine.calculate_par_30()
     par_90, par_90_ctx = kpi_engine.calculate_par_90()
     collection_rate, coll_ctx = kpi_engine.calculate_collection_rate()
-    health_score, health_ctx = calculate_portfolio_health(par_30, collection_rate)
+    health_score, health_ctx = kpi_engine.calculate_portfolio_health(par_30, collection_rate)
 
     metrics = {
         "PAR30": {"value": par_30, **par_30_ctx},
@@ -130,20 +137,19 @@ def main(
     action: Optional[str] = None,
     config_path: str = "config/pipeline.yml",
 ) -> bool:
-    user = user or os.getenv("PIPELINE_RUN_USER", "system")
-    action = action or os.getenv("PIPELINE_RUN_ACTION", "manual")
+    effective_user: str = user or os.getenv("PIPELINE_RUN_USER", "system")
+    effective_action: str = action or os.getenv("PIPELINE_RUN_ACTION", "manual")
 
-    context = {
-        "user": user,
-        "action": action,
-        "triggered_at": Path(input_file).name,
-    }
-
-    logger.info("--- ABACO UNIFIED PIPELINE START ---")
+    logger.info(
+        "--- ABACO UNIFIED PIPELINE START --- user=%s action=%s input=%s",
+        effective_user,
+        effective_action,
+        Path(input_file).name,
+    )
 
     try:
         pipeline = UnifiedPipeline(config_path=Path(config_path))
-        result = pipeline.execute(Path(input_file), user=user, action=action)
+        result = pipeline.execute(Path(input_file), user=effective_user, action=effective_action)
         logger.info("Pipeline completed: %s", result.get("status"))
         return result.get("status") == "success"
     except Exception as exc:

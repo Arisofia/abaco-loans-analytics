@@ -104,25 +104,25 @@ pipeline:
     calculation:
       metrics:
         - name: PAR30
-          function: python.kpis.par_30.calculate_par_30
+          function: src.kpis.par_30.calculate_par_30
           formula: "SUM(dpd_30_60 + dpd_60_90 + dpd_90_plus) / SUM(total_receivable) * 100"
           source_table: fact_loans
           precision: 2
           validation_range: [0, 100]
         - name: PAR90
-          function: python.kpis.par_90.calculate_par_90
+          function: src.kpis.par_90.calculate_par_90
           formula: "SUM(dpd_90_plus) / SUM(total_receivable) * 100"
           source_table: fact_loans
           precision: 2
           validation_range: [0, 100]
         - name: CollectionRate
-          function: python.kpis.collection_rate.calculate_collection_rate
+          function: src.kpis.collection_rate.calculate_collection_rate
           formula: "SUM(cash_available) / SUM(total_eligible) * 100"
           source_table: fact_loans
           precision: 2
           validation_range: [0, 100]
         - name: PortfolioHealth
-          function: python.kpis.portfolio_health.calculate_portfolio_health
+          function: src.kpis.portfolio_health.calculate_portfolio_health
           formula: "(10 - PAR30/10) * (CollectionRate/10)"
           source_table: metrics
           precision: 2

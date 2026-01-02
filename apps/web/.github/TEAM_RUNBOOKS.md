@@ -1,7 +1,7 @@
 # Team Deployment Runbooks
 
-**Version**: 2.0  
-**Date**: 2025-12-26  
+**Version**: 2.0
+**Date**: 2025-12-26
 **Audience**: All development, QA, and operations teams
 
 ---
@@ -156,8 +156,8 @@ You don't deploy directly. Production deployments follow this process:
 
 #### Staging Validation (24-hour window)
 
-**When**: Immediately after develop branch merge  
-**Duration**: 24 hours  
+**When**: Immediately after develop branch merge
+**Duration**: 24 hours
 **Environment**: https://staging.abaco-loans-analytics.com
 
 **1. Validation Checklist**
@@ -240,7 +240,7 @@ When validation is complete:
 
 #### Pre-Production Release
 
-**Timeline**: After 24-hour staging validation  
+**Timeline**: After 24-hour staging validation
 **Responsibility**: Coordinate and execute release
 
 **1. Pre-Release Checklist**
@@ -545,7 +545,7 @@ git push origin develop
 
 ### Scenario 5: Production Issue, Need to Rollback
 
-**When**: Critical issue detected after deployment  
+**When**: Critical issue detected after deployment
 **Who**: DevOps with approval
 
 **Steps**:
