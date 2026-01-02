@@ -162,7 +162,7 @@ Here's exactly how to execute Week 1:
 
 ```bash
 # Step 1: Navigate to repo
-cd /Users/jenineferderas/Documents/abaco-loans-analytics/apps/web
+cd <path-to-repo>/abaco-loans-analytics/apps/web
 
 # Step 2: Verify prerequisites (10 min)
 gh --version
