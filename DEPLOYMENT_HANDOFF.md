@@ -56,7 +56,7 @@
 
 **The Command**:
 ```bash
-cd /Users/jenineferderas/Documents/abaco-loans-analytics
+cd <path-to-your-project>/abaco-loans-analytics
 source .venv/bin/activate
 python scripts/production_validation.py
 # Output → production_validation_report.json
