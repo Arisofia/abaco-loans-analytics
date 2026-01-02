@@ -15,8 +15,8 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || secrets.NOTION_INTEGRATION_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || secrets.NOTION_TOKEN || secrets.NOTION_INTEGRATION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID || secrets.NOTION_DATABASE_URL || secrets.NOTION_DATABASE }}
         run: |
           sanitize_secret() {
             local var_name="$1"
@@ -75,8 +75,8 @@ jobs:
           python scripts/growth_experiments.py
       - name: Post to Notion
         env:
-          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || secrets.NOTION_INTEGRATION_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || secrets.NOTION_TOKEN || secrets.NOTION_INTEGRATION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID || secrets.NOTION_DATABASE_URL || secrets.NOTION_DATABASE }}
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
         if: steps.check-secrets.outputs.run == 'true' && steps.check-secrets.outputs.notion_available == 'true'
         run: |

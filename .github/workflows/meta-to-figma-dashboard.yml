@@ -8,8 +8,8 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-      FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
+      FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
+      FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY || secrets.FIGMA_FILE_URL || secrets.FIGMA_FILE_LINK }}
       FIGMA_NODE_ID: ${{ secrets.FIGMA_NODE_ID }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -20,8 +20,8 @@ jobs:
       - name: Check integration secrets
         id: check-secrets
         env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
+          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY || secrets.FIGMA_FILE_URL || secrets.FIGMA_FILE_LINK }}
           FIGMA_NODE_ID: ${{ secrets.FIGMA_NODE_ID }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

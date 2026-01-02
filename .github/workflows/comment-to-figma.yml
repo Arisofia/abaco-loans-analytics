@@ -12,8 +12,8 @@ jobs:
       - name: Check Figma secrets
         id: figma_secrets
         env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
+          FIGMA_FILE_KEY: ${{ steps.figma_secrets.outputs.file_key }}
         run: |
           sanitize_secret() {
             local var_name="$1"
@@ -32,6 +32,26 @@ jobs:
           sanitize_secret FIGMA_TOKEN "$FIGMA_TOKEN"
           sanitize_secret FIGMA_FILE_KEY "$FIGMA_FILE_KEY"
 
+          normalize_figma_key() {
+            local raw="$1"
+            if [ -z "$raw" ]; then
+              echo ""
+              return
+            fi
+            local stripped="${raw%%\?*}"
+            if [[ "$stripped" =~ /(file|design|proto)/([A-Za-z0-9_-]+) ]]; then
+              echo "${BASH_REMATCH[2]}"
+              return
+            fi
+            echo "$stripped"
+          }
+
+          FIGMA_FILE_KEY="$(normalize_figma_key "$FIGMA_FILE_KEY")"
+          if [ -n "$FIGMA_FILE_KEY" ]; then
+            echo "FIGMA_FILE_KEY=$FIGMA_FILE_KEY" >> "$GITHUB_ENV"
+            echo "file_key=$FIGMA_FILE_KEY" >> "$GITHUB_OUTPUT"
+          fi
+
           if [ -n "$FIGMA_TOKEN" ] && [ -n "$FIGMA_FILE_KEY" ]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
@@ -41,8 +61,8 @@ jobs:
       - name: Post comment to Figma
         if: steps.figma_secrets.outputs.available == 'true'
         env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
+          FIGMA_FILE_KEY: ${{ steps.figma_secrets.outputs.file_key }}
         run: |
           COMMENT="Automated result: Workflow check passed at $(date)"
           curl -X POST "https://api.figma.com/v1/files/$FIGMA_FILE_KEY/comments" \

@@ -246,8 +246,8 @@ jobs:
       - name: Check secrets availability
         id: check-secrets
         env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
+          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY || secrets.FIGMA_FILE_URL || secrets.FIGMA_FILE_LINK }}
           ANALYTICS_URL: ${{ secrets.ANALYTICS_URL }}
         run: |
           sanitize_secret() {
@@ -295,8 +295,8 @@ jobs:
         if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/update_figma_slides.js') != ''
         run: node scripts/update_figma_slides.js
         env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
+          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY || secrets.FIGMA_FILE_URL || secrets.FIGMA_FILE_LINK }}
           ANALYTICS_URL: ${{ secrets.ANALYTICS_URL }}
 
   notify-on-failure:
@@ -340,7 +340,7 @@ jobs:
         uses: slackapi/slack-github-action@v2
         if: steps.slack_check.outputs.available == 'true'
         with:
-          webhook-type: INCOMING_WEBHOOK
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": "🚨 CI Workflow Failed",

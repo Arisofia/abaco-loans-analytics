@@ -18,7 +18,7 @@ jobs:
       - name: Check Figma token
         id: figma_secrets
         env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
         run: |
           sanitize_secret() {
             local var_name="$1"
@@ -58,7 +58,7 @@ jobs:
       - name: Export Figma file data
         if: steps.figma_secrets.outputs.available == 'true' && hashFiles('scripts/export_figma_file_data.py') != ''
         env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN || secrets.FIGMA_OAUTH_TOKEN || secrets.FIGMA_API_TOKEN || secrets.FIGMA_PERSONAL_ACCESS_TOKEN }}
         run: |
           python scripts/export_figma_file_data.py
 

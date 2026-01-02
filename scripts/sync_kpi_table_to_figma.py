@@ -1,4 +1,6 @@
 import json
+import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -11,8 +13,35 @@ from src.config.secrets import get_secrets_manager
 
 # Secrets
 secrets = get_secrets_manager()
-FIGMA_TOKEN = secrets.get("FIGMA_TOKEN", required=True)
-FIGMA_FILE_KEY = secrets.get("FIGMA_FILE_KEY", required=True)
+
+def extract_file_key(value):
+    if not value:
+        return None
+    raw = str(value).strip()
+    if "figma.com" in raw:
+        match = re.search(r"/(file|design|proto)/([A-Za-z0-9_-]+)", raw)
+        if match:
+            return match.group(2)
+        return None
+    return raw.split("?")[0]
+
+FIGMA_TOKEN = (
+    secrets.get("FIGMA_TOKEN")
+    or os.getenv("FIGMA_OAUTH_TOKEN")
+    or os.getenv("FIGMA_API_TOKEN")
+    or os.getenv("FIGMA_PERSONAL_ACCESS_TOKEN")
+)
+raw_file_key = (
+    secrets.get("FIGMA_FILE_KEY")
+    or os.getenv("FIGMA_FILE_URL")
+    or os.getenv("FIGMA_FILE_LINK")
+)
+FIGMA_FILE_KEY = extract_file_key(raw_file_key)
+
+if not FIGMA_TOKEN:
+    raise ValueError("FIGMA_TOKEN is required for Figma sync")
+if not FIGMA_FILE_KEY:
+    raise ValueError("FIGMA_FILE_KEY is required for Figma sync")
 
 # Paths
 FIGMA_PAGE_NAME = "KPI Table"

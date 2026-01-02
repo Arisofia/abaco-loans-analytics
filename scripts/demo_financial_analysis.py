@@ -11,8 +11,11 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import pandas as pd
+try:
+    import matplotlib.pyplot as plt
+except ImportError:  # pragma: no cover - optional dependency
+    plt = None
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -93,6 +96,10 @@ def main():
     print(f"HHI Score: {hhi:.2f} (Scale 0-10,000)")
 
     # 5. Visualization
+    if plt is None:
+        logger.warning("matplotlib is not available; skipping plots.")
+        return
+
     if "dpd_bucket" in enriched_df.columns:
         print("\n[4] Generating DPD Distribution Chart...")
         counts = enriched_df["dpd_bucket"].value_counts()

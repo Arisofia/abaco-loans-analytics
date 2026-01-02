@@ -95,3 +95,8 @@ __azurite_db_*.json
 __azurite_db_*_extent__.json
 scripts/setup_azure.sh
 .azure
+
+# Ignore generated media files
+*.mp4
+*.mov
+*.mp3
