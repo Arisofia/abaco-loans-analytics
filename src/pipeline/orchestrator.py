@@ -388,15 +388,12 @@ def daily_loan_intelligence_flow(input_file: str = "data/raw/abaco_portfolio.csv
 
     # 1. Ingestion Phase with Circuit Breaker
     ingest_res = ingest_task(pipeline, path)
-    if ingest_res is None or ingest_res.df.empty:
-        logger.error("Flow halted: Ingestion returned empty dataframe (Circuit Breaker triggered)")
-        return {"status": "halted", "reason": "ingestion_failure"}
 
     # 2. Transformation Phase
     transform_res = transform_task(pipeline, ingest_res)
 
     # 3. Calculation Phase
-    calculate_task(pipeline, transform_res)
+    calculate_res = calculate_task(pipeline, transform_res)
 
     # 4. Finalization (Compliance + Summary)
     # For now, we reuse the existing execution logic or wrap the remaining parts
