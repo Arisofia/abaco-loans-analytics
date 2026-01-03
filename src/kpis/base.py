@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
@@ -22,40 +23,21 @@ class KPICalculator(ABC):
         """
 
 
+@dataclass(frozen=True)
 class KPIMetadata:
     """Metadata for a KPI including formula, thresholds, and ownership."""
 
-    def __init__(
-        self,
-        name: str,
-        description: str,
-        formula: str,
-        unit: str,
-        data_sources: list,
-        threshold_warning: Optional[float] = None,
-        threshold_critical: Optional[float] = None,
-        owner: Optional[str] = None,
-    ):
-        self.name = name
-        self.description = description
-        self.formula = formula
-        self.unit = unit
-        self.data_sources = data_sources
-        self.threshold_warning = threshold_warning
-        self.threshold_critical = threshold_critical
-        self.owner = owner
+    name: str
+    description: str
+    formula: str
+    unit: str
+    data_sources: List[str]
+    threshold_warning: Optional[float] = None
+    threshold_critical: Optional[float] = None
+    owner: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "name": self.name,
-            "description": self.description,
-            "formula": self.formula,
-            "unit": self.unit,
-            "data_sources": self.data_sources,
-            "threshold_warning": self.threshold_warning,
-            "threshold_critical": self.threshold_critical,
-            "owner": self.owner,
-        }
+        return asdict(self)
 
 
 def safe_numeric(series: pd.Series, fill_value: float = 0.0) -> pd.Series:

@@ -1,9 +1,8 @@
 import json
-import os
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
-
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,9 @@ class FeedbackStore:
                 with open(file_path, "r") as f:
                     data = json.load(f)
                 if not isinstance(data, dict):
-                    logger.warning("Skipping malformed feedback file (not an object): %s", file_path)
+                    logger.warning(
+                        "Skipping malformed feedback file (not an object): %s", file_path
+                    )
                     continue
                 if "score" not in data:
                     logger.warning("Skipping feedback missing 'score' key: %s", file_path)

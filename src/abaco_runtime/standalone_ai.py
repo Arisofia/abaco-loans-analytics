@@ -1,9 +1,9 @@
 import json
 import logging
 import os
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 from itertools import islice
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from requests.exceptions import RequestException
 
@@ -67,7 +67,9 @@ class StandaloneAIEngine:
             return content
         return f"{content[:max_chars]}...[truncated]"
 
-    def _construct_prompt(self, personality: Dict[str, str], context: Dict[str, Any], data: Dict[str, Any]) -> str:
+    def _construct_prompt(
+        self, personality: Dict[str, str], context: Dict[str, Any], data: Dict[str, Any]
+    ) -> str:
         data_payload = self._truncate_content(json.dumps(data, ensure_ascii=False))
         lines: List[str] = [
             f"Tone: {personality.get('tone')}",
@@ -83,7 +85,9 @@ class StandaloneAIEngine:
             lines.append(f"Knowledge Base: {kb_payload}")
         return "\n".join(lines)
 
-    def generate_response(self, agent_id: str, context: Dict[str, Any], data: Dict[str, Any]) -> str:
+    def generate_response(
+        self, agent_id: str, context: Dict[str, Any], data: Dict[str, Any]
+    ) -> str:
         agent_type = self._extract_agent_type(agent_id)
         personality = self.personalities.get(agent_type, self.personalities["risk_analyst"])
         prompt = self._construct_prompt(personality, context, data)
@@ -98,7 +102,9 @@ class StandaloneAIEngine:
             logger.warning(f"AI generation failed: {e}")
             return self._offline_response(personality, context, data)
 
-    def _offline_response(self, personality: Dict[str, str], context: Dict[str, Any], data: Dict[str, Any]) -> str:
+    def _offline_response(
+        self, personality: Dict[str, str], context: Dict[str, Any], data: Dict[str, Any]
+    ) -> str:
         preview = json.dumps({k: data[k] for k in islice(data, 3)}, ensure_ascii=False)
         return (
             f"[{personality['tone']}] {context.get('summary', 'No summary provided')} | "

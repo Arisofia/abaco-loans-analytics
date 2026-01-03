@@ -5,7 +5,7 @@ Enables distributed tracing, logging, and metrics collection for the analytics d
 
 import logging
 import os
-from typing import Callable, Any, Tuple
+from typing import Any, Callable, Tuple
 
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 from opencensus.ext.azure.trace_exporter import AzureExporter
@@ -62,7 +62,9 @@ except Exception:
     _logger = logging.getLogger(__name__)
 
 
-def trace_analytics_job(job_name: str, client_id: str, run_id: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def trace_analytics_job(
+    job_name: str, client_id: str, run_id: str
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator for tracing analytics batch jobs.
 
     Uses module-level `_tracer` and `_logger` that were initialized once at

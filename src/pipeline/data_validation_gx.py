@@ -15,8 +15,8 @@ try:
 
     HAS_GE = True
 except Exception:  # pragma: no cover - optional dependency
-    gx = None
-    EphemeralDataContext = None
+    gx = None  # type: ignore
+    EphemeralDataContext = None  # type: ignore
     HAS_GE = False
 
 
@@ -29,7 +29,7 @@ def get_or_create_datasource(
         return context.get_datasource(datasource_name)
     except Exception:
         logger.info("Datasource '%s' not found; creating it.", datasource_name)
-        return context.sources.add_pandas(name=datasource_name)
+        return context.sources.add_pandas(name=datasource_name)  # type: ignore
 
 
 def create_validator_for_dataframe(

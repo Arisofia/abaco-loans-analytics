@@ -6,7 +6,10 @@ PROJECT_MARKERS = ("pyproject.toml", "requirements.txt", ".git", ".github")
 
 
 def find_project_root(start: Path | None = None) -> Path:
-    p = (start or Path.cwd()).resolve()
+    # Coerce `start` to a Path and resolve to avoid type issues when using the
+    # `/` operator with different union types (e.g., `Path | Callable`).
+    p = Path(start) if start is not None else Path.cwd()
+    p = p.resolve()
     for parent in (p, *p.parents):
         if any((parent / m).exists() for m in PROJECT_MARKERS):
             return parent

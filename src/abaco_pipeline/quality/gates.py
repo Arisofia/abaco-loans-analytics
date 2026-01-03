@@ -51,23 +51,20 @@ def check_referential_integrity(df, key_columns: list[str] | None = None) -> boo
     if not cols:
         return True
 
-    if not hasattr(df, "columns"):
+    if not hasattr(df, "columns") or any(col not in df.columns for col in cols):
         return False
-    for col in cols:
-        if col not in df.columns:
-            return False
 
     try:
         if len(df) == 0:
             return True
+        subset = df[cols]
+        if hasattr(subset, "isna") and bool(subset.isna().any().any()):
+            return False
+        if hasattr(df, "duplicated") and bool(df.duplicated(subset=cols).any()):
+            return False
     except Exception:
         return False
 
-    subset = df[cols]
-    if hasattr(subset, "isna") and bool(subset.isna().any().any()):
-        return False
-    if hasattr(df, "duplicated") and bool(df.duplicated(subset=cols).any()):
-        return False
     return True
 
 

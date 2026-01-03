@@ -3,18 +3,32 @@ from pathlib import Path
 from datetime import datetime, timezone
 import sys
 import logging
+from typing import Callable
+logger = logging.getLogger(__name__)
 import os
 import subprocess
 
 
-def _find_repo_root(start: Path | None = None) -> Path:
+def _find_repo_root(start: Path | None | Callable[[], Path] = None) -> Path:
     """Find the repository root by looking for common marker files.
 
     Walks up from the start path and looks for `pyproject.toml`, `.git`, or
     `README.md`. Falls back to a conservative parent if nothing is found.
+
+    The function handles `start` being either a `Path`, `None`, or a callable
+    that returns a `Path`. We coerce the result to `Path` and resolve it to
+    avoid type-checker issues when using the `/` operator on union types.
     """
-    start = start or Path(__file__).resolve()
-    p = start
+    # If a callable was provided (e.g., a thunk that returns a Path), call it.
+    if callable(start):
+        start_value = start()
+    else:
+        start_value = start
+
+    # Ensure `start_value` is a Path instance and resolved before use.
+    start_path = Path(start_value).resolve() if start_value is not None else Path(__file__).resolve()
+    p = start_path
+
     for _ in range(12):
         if (p / "pyproject.toml").exists() or (p / ".git").exists() or (p / "README.md").exists():
             return p
@@ -23,7 +37,9 @@ def _find_repo_root(start: Path | None = None) -> Path:
             break
         p = parent
     # Fallback to previous heuristic (legacy behavior)
-    return Path(__file__).resolve().parents[3]
+    # Converting .parents to a tuple avoids certain type-checker issues where
+    # `.parents` can be treated as a non-subscriptable callable/type.
+    return tuple(Path(__file__).resolve().parents)[3]
 
 
 # Ensure repository root is on sys.path for local/script runs (idempotent)
@@ -59,8 +75,11 @@ def get_latest_kpis():
         
     latest_manifest_path = manifests[0]
     try:
-        with open(latest_manifest_path, "r") as f:
+        with latest_manifest_path.open("r", encoding="utf-8") as f:
             manifest = json.load(f)
+        if not isinstance(manifest, dict):
+            logger.error("Manifest at %s is not an object (type=%s)", latest_manifest_path, type(manifest).__name__)
+            raise HTTPException(status_code=500, detail="Malformed manifest file")
         return {
             "run_id": manifest.get("run_id"),
             "generated_at": manifest.get("generated_at"),
@@ -118,7 +137,7 @@ async def trigger_pipeline(background_tasks: BackgroundTasks, input_file: str = 
         log_path = Path("logs/pipeline_subprocess.log")
         log_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            log_file = open(log_path, "a")
+            log_file = log_path.open("a")
         except Exception:
             log_file = subprocess.DEVNULL
 

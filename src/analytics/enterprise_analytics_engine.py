@@ -128,9 +128,8 @@ class LoanAnalyticsEngine:
 
     def compute_delinquency_rate(self) -> float:
         """Computes the portfolio delinquency rate using KPIEngineV2."""
-        from src.kpi_engine_v2 import (
-            KPIEngineV2,  # pylint: disable=import-outside-toplevel
-        )
+        from src.kpi_engine_v2 import \
+            KPIEngineV2  # pylint: disable=import-outside-toplevel
 
         engine_v2 = KPIEngineV2(self.loan_data, actor="enterprise_engine")
         val, _ = engine_v2.calculate_par_30()
@@ -138,9 +137,8 @@ class LoanAnalyticsEngine:
 
     def compute_portfolio_yield(self) -> float:
         """Computes the weighted average portfolio yield using KPIEngineV2."""
-        from src.kpi_engine_v2 import (
-            KPIEngineV2,  # pylint: disable=import-outside-toplevel
-        )
+        from src.kpi_engine_v2 import \
+            KPIEngineV2  # pylint: disable=import-outside-toplevel
 
         engine_v2 = KPIEngineV2(self.loan_data, actor="enterprise_engine")
         val, _ = engine_v2.calculate_portfolio_yield()
@@ -228,9 +226,8 @@ class LoanAnalyticsEngine:
         Runs a comprehensive analysis and returns a portfolio-level KPIs dict.
         Delegates core computations to KPIEngineV2 for consistency.
         """
-        from src.kpi_engine_v2 import (
-            KPIEngineV2,  # pylint: disable=import-outside-toplevel
-        )
+        from src.kpi_engine_v2 import \
+            KPIEngineV2  # pylint: disable=import-outside-toplevel
 
         engine_v2 = KPIEngineV2(self.loan_data, actor="enterprise_engine")
         results = engine_v2.calculate_all()

@@ -1,13 +1,17 @@
 from pathlib import Path
-from typing import Dict, Any
-from prefect import flow, task, get_run_logger
-from src.pipeline.data_ingestion import UnifiedIngestion, IngestionResult
-from src.pipeline.data_transformation import UnifiedTransformation, TransformationResult
-from src.pipeline.kpi_calculation import UnifiedCalculationV2, CalculationResultV2
-from src.pipeline.output import UnifiedOutput, OutputResult
-from src.pipeline.orchestrator import PipelineConfig
-from src.pipeline.data_validation_gx import validate_loan_data
+from typing import Any, Dict, Union
+
+from prefect import flow, get_run_logger, task
+
 from src.agents.tools import send_slack_notification
+from src.pipeline.data_ingestion import IngestionResult, UnifiedIngestion
+from src.pipeline.data_transformation import (TransformationResult,
+                                              UnifiedTransformation)
+from src.pipeline.data_validation_gx import validate_loan_data
+from src.pipeline.kpi_calculation import (CalculationResultV2,
+                                          UnifiedCalculationV2)
+from src.pipeline.orchestrator import PipelineConfig
+from src.pipeline.output import OutputResult, UnifiedOutput
 
 
 @task(retries=3, retry_delay_seconds=60)
@@ -36,7 +40,9 @@ def ingestion_task(config: Dict[str, Any], input_file: Path) -> IngestionResult:
 
 
 @task
-def transformation_task(config: Dict[str, Any], df: TransformationResult | Any, run_id: str) -> TransformationResult:
+def transformation_task(
+    config: Dict[str, Any], df: Union[TransformationResult, Any], run_id: str
+) -> TransformationResult:
     logger = get_run_logger()
     logger.info("Starting transformation for run %s", run_id)
     transformation = UnifiedTransformation(config, run_id=run_id)
@@ -44,7 +50,9 @@ def transformation_task(config: Dict[str, Any], df: TransformationResult | Any, 
 
 
 @task
-def calculation_task(config: Dict[str, Any], df: TransformationResult | Any, run_id: str) -> CalculationResultV2:
+def calculation_task(
+    config: Dict[str, Any], df: Union[TransformationResult, Any], run_id: str
+) -> CalculationResultV2:
     logger = get_run_logger()
     logger.info("Starting KPI calculation for run %s", run_id)
     calculation = UnifiedCalculationV2(config, run_id=run_id)
@@ -54,7 +62,10 @@ def calculation_task(config: Dict[str, Any], df: TransformationResult | Any, run
 
 @task
 def output_task(
-    config: Dict[str, Any], transformation_result: TransformationResult, calculation_result: CalculationResultV2, run_id: str
+    config: Dict[str, Any],
+    transformation_result: TransformationResult,
+    calculation_result: CalculationResultV2,
+    run_id: str,
 ) -> OutputResult:
     logger = get_run_logger()
     logger.info("Starting output persistence for run %s", run_id)

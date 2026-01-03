@@ -11,7 +11,7 @@ Handles:
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -68,7 +68,7 @@ class SupabaseOutputClient:
                     "unit": metric_data.get("unit", ""),
                     "status": metric_data.get("status", "neutral"),
                     "metadata": json.dumps(metric_data.get("metadata", {})),
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 }
 
                 response = self.client.table("analytics_kpi_metrics").insert(record).execute()
@@ -107,7 +107,7 @@ class SupabaseOutputClient:
 
                 for record in batch_records:
                     record["run_id"] = run_id
-                    record["created_at"] = datetime.utcnow().isoformat()
+                    record["created_at"] = datetime.now(timezone.utc).isoformat()
 
                 response = self.client.table(table_name).insert(batch_records).execute()
 
@@ -140,7 +140,7 @@ class SupabaseOutputClient:
 
                 for record in ts_records:
                     record["run_id"] = run_id
-                    record["created_at"] = datetime.utcnow().isoformat()
+                    record["created_at"] = datetime.now(timezone.utc).isoformat()
 
                 response = (
                     self.client.table("analytics_timeseries")

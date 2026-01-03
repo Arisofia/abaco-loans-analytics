@@ -1,10 +1,15 @@
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Optional, List
+from typing import Any, List, Optional
 
 
-def save_agent_output(agent_name: str, output: Any, version: Optional[str] = None, storage_dir: str = "data/agent_outputs") -> str:
+def save_agent_output(
+    agent_name: str,
+    output: Any,
+    version: Optional[str] = None,
+    storage_dir: str = "data/agent_outputs",
+) -> str:
     os.makedirs(storage_dir, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     version = version or timestamp

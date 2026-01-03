@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import matplotlib
+
 # Use non-interactive backend for scripts/tests to avoid GUI/display-related errors
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

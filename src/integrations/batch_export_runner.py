@@ -11,7 +11,7 @@ Orchestrates the complete export pipeline:
 import argparse
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -79,7 +79,7 @@ class BatchExportRunner:
     def generate_summary(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
         """Generate summary report from metrics."""
         return {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "metric_count": len(metrics),
             "metrics_overview": {
                 name: {

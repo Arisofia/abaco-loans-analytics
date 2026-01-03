@@ -10,8 +10,8 @@ Handles:
 
 import logging
 import os
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, cast
 
 import requests
 
@@ -47,7 +47,7 @@ class NotionOutputClient:
         try:
             response = requests.request(method, url, timeout=30, **kwargs)
             response.raise_for_status()
-            return response.json()
+            return cast(Dict[str, Any], response.json())
         except requests.RequestException as e:
             logger.error(f"Notion API error: {e}")
             return {}
@@ -88,7 +88,7 @@ class NotionOutputClient:
                     },
                     "Generated": {
                         "date": {
-                            "start": datetime.utcnow().isoformat(),
+                            "start": datetime.now(timezone.utc).isoformat(),
                         }
                     },
                 },

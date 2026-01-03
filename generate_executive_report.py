@@ -18,6 +18,7 @@ except (ImportError, Exception) as tracing_err:
     logger = logging.getLogger(__name__)
     logger.warning("Azure tracing not initialized: %s", tracing_err)
 
+
 def load_and_analyze_loans():
     """Load loan data and generate comprehensive analysis."""
     data_path = Path(__file__).parent / "data" / "raw" / "looker_exports" / "loans.csv"

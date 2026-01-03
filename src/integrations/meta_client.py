@@ -11,8 +11,8 @@ Handles:
 import json
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, cast
 
 import requests
 
@@ -46,7 +46,7 @@ class MetaOutputClient:
         try:
             response = requests.request(method, url, timeout=30, **kwargs)
             response.raise_for_status()
-            return response.json()
+            return cast(Dict[str, Any], response.json())
         except requests.RequestException as e:
             logger.error(f"Meta API error: {e}")
             return {}
@@ -67,8 +67,8 @@ class MetaOutputClient:
                 "data": [
                     {
                         "event_name": event_name,
-                        "event_time": int(datetime.utcnow().timestamp()),
-                        "event_id": f"{event_name}_{datetime.utcnow().isoformat()}",
+                        "event_time": int(datetime.now(timezone.utc).timestamp()),
+                        "event_id": f"{event_name}_{datetime.now(timezone.utc).isoformat()}",
                         "event_source_url": "https://abaco-analytics-dashboard.azurewebsites.net",
                         "user_data": user_data or {},
                         "custom_data": event_data,
@@ -166,7 +166,7 @@ class MetaOutputClient:
                 params=params,
             )
 
-            insights = response.get("data", [])
+            insights = cast(List[Dict[str, Any]], response.get("data", []))
             logger.info(f"Retrieved {len(insights)} ad campaigns from Meta")
             return insights
 
