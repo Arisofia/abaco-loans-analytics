@@ -1,7 +1,7 @@
 import logging
 from datetime import date, datetime
 from functools import wraps
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Any
 
 import numpy as np
 import pandas as pd
@@ -11,12 +11,12 @@ from src.pipeline.data_validation import find_column
 logger = logging.getLogger(__name__)
 
 
-def resolve_column(candidates: List[str], fallback: Optional[str] = None):
+def resolve_column(candidates: List[str], fallback: Optional[str] = None) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to resolve column name before method execution."""
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def wrapper(self, df: pd.DataFrame, col_param: Optional[str] = None, **kwargs):
+        def wrapper(self, df: pd.DataFrame, col_param: Optional[str] = None, **kwargs) -> pd.DataFrame:
             resolved_col: Optional[str] = None
             if col_param and col_param in df.columns:
                 resolved_col = col_param

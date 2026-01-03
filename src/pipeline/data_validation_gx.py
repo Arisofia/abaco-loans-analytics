@@ -23,7 +23,7 @@ except Exception:  # pragma: no cover - optional dependency
 def get_or_create_datasource(
     context: "EphemeralDataContext",
     datasource_name: str,
-):
+) -> Any:
     """Get or create a pandas datasource for the given context."""
     try:
         return context.get_datasource(datasource_name)
@@ -37,7 +37,7 @@ def create_validator_for_dataframe(
     df: pd.DataFrame,
     datasource_name: str,
     asset_name: str,
-):
+) -> Any:
     """Create a Great Expectations validator for a Pandas DataFrame."""
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df must be a Pandas DataFrame.")
