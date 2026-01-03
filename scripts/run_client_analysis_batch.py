@@ -52,6 +52,7 @@ def _setup_logger(level: str) -> logging.Logger:
     logger.addHandler(h)
     return logger
 
+
 def _env(name: str) -> str:
     v = os.getenv(name)
     if not v:

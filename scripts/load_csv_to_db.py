@@ -7,7 +7,7 @@ import pandas as pd
 import psycopg
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from src.config.paths import Paths
+from src.config.paths import Paths  # noqa: E402
 
 DB_DSN = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
 
@@ -20,6 +20,7 @@ except (ImportError, Exception) as tracing_err:
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
     logger.warning("Azure tracing not initialized: %s", tracing_err)
+
 
 def load_data():
     data_dir = Paths.data_dir() / "abaco"

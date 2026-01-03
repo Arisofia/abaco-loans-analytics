@@ -2,8 +2,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from src.config.paths import Paths
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
+from src.config.paths import Paths  # noqa: E402
 
 # Paths
 KPI_MD_PATH = Paths.docs_dir() / "analytics/KPIs.md"

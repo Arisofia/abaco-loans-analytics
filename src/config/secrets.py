@@ -51,14 +51,14 @@ class SecretsManager:
             use_vault_fallback: If True, attempt Azure Key Vault fallback for missing secrets
         """
         self.use_vault_fallback = use_vault_fallback
-        self._vault_client = None
+        self._vault_client: Any = None
         self._cache: Dict[str, str] = {}
         self._status: Dict[str, str] = {}
 
         if use_vault_fallback:
             self._init_vault_client()
 
-    def _init_vault_client(self):
+    def _init_vault_client(self) -> None:
         """Initialize Azure Key Vault client (lazy load)."""
         try:
             from azure.identity import ClientSecretCredential
@@ -69,8 +69,9 @@ class SecretsManager:
             client_secret = os.getenv("AZURE_CLIENT_SECRET")
             vault_name = os.getenv("AZURE_KEY_VAULT_NAME")
 
-            if all([tenant_id, client_id, client_secret, vault_name]):
+            if tenant_id and client_id and client_secret and vault_name:
                 vault_url = f"https://{vault_name}.vault.azure.net"
+                # After the truthiness check above, these are str
                 credential = ClientSecretCredential(
                     tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
                 )

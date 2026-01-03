@@ -14,8 +14,8 @@ from pathlib import Path
 
 from azure.storage.blob import BlobServiceClient
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from src.config.secrets import get_secrets_manager
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
+from src.config.secrets import get_secrets_manager  # noqa: E402
 
 # Configure logging
 logging.basicConfig(

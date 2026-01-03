@@ -13,9 +13,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
-from src.kpi_engine_v2 import KPIEngineV2
+from src.kpi_engine_v2 import KPIEngineV2  # noqa: E402
 
 try:
     from src.azure_tracing import setup_azure_tracing

@@ -25,18 +25,17 @@ def main():
     # Configure tracing at startup
     logger.info("Initializing application with tracing...")
     configure_tracing()
-    
+
     if is_tracing_enabled():
         logger.info("✓ Tracing enabled - telemetry will be sent to Azure Application Insights")
     else:
         logger.warning("⚠ Tracing disabled - no telemetry will be collected")
         logger.warning("  Set APPLICATIONINSIGHTS_CONNECTION_STRING to enable tracing")
-    
+
     # Now import and use your application modules
     # They will automatically benefit from tracing
     from python.agents.orchestrator import AgentOrchestrator
-    from python.pipeline.orchestrator import PipelineOrchestrator
-    
+
     # Example: Run agent
     logger.info("Running agent orchestrator...")
     orchestrator = AgentOrchestrator()
@@ -49,7 +48,7 @@ def main():
         }
     )
     logger.info(f"Agent result: {result['output'][:100]}...")
-    
+
     # Example: Run pipeline (if you have input data)
     # logger.info("Running pipeline...")
     # pipeline = PipelineOrchestrator()
@@ -59,7 +58,7 @@ def main():
     #     action="automated"
     # )
     # logger.info(f"Pipeline status: {pipeline_result['status']}")
-    
+
     logger.info("✓ Application completed successfully")
     return 0
 

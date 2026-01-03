@@ -1,8 +1,9 @@
 import re
 from datetime import datetime
+from typing import Any
 
 
-def _is_valid_iso8601(val):
+def _is_valid_iso8601(val: Any) -> bool:
     if not isinstance(val, str):
         return False
     # Accept YYYY-MM-DD or full ISO 8601

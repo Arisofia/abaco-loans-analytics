@@ -23,11 +23,11 @@ def test_pipeline_with_valid_data(minimal_config, tmp_path):
     )
     csv_file = tmp_path / "test.csv"
     df.to_csv(csv_file, index=False)
-    
+
     ingestion = UnifiedIngestion(minimal_config)
     ingest_result = ingestion.ingest_file(csv_file)
     assert not ingest_result.df.empty
-    
+
     transformer = UnifiedTransformation(minimal_config)
     transform_result = transformer.transform(ingest_result.df)
     assert not transform_result.df.empty
@@ -51,7 +51,7 @@ def test_pipeline_ingestion_with_invalid_numeric_column(minimal_config, tmp_path
     )
     csv_file = tmp_path / "test.csv"
     df.to_csv(csv_file, index=False)
-    
+
     ingestion = UnifiedIngestion(minimal_config)
     with pytest.raises(ValueError):
         ingestion.ingest_file(csv_file)

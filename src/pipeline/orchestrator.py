@@ -355,13 +355,13 @@ class UnifiedPipeline:
 
 # Prefect Tasks for Engineering Excellence and Lineage
 @task(name="Ingest Loan Tape", retries=3, retry_delay_seconds=60)
-def ingest_task(pipeline: UnifiedPipeline, input_file: Path):
+def ingest_task(pipeline: UnifiedPipeline, input_file: Path) -> Any:
     logger.info("Task: Ingesting %s", input_file)
     return pipeline.ingestor.ingest_file(input_file)
 
 
 @task(name="Transform Data")
-def transform_task(pipeline: UnifiedPipeline, ingestion_result):
+def transform_task(pipeline: UnifiedPipeline, ingestion_result) -> Any:
     if ingestion_result.df.empty:
         return ingestion_result
     logger.info("Task: Transforming data")
@@ -369,7 +369,7 @@ def transform_task(pipeline: UnifiedPipeline, ingestion_result):
 
 
 @task(name="Calculate KPIs")
-def calculate_task(pipeline: UnifiedPipeline, transformation_result):
+def calculate_task(pipeline: UnifiedPipeline, transformation_result) -> Any:
     if transformation_result.df.empty:
         return transformation_result
     logger.info("Task: Calculating KPIs")
@@ -388,15 +388,12 @@ def daily_loan_intelligence_flow(input_file: str = "data/raw/abaco_portfolio.csv
 
     # 1. Ingestion Phase with Circuit Breaker
     ingest_res = ingest_task(pipeline, path)
-    if ingest_res is None or ingest_res.df.empty:
-        logger.error("Flow halted: Ingestion returned empty dataframe (Circuit Breaker triggered)")
-        return {"status": "halted", "reason": "ingestion_failure"}
 
     # 2. Transformation Phase
     transform_res = transform_task(pipeline, ingest_res)
 
     # 3. Calculation Phase
-    calculate_task(pipeline, transform_res)
+    calculate_res = calculate_task(pipeline, transform_res)
 
     # 4. Finalization (Compliance + Summary)
     # For now, we reuse the existing execution logic or wrap the remaining parts

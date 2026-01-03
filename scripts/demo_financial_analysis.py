@@ -14,13 +14,13 @@ from pathlib import Path
 import matplotlib
 # Use non-interactive backend for scripts/tests to avoid GUI/display-related errors
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import pandas as pd
+import matplotlib.pyplot as plt  # noqa: E402
+import pandas as pd  # noqa: E402
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
-from src.financial_analysis import FinancialAnalyzer
+from src.financial_analysis import FinancialAnalyzer  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)

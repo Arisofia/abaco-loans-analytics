@@ -11,6 +11,7 @@ This module is a placeholder for the full implementation.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, Dict
 
 
 @dataclass(frozen=True)
@@ -22,5 +23,5 @@ class CascadeClient:
         if not self.base_url:
             raise ValueError("base_url is required")
 
-    def get(self, path: str) -> dict:
+    def get(self, path: str) -> Dict[str, Any]:
         raise NotImplementedError("CascadeClient.get() is not implemented in the scaffold")

@@ -8,14 +8,14 @@ from typing import Any, Dict, Optional
 
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
-from src.compliance import build_compliance_report, write_compliance_report
-from src.config.paths import Paths
-from src.kpi_engine_v2 import KPIEngineV2 as KPIEngine
-from src.pipeline.data_ingestion import UnifiedIngestion
-from src.pipeline.data_transformation import UnifiedTransformation
-from src.pipeline.orchestrator import UnifiedPipeline
+from src.compliance import build_compliance_report, write_compliance_report  # noqa: E402
+from src.config.paths import Paths  # noqa: E402
+from src.kpi_engine_v2 import KPIEngineV2 as KPIEngine  # noqa: E402
+from src.pipeline.data_ingestion import UnifiedIngestion  # noqa: E402
+from src.pipeline.data_transformation import UnifiedTransformation  # noqa: E402
+from src.pipeline.orchestrator import UnifiedPipeline  # noqa: E402
 
 # Legacy aliases for backward compatibility with tests/patching
 CascadeIngestion = UnifiedIngestion

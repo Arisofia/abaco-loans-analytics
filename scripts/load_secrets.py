@@ -3,9 +3,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
-from src.config.secrets import get_secrets_manager
+from src.config.secrets import get_secrets_manager  # noqa: E402
 
 load_dotenv()
 
