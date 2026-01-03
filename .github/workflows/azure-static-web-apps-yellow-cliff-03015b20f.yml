@@ -13,7 +13,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  validate_secrets:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Validate required secrets
+    steps:
+      - name: Check required secrets
+        env:
+          AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F }}
+        run: |
+          missing=0
+          if [ -z "$AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F" ]; then
+            echo "Missing: AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F" >&2
+            missing=1
+          fi
+          if [ $missing -eq 1 ]; then
+            echo "Required secrets missing. Please add them in repo settings." >&2
+            exit 1
+          fi
+
   build_and_deploy_job:
+    needs: validate_secrets
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
