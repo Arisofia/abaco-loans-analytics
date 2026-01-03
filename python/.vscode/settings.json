@@ -1,0 +1,16 @@
+{
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        ".",
+        "-p",
+        "test*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "chatgpt.openOnStartup": true,
+    "chatgpt.runCodexInWindowsSubsystemForLinux": true,
+    "python.defaultInterpreterPath": "/Users/jenineferderas/Documents/abaco-loans-analytics-prs/python/.venv/bin/python",
+    "python.venvPath": "/Users/jenineferderas/Documents/abaco-loans-analytics-prs/python/.venv",
+    "flake8.interpreter": "/Users/jenineferderas/Documents/abaco-loans-analytics-prs/python/.venv/bin/python"
+}
