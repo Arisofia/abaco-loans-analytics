@@ -1,8 +1,10 @@
 # Production Readiness Summary
 
-**Status**: ✅ **READY FOR PRODUCTION**
-**Last Updated**: 2025-12-14
-**Commit**: `3612fa20` (feat: add data pipeline validation)
+## Status: ✅ READY FOR PRODUCTION
+
+## Last Updated: 2025-12-14
+
+## Commit: `3612fa20` (feat: add data pipeline validation)
 
 ---
 
@@ -264,20 +266,20 @@ if (analyticsResult.warnings.length > 0) {
 
 ### If Deployment Fails
 
-**Option 1: Revert Last Commit**
+#### Option 1: Revert Last Commit
 
 ```bash
 git revert <commit-hash>
 git push origin main
 ```
 
-**Option 2: Deploy Previous Version**
+#### Option 2: Deploy Previous Version
 
 1. Go to <https://vercel.com> → abaco-loans-analytics → Deployments
 2. Find last known-good deployment
 3. Click "..." → "Promote to Production"
 
-**Option 3: Emergency Rollback**
+#### Option 3: Emergency Rollback
 
 ```bash
 git reset --hard <good-commit>

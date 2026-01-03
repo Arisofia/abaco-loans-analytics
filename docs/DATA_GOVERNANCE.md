@@ -38,21 +38,21 @@ This document establishes the golden rules for how data is documented, stored, a
 
 ### 2. Source of Truth Hierarchy
 
-**Priority 1 (Highest): Live Database Tables**
+#### Priority 1 (Highest): Live Database Tables
 
 - `fact_loans` — Loan and disbursement source data
 - `kpi_timeseries_daily` — Daily KPI snapshots
 - `fact_cash_flows` — Payment and collection records
 - All other operational tables
 
-**Priority 2: Configuration Files**
+#### Priority 2: Configuration Files
 
 - `config/pipeline.yml` — Pipeline parameters
 - `config/kpis.yml` — KPI definitions
 - `config/environments/*.yml` — Environment configurations
 - `.env`, secrets, and system configs
 
-**Priority 3 (Lowest): Documentation**
+#### Priority 3 (Lowest): Documentation
 
 - `.md` files — Process guides, how-tos, reference materials
 - Release notes and changelogs
@@ -93,7 +93,7 @@ This document establishes the golden rules for how data is documented, stored, a
 
 ### 4. Static Data Detection & Prevention
 
-**How to identify static data in .md files:**
+#### How to identify static data in .md files
 
 | Pattern | Example | Verdict | Action |
 |---------|---------|---------|--------|
@@ -108,7 +108,7 @@ This document establishes the golden rules for how data is documented, stored, a
 
 ### 5. Planning Documents: Special Handling
 
-**All files in `/docs/planning/` must include a header:**
+#### All files in `/docs/planning/` must include a header
 
 ```markdown
 ⚠️ **STRATEGIC PLANNING DOCUMENT - {YEAR} TARGETS ONLY**
@@ -118,7 +118,7 @@ This document establishes the golden rules for how data is documented, stored, a
 This document contains {planning targets / OKRs / strategic goals} for {year}.
 All dollar amounts, metrics, and targets are planning hypotheses, not current state data.
 
-**For current metrics, query live data sources:**
+#### For current metrics, query live data sources:
 - AUM: `SELECT SUM(outstanding_principal) FROM fact_loans WHERE status='active'`
 - NPL: `SELECT * FROM kpi_timeseries_daily WHERE metric='npl_180' ORDER BY date DESC LIMIT 1`
 
@@ -155,7 +155,7 @@ archives/
 
 ### 7. Enforcement & Tooling
 
-**Pre-commit hook to prevent static data:**
+#### Pre-commit hook to prevent static data
 
 ```bash
 #!/bin/bash
@@ -168,7 +168,7 @@ if grep -r '\$[0-9]\+[KMB]\?' docs/ --include="*.md" \
 fi
 ```
 
-**CI/CD check to flag static metrics:**
+#### CI/CD check to flag static metrics
 
 - Scan .md files for patterns: `\$\d+[KMB]?`, `\d+\s+(customers|clients|users)`
 - Exclude /docs/planning/ and /archives/
@@ -190,7 +190,7 @@ fi
 
 ### 9. Migration Guide: Fixing Static Data
 
-**For files with hard-coded metrics:**
+#### For files with hard-coded metrics
 
 1. **Identify the metric** (e.g., "Current AUM is $7.4M")
 2. **Ask:** Is this current state or a planning target?

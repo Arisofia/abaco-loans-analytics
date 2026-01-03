@@ -27,4 +27,4 @@ Azure App Service diagnostics is an interactive troubleshooting experience to re
 Use **Proactive CPU Monitoring** to mitigate high CPU usage by setting threshold rules until the root cause is identified.
 
 ---
-*Derived from Azure App Service Documentation (2026)*
+Derived from Azure App Service Documentation (2026)

@@ -1,6 +1,7 @@
 # Complete Transformation Deliverables Package
 
-**Abaco Loans Analytics - Engineering Excellence Transformation**
+## Abaco Loans Analytics - Engineering Excellence Transformation
+
 **Delivered**: January 1, 2026, 9:15 AM CET
 **Prepared by**: Engineering Excellence Audit Team
 **Status**: Production System Recovery + Long-term Modernization
@@ -66,7 +67,7 @@ END: Issue resolved or escalated
 
 #### Step-by-Step Resolution
 
-**Step 1: Verify Service Status (2 minutes)**
+### Step 1: Verify Service Status (2 minutes)
 
 Azure Portal Navigation:
 
@@ -75,7 +76,7 @@ Azure Portal Navigation:
 3. Check "Estado en tiempo de ejecución": Should NOT show "Problemas detectados"
 4. If stopped → Click "Iniciar" (Start) button in top toolbar
 
-**Step 2: Check Deployment Status (2 minutes)**
+### Step 2: Check Deployment Status (2 minutes)
 
 In Azure Portal:
 
@@ -88,7 +89,7 @@ In Azure Portal:
    - Missing dependencies (check requirements.txt)
    - Health check failed (verify health check URL matches actual URL)
 
-**Step 3: Inspect Application Logs (3 minutes)**
+### Step 3: Inspect Application Logs (3 minutes)
 
 In Azure Portal:
 
@@ -100,7 +101,7 @@ In Azure Portal:
    - `Address already in use` → Restart app service
    - `Timeout waiting for response` → Scale up to higher tier (S1 or better)
 
-**Step 4: Emergency Rollback (5 minutes)**
+### Step 4: Emergency Rollback (5 minutes)
 
 If recent deployment broke the app:
 
@@ -171,7 +172,7 @@ END: Pipeline re-run successfully OR root cause identified for fix
 
 #### Step-by-Step Resolution
 
-**Step 1: Identify Failure Point (2 minutes)**
+### Step 1: Identify Failure Point (2 minutes)
 
 GitHub Actions:
 
@@ -182,9 +183,9 @@ GitHub Actions:
    - `> 5 min` → Data processing/validation issue
 3. Click into failed job → Expand failed step
 
-**Step 2: Common Fixes by Error Pattern**
+### Step 2: Common Fixes by Error Pattern
 
-**Pattern A: Missing Secrets**
+#### Pattern A: Missing Secrets
 
 Error:
 
@@ -201,7 +202,7 @@ Fix:
    - Value: [obtain from Supabase/service dashboard]
 3. Re-run workflow
 
-**Pattern B: Expired API Keys**
+#### Pattern B: Expired API Keys
 
 Error:
 
@@ -217,7 +218,7 @@ Fix:
 3. Update GitHub Secret with new value
 4. Re-run workflow
 
-**Pattern C: Rate Limiting**
+#### Pattern C: Rate Limiting
 
 Error:
 
@@ -232,7 +233,7 @@ Fix:
 2. Add exponential backoff to API calls
 3. Request rate limit increase from API provider
 
-**Pattern D: Data Validation Failure**
+#### Pattern D: Data Validation Failure
 
 Error:
 
@@ -248,14 +249,14 @@ Fix:
 3. Decide: Accept new data shape OR fix source
 4. Update Great Expectations suite if shape intentionally changed
 
-**Step 3: Re-run Pipeline (1 minute)**
+### Step 3: Re-run Pipeline (1 minute)
 
 After applying fix:
 
 1. GitHub Actions → Failed workflow run → "Re-run jobs" (top right)
 2. Monitor new run for success
 
-**Step 4: Verify Data Updated (2 minutes)**
+### Step 4: Verify Data Updated (2 minutes)
 
 After successful pipeline run:
 
@@ -321,7 +322,7 @@ END: CI/CD restored
 
 #### Step-by-Step Resolution
 
-**Step 1: Identify CI/CD Blocker (2 minutes)**
+### Step 1: Identify CI/CD Blocker (2 minutes)
 
 Check multiple signals:
 
@@ -329,7 +330,7 @@ Check multiple signals:
 2. Pull request → Checks tab → See which check failed
 3. Branch protection → See which required checks missing
 
-**Step 2: Fix Workflow Syntax Errors**
+### Step 2: Fix Workflow Syntax Errors
 
 If "Invalid workflow file" annotation:
 
@@ -354,7 +355,7 @@ steps:
     run: echo "${{ secrets.API_KEY }}"
 ```
 
-**Step 3: Handle Fork PR Security**
+### Step 3: Handle Fork PR Security
 
 Workflows triggered by PRs from forks cannot access secrets. Add this condition to steps that need secrets:
 
@@ -371,18 +372,18 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
 ```
 
-**Step 4: Emergency Deploy Bypass**
+### Step 4: Emergency Deploy Bypass
 
 If CI is completely broken but you need to deploy urgently:
 
-**Option A: Temporarily disable branch protection**
+#### Option A: Temporarily disable branch protection
 
 1. Settings → Branches → Edit protection rule for 'main'
 2. Uncheck "Require status checks to pass"
 3. Merge PR manually
 4. RE-ENABLE protection immediately after
 
-**Option B: Manual Azure deployment**
+#### Option B: Manual Azure deployment
 
 1. Build locally: `npm run build` / `python -m build`
 2. Azure Portal → App Service → Deployment Center

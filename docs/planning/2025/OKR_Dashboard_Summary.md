@@ -1,6 +1,6 @@
-⚠️ **STRATEGIC PLANNING DOCUMENT - OKR TARGETS ONLY**
+# ⚠️ STRATEGIC PLANNING DOCUMENT - OKR TARGETS ONLY
 
-**DO NOT USE THESE NUMBERS IN PRODUCTION WORKFLOWS**
+## DO NOT USE THESE NUMBERS IN PRODUCTION WORKFLOWS
 
 This document outlines strategic OKR targets and planning assumptions. All growth projections, revenue targets, and metric goals are aspirational planning documents, not current state data.
 

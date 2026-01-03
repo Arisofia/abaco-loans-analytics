@@ -1,11 +1,11 @@
 # Runbook: App Service Diagnostics (Azure)
 
-**Purpose**
+## Purpose
 
 - Safely troubleshoot Azure App Service availability, performance, deployment, configuration, and networking issues.
 - Capture actionable evidence without disrupting production.
 
-**When to use**
+## When to use
 
 - HTTP 5xx spikes, app down, or timeouts.
 - Slow responses or resource saturation.

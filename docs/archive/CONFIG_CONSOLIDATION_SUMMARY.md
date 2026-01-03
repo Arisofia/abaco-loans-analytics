@@ -57,27 +57,27 @@ Created structured environment override system for clean separation of concerns:
 
 Archived 18 legacy configuration files into `config/LEGACY/` directory with clear deprecation markers:
 
-**Integrations (4 files)**
+#### Integrations (4 files)
 
 - `cascade.yaml` → pipeline.yml:integrations.cascade
 - `meta.yaml` → pipeline.yml:integrations.meta
 - `slack.yaml` → pipeline.yml:integrations.slack
 - `perplexity_comet.yaml` → pipeline.yml:integrations.perplexity_comet
 
-**Agent Specifications (4 files)**
+#### Agent Specifications (4 files)
 
 - `kpi_analytics_agent.yaml` → pipeline.yml:agents.kpi_analytics
 - `risk_agent.yaml` → pipeline.yml:agents.risk_analysis
 - `c_level_executive_agent.yaml` → pipeline.yml:agents.c_level_executive
 - `data_ingestion_transformation_agent.yaml` → pipeline.yml:agents.data_ingestion_transformation
 
-**KPI Definitions (3 files)**
+#### KPI Definitions (3 files)
 
 - `kpi_definitions.yaml` → pipeline.yml:kpi_definitions
 - `kpi_definitions_unified.yml` → consolidated
 - `evaluation-thresholds.yml` → threshold values in KPI defs
 
-**Other Configs (7 files)**
+#### Other Configs (7 files)
 
 - `data_orchestration.yaml` (pipelines)
 - `personas.yml` (reference only)
@@ -88,7 +88,7 @@ Archived 18 legacy configuration files into `config/LEGACY/` directory with clea
 
 Updated `src/pipeline/orchestrator.py`:
 
-**New Features**:
+#### New Features
 
 - `_deep_merge()` function for safe recursive merging
 - Environment variable support: `PIPELINE_ENV` (development|staging|production)
@@ -96,7 +96,7 @@ Updated `src/pipeline/orchestrator.py`:
 - Clear logging of configuration sources
 - Graceful fallback to base config if environment file missing
 
-**How It Works**:
+#### How It Works
 
 ```bash
 # Development (default)
@@ -151,7 +151,7 @@ Created `config/LEGACY/README.md` with:
 
 ## Testing
 
-✅ **Syntax Validation**:
+#### ✅ Syntax Validation
 
 - orchestrator.py: Valid Python syntax
 - All YAML files: Valid structure

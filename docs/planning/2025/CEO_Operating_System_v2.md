@@ -1,6 +1,6 @@
-⚠️ **EXECUTIVE STRATEGY DOCUMENT - PLANNING ASSUMPTIONS ONLY**
+# ⚠️ EXECUTIVE STRATEGY DOCUMENT - PLANNING ASSUMPTIONS ONLY
 
-**DO NOT USE THESE NUMBERS AS CURRENT STATE**
+## DO NOT USE THESE NUMBERS AS CURRENT STATE
 
 This document outlines strategic direction and 2026 targets presented to executive leadership. All projections, timelines, and numerical targets are planning assumptions subject to market conditions and business execution.
 

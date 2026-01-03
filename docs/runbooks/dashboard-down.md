@@ -1,11 +1,11 @@
 # Runbook: Dashboard Down (Azure App Service)
 
-**Symptoms**
+## Symptoms
 
 - Browser error: `DNS_PROBE_FINISHED_NXDOMAIN` or site won’t load.
 - Health check fails: `/?page=health` does not return `ok`.
 
-**Primary goals**
+## Primary goals
 
 1. Confirm the correct hostname.
 2. Confirm App Service is running.
