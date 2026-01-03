@@ -95,3 +95,5 @@ __azurite_db_*.json
 __azurite_db_*_extent__.json
 scripts/setup_azure.sh
 .azure
+ /.venv/
+data/raw/
