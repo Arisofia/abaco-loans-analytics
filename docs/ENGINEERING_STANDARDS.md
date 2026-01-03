@@ -109,7 +109,7 @@ def ingest_file(
     file_path: Path,
     archive_dir: Optional[Path] = None
 ) -> IngestionResult:
-    """Ingest and validate a CSV/Parquet/JSON file."""
+    """Ingest and validate a CSV/Parquet/JSON/JSONL/Excel file."""
     pass
 
 # Avoid: Missing return type
