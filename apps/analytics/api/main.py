@@ -87,17 +87,35 @@ async def trigger_pipeline(background_tasks: BackgroundTasks, input_file: str = 
     # not affected by Prefect initialization, long-running tasks, or heavy deps.
     try:
         python = sys.executable or "python"
-        # We use a small -c one-liner so the subprocess imports the pipeline and
-        # runs it in isolation. This avoids shipping a new CLI or adding extra
-        # dependencies for the API service.
-        safe_input = shlex.quote(input_file)
-        cmd = (
-            f"{shlex.quote(python)} -c \"from src.pipeline.prefect_orchestrator "
-            f"import abaco_pipeline_flow; abaco_pipeline_flow(input_file={safe_input})\""
+        # Build a small python one-liner that reads the input_file from argv[1].
+        # Passing the input as an argv value avoids producing Python source with
+        # embedded quotes that can break for inputs with special characters.
+        script = (
+            "import sys; "
+            "from src.pipeline.prefect_orchestrator import abaco_pipeline_flow; "
+            "abaco_pipeline_flow(input_file=sys.argv[1])"
         )
-        # Start a detached process.
-        subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        logger.info("Spawned pipeline subprocess for input: %s", input_file)
+
+        # Ensure log dir exists and run subprocess with output redirected so
+        # failures are recorded for later investigation.
+        log_path = Path("logs/pipeline_subprocess.log")
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            log_file = open(log_path, "a")
+        except Exception:
+            log_file = subprocess.DEVNULL
+
+        # Start a detached process without shell=True for safety and pass args
+        # directly to avoid shell interpretation issues. Use start_new_session to
+        # properly detach on Unix-like systems.
+        subprocess.Popen(
+            [python, "-c", script, input_file],
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+            close_fds=True,
+        )
+        logger.info("Spawned pipeline subprocess for input: %s (logs: %s)", input_file, log_path)
         return {"message": "Pipeline triggered (subprocess)", "input_file": input_file}
     except Exception as e:
         logger.exception("Failed to trigger pipeline: %s", e)
