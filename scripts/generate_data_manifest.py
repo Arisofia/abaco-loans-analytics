@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
-from src.config.paths import Paths
+from src.config.paths import Paths  # noqa: E402
 
 
 def generate_manifest(data_dir: Optional[str] = None) -> Dict:

@@ -10,7 +10,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
-from src.compliance import build_compliance_report, write_compliance_report
+from src.compliance import build_compliance_report, write_compliance_report  # noqa: E402
 from src.config.paths import Paths
 from src.kpi_engine_v2 import KPIEngineV2 as KPIEngine
 from src.pipeline.data_ingestion import UnifiedIngestion
