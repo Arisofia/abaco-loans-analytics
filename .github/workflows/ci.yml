@@ -274,25 +274,25 @@ jobs:
             echo "secrets_available=false" >> $GITHUB_OUTPUT
           fi
       - name: Checkout code
-        if: steps.check-secrets.outputs.secrets_available == 'true'
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         uses: actions/checkout@v4
       - name: Set up pnpm
-        if: steps.check-secrets.outputs.secrets_available == 'true'
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         uses: pnpm/action-setup@v3
         with:
           version: 10
       - name: Set up Node.js
-        if: steps.check-secrets.outputs.secrets_available == 'true'
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "pnpm"
           cache-dependency-path: apps/web/pnpm-lock.yaml
       - name: Install dependencies
-        if: steps.check-secrets.outputs.secrets_available == 'true'
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         run: pnpm install --frozen-lockfile
       - name: Update Figma Slides
-        if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/update_figma_slides.js') != ''
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/update_figma_slides.js') != '' }}
         run: node scripts/update_figma_slides.js
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
@@ -338,7 +338,7 @@ jobs:
           fi
       - name: Notify Slack on failure
         uses: slackapi/slack-github-action@v2
-        if: steps.slack_check.outputs.available == 'true'
+        if: ${{ steps.slack_check.outputs.available == 'true' }}
         with:
           webhook-type: INCOMING_WEBHOOK
           payload: |

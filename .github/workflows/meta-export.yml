@@ -49,23 +49,23 @@ jobs:
           fi
 
       - name: Setup Node.js
-        if: steps.check-secrets.outputs.can_run == 'true'
+        if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: "18"
 
       - name: Install dependencies
-        if: steps.check-secrets.outputs.can_run == 'true'
+        if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
         working-directory: ./node/services/meta-connector
         run: npm install
 
       - name: Compile TypeScript
-        if: steps.check-secrets.outputs.can_run == 'true'
+        if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
         working-directory: ./node/services/meta-connector
         run: npx tsc
 
       - name: Export to Azure
-        if: steps.check-secrets.outputs.can_run == 'true'
+        if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
         working-directory: ./node/services/meta-connector
         env:
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
@@ -74,6 +74,6 @@ jobs:
         run: node dist/export_to_azure.js
 
       - name: Skip export (missing secrets)
-        if: steps.check-secrets.outputs.can_run != 'true'
+        if: ${{ steps.check-secrets.outputs.can_run != 'true' }}
         run: |
           echo "Skipping Meta export: required secrets not configured."
