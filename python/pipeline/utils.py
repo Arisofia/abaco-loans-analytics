@@ -1,7 +1,6 @@
 # Compatibility shim: re-export utilities from the canonical implementation in `src`.
 # This keeps the `python.pipeline` package working for legacy imports while
 # keeping the implementation in `src.pipeline`.
-from typing import Any
 
 from src.pipeline.utils import (
     CircuitBreaker,

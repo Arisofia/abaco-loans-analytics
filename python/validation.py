@@ -1,5 +1,4 @@
 # Compatibility shim: re-export validation utilities from `src.pipeline.data_validation`.
-from typing import Any, Dict, List, Optional
 
 from src.pipeline.data_validation import (
     validate_dataframe,
