@@ -49,6 +49,37 @@ class RetryPolicy:
         self.jitter_seconds = jitter_seconds
 
     def execute(self, func: Callable, on_retry: Optional[Callable] = None):
+        import time
+        import random
+
+        attempt = 0
+        while True:
+            try:
+                return func()
+            except Exception as exc:
+                attempt += 1
+                if attempt > self.max_retries:
+                    raise
+
+                if on_retry:
+                    try:
+                        on_retry(attempt, exc)
+                    except Exception:
+                        # Explicitly ignore errors in the retry callback
+                        pass
+
+                # Apply jitter as a random non-negative offset to the base backoff
+                sleep_seconds = self.backoff_seconds
+                if self.jitter_seconds > 0:
+                    sleep_seconds += random.uniform(0, self.jitter_seconds)
+
+                time.sleep(sleep_seconds)
+    def __init__(self, max_retries: int = 3, backoff_seconds: float = 1.0, jitter_seconds: float = 0.0):
+        self.max_retries = max_retries
+        self.backoff_seconds = backoff_seconds
+        self.jitter_seconds = jitter_seconds
+
+    def execute(self, func: Callable, on_retry: Optional[Callable] = None):
         attempt = 0
         while True:
             try:
