@@ -1,6 +1,128 @@
-from typing import Iterable, Optional
+import json
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Dict, Iterable, List, Optional
 
 import pandas as pd
+
+
+@dataclass
+class DataQualityReport:
+    """Structured data quality audit report."""
+
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    status: str = "passed"
+    score: float = 100.0
+    total_rows: int = 0
+    missing_columns: List[str] = field(default_factory=list)
+    type_errors: List[str] = field(default_factory=list)
+    null_counts: Dict[str, int] = field(default_factory=dict)
+    summary: Dict[str, Any] = field(default_factory=dict)
+
+    def to_json(self) -> str:
+        return json.dumps(asdict(self), indent=2)
+
+    def to_markdown(self) -> str:
+        lines = [
+            "# DATA QUALITY REPORT",
+            f"**Status**: {'🟢 PASSED' if self.status == 'passed' else '🔴 FAILED'}",
+            f"**Score**: {self.score}%",
+            f"**Timestamp**: {self.timestamp}",
+            f"**Total Rows**: {self.total_rows}",
+            "",
+        ]
+        if self.missing_columns:
+            lines.append("## ❌ Missing Columns")
+            for col in self.missing_columns:
+                lines.append(f"- {col}")
+            lines.append("")
+
+        if self.type_errors:
+            lines.append("## ⚠️ Type Errors")
+            for err in self.type_errors:
+                lines.append(f"- {err}")
+            lines.append("")
+
+        if self.null_counts:
+            lines.append("## 🔍 Null Value Analysis")
+            for col, count in self.null_counts.items():
+                if count > 0:
+                    lines.append(f"- **{col}**: {count} nulls")
+            lines.append("")
+
+        return "\n".join(lines)
+
+
+class DataQualityReporter:
+    """Phase 5: Automated data quality analysis and reporting."""
+
+    def __init__(self, df: pd.DataFrame):
+        self.df = df
+        self.report = DataQualityReport(total_rows=len(df))
+
+    def run_audit(
+        self,
+        required_columns: Optional[Iterable[str]] = None,
+        numeric_columns: Optional[Iterable[str]] = None,
+        date_columns: Optional[Iterable[str]] = None,
+    ) -> DataQualityReport:
+        """Execute full quality audit and return the report."""
+        cols_lower = {str(c).lower(): c for c in self.df.columns}
+
+        # 1. Check required columns
+        if required_columns:
+            for col in required_columns:
+                if col.lower() not in cols_lower:
+                    self.report.missing_columns.append(col)
+
+        # 2. Check nulls for important columns
+        check_cols = list(required_columns or []) + list(numeric_columns or [])
+        for col in set(check_cols):
+            resolved = cols_lower.get(col.lower())
+            if resolved:
+                null_count = self.df[resolved].isnull().sum()
+                self.report.null_counts[col] = int(null_count)
+
+        # 3. Type validation
+        if numeric_columns:
+            for col in numeric_columns:
+                resolved = cols_lower.get(col.lower())
+                if resolved:
+                    original_mask = self.df[resolved].notna()
+                    coerced = pd.to_numeric(self.df[resolved], errors="coerce")
+                    failed_mask = original_mask & coerced.isna()
+                    if failed_mask.any():
+                        count = int(failed_mask.sum())
+                        sample_vals = self.df.loc[failed_mask, resolved].astype(str).unique()[:3].tolist()
+                        self.report.type_errors.append(
+                            f"Column '{col}' contains {count} non-numeric value(s). Examples: {sample_vals}"
+                        )
+
+        if date_columns:
+            for col in date_columns:
+                resolved = cols_lower.get(col.lower())
+                if resolved:
+                    original_mask = self.df[resolved].notna()
+                    coerced = pd.to_datetime(self.df[resolved], errors="coerce")
+                    failed_mask = original_mask & coerced.isna()
+                    if failed_mask.any():
+                        count = int(failed_mask.sum())
+                        sample_vals = self.df.loc[failed_mask, resolved].astype(str).unique()[:3].tolist()
+                        self.report.type_errors.append(
+                            f"Column '{col}' contains {count} invalid date value(s). Examples: {sample_vals}"
+                        )
+
+        # 4. Final scoring
+        deductions = (
+            (len(self.report.missing_columns) * 20)
+            + (len(self.report.type_errors) * 10)
+            + (sum(1 for c, n in self.report.null_counts.items() if n > 0) * 2)
+        )
+        self.report.score = max(0.0, 100.0 - deductions)
+        if self.report.missing_columns or self.report.score < 70:
+            self.report.status = "failed"
+
+        return self.report
 
 
 def validate_dataframe(
@@ -11,35 +133,13 @@ def validate_dataframe(
 ) -> None:
     """Basic validation helper used by the ingestion pipeline.
 
-    Raises ValueError on validation failures.
+    Maintains backward compatibility while leveraging the new reporter.
     """
-    cols_lower = {str(c).lower() for c in df.columns}
+    reporter = DataQualityReporter(df)
+    report = reporter.run_audit(required_columns, numeric_columns, date_columns)
 
-    if required_columns:
-        missing = [c for c in required_columns if c.lower() not in cols_lower]
-        if missing:
-            raise ValueError(f"Missing required columns: {missing}")
+    if report.missing_columns:
+        raise ValueError(f"Missing required columns: {report.missing_columns}")
 
-    if numeric_columns:
-        for col in numeric_columns:
-            resolved = None
-            for c in df.columns:
-                if str(c).lower() == col.lower():
-                    resolved = c
-                    break
-            if resolved:
-                coerced = pd.to_numeric(df[resolved], errors="coerce")
-                if coerced.notna().any() and coerced.isna().all():
-                    raise ValueError(f"Numeric column '{col}' could not be coerced to numeric")
-
-    if date_columns:
-        for col in date_columns:
-            resolved = None
-            for c in df.columns:
-                if str(c).lower() == col.lower():
-                    resolved = c
-                    break
-            if resolved:
-                coerced = pd.to_datetime(df[resolved], errors="coerce")
-                if coerced.notna().any() and coerced.isna().all():
-                    raise ValueError(f"Date column '{col}' could not be coerced to datetime")
+    if report.type_errors:
+        raise ValueError(f"Type validation errors: {report.type_errors}")
