@@ -370,7 +370,7 @@ integrations:
     recommended_plan: "Perplexity / Comet paid plan for structured page crawling"
     frequency: daily
     outputs:
-      - path: data/raw/public_crawl/
+      - path: data/archives/public_crawl/
         format: jsonl
 
 agents:

@@ -20,7 +20,7 @@ def ingestion_task(config: Dict[str, Any], input_file: Path) -> IngestionResult:
     logger.info("Starting ingestion for %s", input_file)
     ingestion = UnifiedIngestion(config)
     # Assume file source for now
-    raw_archive_dir = Path(config.get("run", {}).get("raw_archive_dir", "data/raw/cascade"))
+    raw_archive_dir = Path(config.get("run", {}).get("raw_archive_dir", "data/archives/cascade"))
     result = ingestion.ingest_file(input_file, archive_dir=raw_archive_dir)
 
     # Integrate Great Expectations
@@ -85,7 +85,9 @@ def output_task(
 
 
 @flow(name="Abaco Data Pipeline")
-def abaco_pipeline_flow(input_file: str = "data/abaco_portfolio_calculations.csv") -> OutputResult:
+def abaco_pipeline_flow(
+    input_file: str = "data/archives/abaco_portfolio_calculations.csv",
+) -> OutputResult:
     config_mgr = PipelineConfig()
     config = config_mgr.config
     input_path = Path(input_file)

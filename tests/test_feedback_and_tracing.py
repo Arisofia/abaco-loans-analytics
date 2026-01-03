@@ -1,12 +1,11 @@
 import json
 import logging
+from pathlib import Path
 
 import pytest
 
-from pathlib import Path
-
-from src.agents.learning import FeedbackStore
 import src.azure_tracing as azure_tracing
+from src.agents.learning import FeedbackStore
 
 
 def test_feedback_store_skips_malformed_files(tmp_path, caplog):
@@ -99,4 +98,7 @@ def test_trace_analytics_job_wraps_and_logs(monkeypatch, caplog):
 
     assert len(fake.spans) == 1
     assert fake.spans[0].name == "jobY.r2"
-    assert any("TRACE] Starting job: jobY" in r.message or "TRACE-MOCK" in r.message for r in caplog.records)
+    assert any(
+        "TRACE] Starting job: jobY" in r.message or "TRACE-MOCK" in r.message
+        for r in caplog.records
+    )

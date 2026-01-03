@@ -4,9 +4,9 @@ This workflow runs the unified pipeline using Looker exports while Cascade inges
 
 ## Required Files
 
-- `data/raw/looker_exports/loan_par_balances.csv` (preferred PAR snapshot)
-- `data/raw/looker_exports/loans.csv` (fallback when PAR balances are missing)
-- `data/raw/financial_statements/*` (optional EEFF exports; CSV/XLSX/XLS)
+- `data/archives/looker_exports/loan_par_balances.csv` (preferred PAR snapshot)
+- `data/archives/looker_exports/loans.csv` (fallback when PAR balances are missing)
+- `data/archives/financial_statements/*` (optional EEFF exports; CSV/XLSX/XLS)
 
 ## Looker Mapping (PAR Balances)
 
@@ -75,9 +75,9 @@ pipeline:
     ingestion:
       source: looker
       looker:
-        loans_par_path: data/raw/looker_exports/loan_par_balances.csv
-        loans_path: data/raw/looker_exports/loans.csv  # fallback
-        financials_path: data/raw/financial_statements/
+        loans_par_path: data/archives/looker_exports/loan_par_balances.csv
+        loans_path: data/archives/looker_exports/loans.csv  # fallback
+        financials_path: data/archives/financial_statements/
         financials_format: auto  # auto|wide|long
         financials_date_column: reporting_date
         financials_null_policy: skip  # skip|fill_last|error

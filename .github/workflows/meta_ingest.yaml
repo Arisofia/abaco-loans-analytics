@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: meta-raw
-          path: data/raw/meta/
+          path: data/archives/meta/
       - name: Set up Python
         if: ${{ steps.meta_token.outputs.run == 'true' }}
         uses: actions/setup-python@v5

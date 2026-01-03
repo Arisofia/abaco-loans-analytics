@@ -9,7 +9,7 @@ on:
     paths:
       - "scripts/cascade_ingest.py"
       - "scripts/ingest_cascade.py"
-      - "data/raw/*.xls*"
+      - "data/archives/*.xls*"
 
 permissions:
   contents: read

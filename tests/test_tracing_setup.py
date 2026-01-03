@@ -20,8 +20,9 @@ class TestTracingSetup(unittest.TestCase):
         os.environ.pop("OTEL_EXPORTER_OTLP_ENDPOINT", None)
 
     def test_init_tracing_returns_provider(self) -> None:
-        with patch("src.tracing_setup.OTLPSpanExporter"), patch(
-            "src.tracing_setup.BatchSpanProcessor"
+        with (
+            patch("src.tracing_setup.OTLPSpanExporter"),
+            patch("src.tracing_setup.BatchSpanProcessor"),
         ):
             provider = tracing_setup.init_tracing(
                 service_name="test-service",
@@ -33,8 +34,9 @@ class TestTracingSetup(unittest.TestCase):
 
     def test_init_tracing_uses_env_endpoint(self) -> None:
         os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://example.com:4318"
-        with patch("src.tracing_setup.OTLPSpanExporter") as mock_exporter, patch(
-            "src.tracing_setup.BatchSpanProcessor"
+        with (
+            patch("src.tracing_setup.OTLPSpanExporter") as mock_exporter,
+            patch("src.tracing_setup.BatchSpanProcessor"),
         ):
             tracing_setup.init_tracing(service_name="test-service")
 

@@ -24,7 +24,7 @@ python scripts/run_data_pipeline.py --input data/raw/cascade/loan_tape.csv
 
 ```bash
 python scripts/run_data_pipeline.py \
-  --input data/raw/cascade/loan_tape.csv \
+  --input data/archives/cascade/loan_tape.csv \
   --config config/pipeline.yml
 ```
 
@@ -62,7 +62,7 @@ pipeline:
 
 ## Backup and Recovery
 
-- Raw inputs are archived under `data/raw/cascade`.
+- Raw inputs are archived under `data/archives/cascade`.
 - Manifests and compliance reports are stored under `logs/runs/`.
 - To restore a prior run, rehydrate outputs from `data/metrics/<run_id>` and manifest.
 

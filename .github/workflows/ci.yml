@@ -118,6 +118,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Install dev dependencies (type checkers)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r dev-requirements.txt
+      - name: Run mypy (type-check)
+        continue-on-error: true
+        run: |
+          mypy src apps python --config-file mypy.ini
       - name: Run repo health check
         continue-on-error: true
         run: bash scripts/repo_health_check.sh

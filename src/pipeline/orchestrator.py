@@ -185,7 +185,7 @@ class UnifiedPipeline:
             run_started = utc_now()
             run_cfg = self.config.get("run", default={}) or {}
             artifacts_dir = Path(run_cfg.get("artifacts_dir", "logs/runs"))
-            raw_archive_dir = Path(run_cfg.get("raw_archive_dir", "data/raw/cascade"))
+            raw_archive_dir = Path(run_cfg.get("raw_archive_dir", "data/archives/cascade"))
             ingest_cfg = self.config.get("pipeline", "phases", "ingestion", default={}) or {}
             ingest_source = ingest_cfg.get("source", "file")
             cascade_cfg = self.config.get("cascade", default={}) or {}
@@ -372,7 +372,7 @@ def calculate_task(pipeline: UnifiedPipeline, transformation_result):
 
 
 @flow(name="Daily Loan Intelligence Cycle")
-def daily_loan_intelligence_flow(input_file: str = "data/raw/abaco_portfolio.csv"):
+def daily_loan_intelligence_flow(input_file: str = "data/archives/abaco_portfolio.csv"):
     """
     Prefect flow for daily loan intelligence operations.
     Enforces Data Contracts and emits Lineage metadata.

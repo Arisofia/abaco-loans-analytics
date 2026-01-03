@@ -17,9 +17,9 @@ pipeline:
     ingestion:
       source: looker
       looker:
-        loans_par_path: data/raw/looker_exports/loan_par_balances.csv
-        loans_path: data/raw/looker_exports/loans.csv
-        financials_path: data/raw/financial_statements
+        loans_par_path: data/archives/looker_exports/loan_par_balances.csv
+        loans_path: data/archives/looker_exports/loans.csv
+        financials_path: data/archives/financial_statements
       validation:
         strict: true
     outputs:
@@ -29,7 +29,7 @@ pipeline:
         enabled: false
 
 run:
-  raw_archive_dir: data/raw/looker_exports/archive
+  raw_archive_dir: data/archives/looker_exports/archive
 
 observability:
   logging:
@@ -49,7 +49,7 @@ integrations:
 agents:
   kpi_analytics:
     refresh_schedule:
-      continuous_monitoring: '*/5 * * * *'
+      continuous_monitoring: "*/5 * * * *"
   risk_analysis:
     refresh_schedule:
-      continuous_monitoring: '*/10 * * * *'
+      continuous_monitoring: "*/10 * * * *"

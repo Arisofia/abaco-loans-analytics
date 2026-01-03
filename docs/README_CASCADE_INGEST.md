@@ -61,7 +61,7 @@ gh pr create --base main \
    ```bash
    python3 scripts/cascade_ingest.py \
      --export-url "<export_url>" \
-     --output-prefix "data/raw/cascade/loan_tapes/202601/loan_tape_full"
+     --output-prefix "data/archives/cascade/loan_tapes/202601/loan_tape_full"
    ```
 
 4. If the main script encounters UI changes or you need a lightweight download for debugging, use the Plan B helper:
@@ -71,7 +71,7 @@ gh pr create --base main \
    ```
 
    It downloads the ZIP to `downloads/` and honors `CASCADE_COOKIE_NAME`.
-5. Inspect `data/raw/cascade/loan_tapes/YYYYMM/` for the CSV/Parquet outputs, the original ZIP archive, and `data/audit/runs/cascade_ingest_run_<run_id>.json`.
+5. Inspect `data/archives/cascade/loan_tapes/YYYYMM/` for the CSV/Parquet outputs, the original ZIP archive, and `data/audit/runs/cascade_ingest_run_<run_id>.json`.
 
 ## Orchestration Notes
 
