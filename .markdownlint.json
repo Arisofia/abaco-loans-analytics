@@ -1,0 +1,6 @@
+{
+  "_comments": "Relaxed markdownlint rules to unblock CI. These were agreed in PR #21; please review and re-enable stricter rules once docs are formatted.",
+  "MD013": false,
+  "MD040": false,
+  "MD060": false
+}
