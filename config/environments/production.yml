@@ -16,7 +16,7 @@ pipeline:
   phases:
     ingestion:
       file:
-        default_path: data/raw/cascade/loan_tape.csv
+        default_path: data/archives/cascade/loan_tape.csv
       validation:
         strict: true
     outputs:
@@ -42,10 +42,10 @@ integrations:
     enabled: true
     webhook_secret: SLACK_WEBHOOK_TOKEN
     alert_channels:
-      risk_alerts: '#risk-monitoring'
-      compliance_updates: '#compliance-team'
-      executive_briefing: '#executive-briefing'
-      daily_summary: '#fintech-reports'
+      risk_alerts: "#risk-monitoring"
+      compliance_updates: "#compliance-team"
+      executive_briefing: "#executive-briefing"
+      daily_summary: "#fintech-reports"
   meta:
     enabled: true
     app_id: "${META_APP_ID}"
@@ -56,9 +56,9 @@ integrations:
 agents:
   kpi_analytics:
     refresh_schedule:
-      continuous_monitoring: '*/30 * * * *'
+      continuous_monitoring: "*/30 * * * *"
   risk_analysis:
     refresh_schedule:
-      continuous_monitoring: '*/15 * * * *'
+      continuous_monitoring: "*/15 * * * *"
   c_level_executive:
     requires_human_approval: true

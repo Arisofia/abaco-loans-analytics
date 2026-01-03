@@ -11,7 +11,7 @@ Handles:
 import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, cast
 
 import requests
@@ -67,8 +67,8 @@ class MetaOutputClient:
                 "data": [
                     {
                         "event_name": event_name,
-                        "event_time": int(datetime.utcnow().timestamp()),
-                        "event_id": f"{event_name}_{datetime.utcnow().isoformat()}",
+                        "event_time": int(datetime.now(timezone.utc).timestamp()),
+                        "event_id": f"{event_name}_{datetime.now(timezone.utc).isoformat()}",
                         "event_source_url": "https://abaco-analytics-dashboard.azurewebsites.net",
                         "user_data": user_data or {},
                         "custom_data": event_data,

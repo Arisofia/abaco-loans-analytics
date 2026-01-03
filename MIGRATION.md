@@ -21,7 +21,7 @@ engine consolidation (Phase 3) is 100% complete.
 ### Update Automated Tasks
 
 All cron jobs or GitHub Actions calling `scripts/run_data_pipeline.py` or legacy
-ingestion scripts MUST be updated to use the new executive runner.
+ingestion scripts MUST be updated to use the new unified pipeline runners.
 
 **Legacy Command:**
 
@@ -30,10 +30,23 @@ python src/ingestion.py --file loans.csv
 python src/transformation.py --input raw.csv
 ```
 
-**Unified Command:**
+**Unified Commands:**
 
+For analytics pipeline and KPI calculation:
 ```bash
-python apps/analytics/run_report.py --data data/raw/loans.csv --output reports/summary.md
+python run_complete_analytics.py
+```
+
+For executive report generation:
+```bash
+python generate_executive_report.py
+```
+
+For pipeline orchestration (programmatic):
+```bash
+from src.pipeline.orchestrator import PipelineOrchestrator
+orchestrator = PipelineOrchestrator(config)
+result = orchestrator.execute()
 ```
 
 ### Configuration Migration

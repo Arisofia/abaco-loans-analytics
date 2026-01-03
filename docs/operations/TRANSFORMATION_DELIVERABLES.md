@@ -96,7 +96,7 @@ In Azure Portal:
 2. Look for errors in last 30 minutes
 3. Key patterns:
    - `ModuleNotFoundError: No module named 'X'` → Add X to requirements.txt, redeploy
-   - `FileNotFoundError: [Errno 2] No such file or directory: 'data/raw/looker_exports'` → Verify CSV files deployed, check .gitignore doesn't exclude them
+   - `FileNotFoundError: [Errno 2] No such file or directory: 'data/archives/looker_exports'` → Verify CSV files deployed, check .gitignore doesn't exclude them
    - `Address already in use` → Restart app service
    - `Timeout waiting for response` → Scale up to higher tier (S1 or better)
 

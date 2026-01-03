@@ -33,7 +33,7 @@
 | ------------------ | ------------ | ----------------------- | ------------------------ |
 | Cascade API        | External API | Loan origination data   | Via `cascade_client.py`  |
 | HubSpot            | External API | Customer/marketing data | Via `segment_manager.py` |
-| Manual CSV uploads | File uploads | Financial statements    | Via `data/raw/` folders  |
+| Manual CSV uploads | File uploads | Financial statements    | Via `data/archives/` folders  |
 
 ### Data Storage Layers (To Be Determined)
 

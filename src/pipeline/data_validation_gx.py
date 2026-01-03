@@ -15,21 +15,21 @@ try:
 
     HAS_GE = True
 except Exception:  # pragma: no cover - optional dependency
-    gx = None
-    EphemeralDataContext = None
+    gx = None  # type: ignore
+    EphemeralDataContext = None  # type: ignore
     HAS_GE = False
 
 
 def get_or_create_datasource(
     context: "EphemeralDataContext",
     datasource_name: str,
-):
+) -> Any:
     """Get or create a pandas datasource for the given context."""
     try:
         return context.get_datasource(datasource_name)
     except Exception:
         logger.info("Datasource '%s' not found; creating it.", datasource_name)
-        return context.sources.add_pandas(name=datasource_name)
+        return context.sources.add_pandas(name=datasource_name)  # type: ignore
 
 
 def create_validator_for_dataframe(
@@ -37,7 +37,7 @@ def create_validator_for_dataframe(
     df: pd.DataFrame,
     datasource_name: str,
     asset_name: str,
-):
+) -> Any:
     """Create a Great Expectations validator for a Pandas DataFrame."""
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df must be a Pandas DataFrame.")

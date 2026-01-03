@@ -10,7 +10,7 @@ Handles:
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, cast
 
 import requests
@@ -88,7 +88,7 @@ class NotionOutputClient:
                     },
                     "Generated": {
                         "date": {
-                            "start": datetime.utcnow().isoformat(),
+                            "start": datetime.now(timezone.utc).isoformat(),
                         }
                     },
                 },
@@ -273,9 +273,10 @@ class NotionOutputClient:
                     },
                     "Logged At": {
                         "date": {
-                            "start": datetime.utcnow().isoformat(),
+                            "start": datetime.now(timezone.utc).isoformat(),
                         }
                     },
+
                 }
 
                 page_id = self.add_database_item(self.database_id, properties)

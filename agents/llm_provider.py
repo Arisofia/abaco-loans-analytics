@@ -19,6 +19,7 @@ else:
 
 if importlib.util.find_spec("anthropic") is not None:
     import anthropic
+
     ANTHROPIC_AVAILABLE = True
 else:
     ANTHROPIC_AVAILABLE = False

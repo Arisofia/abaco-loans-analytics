@@ -24,26 +24,26 @@ jobs:
                     echo "::warning::Missing required secrets:$missing - skipping financial forecast"
                   fi
             - name: Checkout Repository
-              if: steps.check-secrets.outputs.secrets_available == 'true'
+              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
               uses: actions/checkout@v4
             - name: Setup Python Environment
-              if: steps.check-secrets.outputs.secrets_available == 'true'
+              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
               uses: actions/setup-python@v5
               with:
                   python-version: "3.11"
             - name: Install Dependencies
-              if: steps.check-secrets.outputs.secrets_available == 'true'
+              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
               run: |
                   pip install -r requirements.txt
             - name: Run Financial Forecast
-              if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/financial_forecast.py') != ''
+              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/financial_forecast.py') != '' }}
               env:
                 OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
               run: |
                   python scripts/financial_forecast.py
             - name: Post to Power BI
-              if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_powerbi.py') != ''
+              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_powerbi.py') != '' }}
               env:
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
               run: |

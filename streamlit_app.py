@@ -359,7 +359,7 @@ with st.sidebar:
                         st.error(f"Failed to generate KPI exports: {exc}")
         else:
             st.session_state["loaded"] = False
-            st.warning("No Looker exports found in data/raw/looker_exports.")
+            st.warning("No Looker exports found in data/archives/looker_exports.")
             st.caption("Upload Looker exports or switch to Manual upload.")
     else:
         uploaded_files = st.file_uploader(

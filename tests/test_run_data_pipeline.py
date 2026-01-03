@@ -1,7 +1,6 @@
 import unittest
-from unittest.mock import patch
 from pathlib import Path
-
+from unittest.mock import patch
 
 from scripts.run_data_pipeline import main
 

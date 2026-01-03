@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      OUTPUT_PREFIX: "data/raw/cascade/loan_tapes/${{ github.run_id }}"
+      OUTPUT_PREFIX: "data/archives/cascade/loan_tapes/${{ github.run_id }}"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cascade-parquet-${{ github.run_id }}
-          path: data/raw/cascade/loan_tapes/*.parquet
+          path: data/archives/cascade/loan_tapes/*.parquet
 
       - name: Notify success
         if: success()

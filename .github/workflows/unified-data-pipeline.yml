@@ -65,7 +65,7 @@ jobs:
 
       - name: Ingest Cascade Data
         id: cascade
-        if: hashFiles('scripts/ingest_cascade.py') != '' && steps.check-secrets.outputs.cascade_available == 'true'
+        if: ${{ hashFiles('scripts/ingest_cascade.py') != '' && steps.check-secrets.outputs.cascade_available == 'true' }}
         continue-on-error: true
         env:
           CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
@@ -76,7 +76,7 @@ jobs:
 
       - name: Ingest HubSpot CRM Data
         id: hubspot
-        if: hashFiles('scripts/ingest_hubspot.py') != '' && steps.check-secrets.outputs.hubspot_available == 'true'
+        if: ${{ hashFiles('scripts/ingest_hubspot.py') != '' && steps.check-secrets.outputs.hubspot_available == 'true' }}
         continue-on-error: true
         env:
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_API_KEY || secrets.HUBSPOT_API_TOKEN || secrets.HUBSPOTTOKEN }}
@@ -87,7 +87,7 @@ jobs:
 
       - name: Refresh Supabase Views
         id: supabase
-        if: hashFiles('scripts/refresh_supabase_views.py') != '' && steps.check-secrets.outputs.supabase_available == 'true'
+        if: ${{ hashFiles('scripts/refresh_supabase_views.py') != '' && steps.check-secrets.outputs.supabase_available == 'true' }}
         env:
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
         run: |
@@ -95,19 +95,19 @@ jobs:
           python scripts/refresh_supabase_views.py
 
       - name: Validate Data Quality
-        if: hashFiles('scripts/validate_data_quality.py') != ''
+        if: ${{ hashFiles('scripts/validate_data_quality.py') != '' }}
         run: |
           echo "Running data quality checks..."
           python scripts/validate_data_quality.py
 
       - name: Generate Data Manifest
-        if: hashFiles('scripts/generate_data_manifest.py') != ''
+        if: ${{ hashFiles('scripts/generate_data_manifest.py') != '' }}
         run: |
           echo "Creating manifest with data freshness timestamps..."
           python scripts/generate_data_manifest.py
 
       - name: Signal Agents Data Ready
-        if: steps.check-secrets.outputs.slack_available == 'true'
+        if: ${{ steps.check-secrets.outputs.slack_available == 'true' }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || secrets.SLACK_BOT_TOKEN }}
         run: |
@@ -117,7 +117,7 @@ jobs:
             -d "{\"text\":\"✅ Data pipeline completed at $(date). All agents can now run.\"}"
 
       - name: Log to Opik
-        if: always() && steps.check-secrets.outputs.opik_available == 'true' && hashFiles('scripts/log_pipeline_metrics.py') != ''
+        if: ${{ always() && steps.check-secrets.outputs.opik_available == 'true' && hashFiles('scripts/log_pipeline_metrics.py') != '' }}
         env:
           OPIK_TOKEN: ${{ secrets.OPIK_TOKEN }}
         run: |
@@ -127,7 +127,7 @@ jobs:
             --supabase-status ${{ steps.supabase.outcome || 'skipped' }}
 
       - name: Alert on Critical Failure
-        if: failure() && steps.check-secrets.outputs.slack_available == 'true'
+        if: ${{ failure() && steps.check-secrets.outputs.slack_available == 'true' }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || secrets.SLACK_BOT_TOKEN }}
         run: |

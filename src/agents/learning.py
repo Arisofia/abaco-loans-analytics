@@ -1,7 +1,10 @@
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class FeedbackStore:
@@ -29,13 +32,30 @@ class FeedbackStore:
         return path
 
     def get_agent_performance(self, agent_name: str) -> Dict[str, Any]:
-        """Aggregate performance metrics for an agent."""
+        """Aggregate performance metrics for an agent.
+
+        Skips malformed feedback files (bad JSON, missing `score`) to avoid
+        failing the aggregation for a single corrupt file.
+        """
         files = [f for f in os.listdir(self.storage_dir) if f.startswith(agent_name)]
         scores = []
         for file in files:
-            with open(os.path.join(self.storage_dir, file), "r") as f:
-                data = json.load(f)
-                scores.append(data["score"])
+            file_path = os.path.join(self.storage_dir, file)
+            try:
+                with open(file_path, "r") as f:
+                    data = json.load(f)
+                if not isinstance(data, dict):
+                    logger.warning(
+                        "Skipping malformed feedback file (not an object): %s", file_path
+                    )
+                    continue
+                if "score" not in data:
+                    logger.warning("Skipping feedback missing 'score' key: %s", file_path)
+                    continue
+                scores.append(float(data["score"]))
+            except (json.JSONDecodeError, KeyError, OSError, ValueError) as e:
+                logger.warning("Skipping malformed feedback file %s: %s", file_path, e)
+                continue
 
         if not scores:
             return {"average_score": 0.0, "total_feedbacks": 0}

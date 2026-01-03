@@ -10,7 +10,7 @@ Principles: every chart links to a drill-down table, owner, runbook, SLA, and ne
 
 ## Streamlit Executive Dashboard (ABACO Financial Intelligence)
 
-- Data sources: Looker exports in `data/raw/looker_exports` with manual upload fallback.
+- Data sources: Looker exports in `data/archives/looker_exports` with manual upload fallback.
 - KPI tiles: 52 KPIs from `exports/analytics_facts.csv` plus scalar KPIs from `exports/complete_kpi_dashboard.json`.
 - Cashflow: uses `recv_revenue_for_month`, `recv_interest_for_month`, `recv_fee_for_month`, and `sched_revenue`.
 - Agent info: sales agent volume from loan data when `sales_agent` exists, otherwise headcount from `data/support/headcount.csv`.

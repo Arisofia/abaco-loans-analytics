@@ -11,8 +11,9 @@ def _is_valid_iso8601(val: Any) -> bool:
     try:
         if re.match(iso8601_regex, val):
             # Try parsing to ensure it's a valid date
+            # datetime.fromisoformat raises ValueError for invalid formats
             datetime.fromisoformat(val.replace("Z", "+00:00").replace(" ", "T"))
             return True
-    except Exception:
+    except ValueError:
         return False
     return False

@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -10,16 +11,29 @@ from src.analytics import (
     standardize_numeric,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = tuple(Path(__file__).resolve().parents)[1]
 DASHBOARD_JSON = ROOT / "exports" / "complete_kpi_dashboard.json"
+
+logger = logging.getLogger(__name__)
 
 
 def load_dashboard_metrics() -> Dict[str, Any]:
     """Load computed KPI dashboard from JSON."""
     if not DASHBOARD_JSON.exists():
         return {}
-    with DASHBOARD_JSON.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with DASHBOARD_JSON.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            logger.error("Expected dict in %s, got %s", DASHBOARD_JSON, type(data).__name__)
+            return {}
+        return data
+    except json.JSONDecodeError as e:
+        logger.error("Failed to parse dashboard metrics %s: %s", DASHBOARD_JSON, e)
+        return {}
+    except OSError as e:
+        logger.error("Failed to read dashboard metrics %s: %s", DASHBOARD_JSON, e)
+        return {}
 
 
 def get_portfolio_fundamentals() -> Dict[str, Any]:

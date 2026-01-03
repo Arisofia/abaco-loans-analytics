@@ -5,6 +5,7 @@ Usage: python validate_kpi_formulas.py config/kpi_definitions.yml
 """
 import re
 import sys
+from typing import Set
 
 import yaml
 
@@ -43,13 +44,13 @@ IGNORED_WORDS = {
 }
 
 
-def extract_fields(formula):
+def extract_fields(formula: str) -> Set[str]:
     # Extract all variable-like tokens, filter out known functions/keywords
     tokens = set(FIELD_PATTERN.findall(formula))
     return {t for t in tokens if t not in IGNORED_WORDS and not t.isdigit()}
 
 
-def main(yaml_path):
+def main(yaml_path: str) -> None:
     with open(yaml_path) as f:
         config = yaml.safe_load(f)
 

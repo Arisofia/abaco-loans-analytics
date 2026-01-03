@@ -1,8 +1,9 @@
 import json
 import logging
 import os
+from itertools import islice
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from requests.exceptions import RequestException
 
@@ -40,11 +41,19 @@ class StandaloneAIEngine:
             },
         }
 
-    def _load_knowledge_base_from_file(self) -> Dict:
+    def _load_knowledge_base_from_file(self) -> Dict[str, Any]:
         if not self.knowledge_base_path.exists():
             return {}
         with self.knowledge_base_path.open("r", encoding="utf-8") as handle:
-            return json.load(handle)
+            loaded = json.load(handle)
+            if not isinstance(loaded, dict):
+                logger.warning(
+                    "Knowledge base at %s is not a dict (type=%s); ignoring",
+                    self.knowledge_base_path,
+                    type(loaded),
+                )
+                return {}
+            return loaded
 
     def _initialize_ai_client(self) -> Optional[GrokClient]:
         api_key = os.getenv("GROK_API_KEY")
@@ -58,7 +67,9 @@ class StandaloneAIEngine:
             return content
         return f"{content[:max_chars]}...[truncated]"
 
-    def _construct_prompt(self, personality: Dict[str, str], context: Dict, data: Dict) -> str:
+    def _construct_prompt(
+        self, personality: Dict[str, str], context: Dict[str, Any], data: Dict[str, Any]
+    ) -> str:
         data_payload = self._truncate_content(json.dumps(data, ensure_ascii=False))
         lines: List[str] = [
             f"Tone: {personality.get('tone')}",
@@ -74,7 +85,9 @@ class StandaloneAIEngine:
             lines.append(f"Knowledge Base: {kb_payload}")
         return "\n".join(lines)
 
-    def generate_response(self, agent_id: str, context: Dict, data: Dict) -> str:
+    def generate_response(
+        self, agent_id: str, context: Dict[str, Any], data: Dict[str, Any]
+    ) -> str:
         agent_type = self._extract_agent_type(agent_id)
         personality = self.personalities.get(agent_type, self.personalities["risk_analyst"])
         prompt = self._construct_prompt(personality, context, data)
@@ -89,8 +102,10 @@ class StandaloneAIEngine:
             logger.warning(f"AI generation failed: {e}")
             return self._offline_response(personality, context, data)
 
-    def _offline_response(self, personality: Dict[str, str], context: Dict, data: Dict) -> str:
-        preview = json.dumps({k: data[k] for k in list(data)[:3]}, ensure_ascii=False)
+    def _offline_response(
+        self, personality: Dict[str, str], context: Dict[str, Any], data: Dict[str, Any]
+    ) -> str:
+        preview = json.dumps({k: data[k] for k in islice(data, 3)}, ensure_ascii=False)
         return (
             f"[{personality['tone']}] {context.get('summary', 'No summary provided')} | "
             f"Insights based on: {preview}"

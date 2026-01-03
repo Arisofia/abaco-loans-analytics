@@ -22,7 +22,7 @@ jobs:
 
     investor-report:
         needs: validate
-        if: needs.validate.outputs.run == 'true'
+        if: ${{ needs.validate.outputs.run == 'true' }}
         runs-on: ubuntu-latest
         steps:
             - name: Check secrets availability
@@ -65,19 +65,19 @@ jobs:
                     echo "figma_available=false" >> $GITHUB_OUTPUT
                   fi
             - name: Checkout Repository
-              if: steps.check-secrets.outputs.can_run == 'true'
+              if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
               uses: actions/checkout@v4
             - name: Setup Python Environment
-              if: steps.check-secrets.outputs.can_run == 'true'
+              if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
               uses: actions/setup-python@v5
               with:
                   python-version: "3.11"
             - name: Install Dependencies
-              if: steps.check-secrets.outputs.can_run == 'true'
+              if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
               run: |
                   pip install -r requirements.txt
             - name: Generate Investor Dashboards
-              if: steps.check-secrets.outputs.can_run == 'true' && hashFiles('scripts/investor_reporting.py') != ''
+              if: ${{ steps.check-secrets.outputs.can_run == 'true' && hashFiles('scripts/investor_reporting.py') != '' }}
               env:
                 OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
@@ -86,7 +86,7 @@ jobs:
               run: |
                   python scripts/investor_reporting.py
             - name: Post to Figma
-              if: steps.check-secrets.outputs.can_run == 'true' && steps.check-secrets.outputs.figma_available == 'true' && hashFiles('scripts/post_to_figma.py') != ''
+              if: ${{ steps.check-secrets.outputs.can_run == 'true' && steps.check-secrets.outputs.figma_available == 'true' && hashFiles('scripts/post_to_figma.py') != '' }}
               env:
                 FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}

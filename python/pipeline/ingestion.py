@@ -3,8 +3,8 @@ import json
 import logging
 import shutil
 import uuid
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -13,7 +13,8 @@ import pandas as pd
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel, Field, ValidationError
 
-from python.pipeline.utils import CircuitBreaker, RateLimiter, RetryPolicy, hash_file, utc_now
+from python.pipeline.utils import (CircuitBreaker, RateLimiter, RetryPolicy,
+                                   hash_file, utc_now)
 from python.validation import validate_dataframe
 
 logger = logging.getLogger(__name__)
@@ -216,7 +217,8 @@ class UnifiedIngestion:
 
         looker_cfg = self.config.get("looker", {})
         date_candidates = looker_cfg.get(
-            "date_column_candidates", ["reporting_date", "as_of_date", "date", "fecha", "fecha_corte"]
+            "date_column_candidates",
+            ["reporting_date", "as_of_date", "date", "fecha", "fecha_corte"],
         )
         cash_candidates = looker_cfg.get(
             "cash_column_candidates",
@@ -238,13 +240,9 @@ class UnifiedIngestion:
         parsed[cash_col] = pd.to_numeric(parsed[cash_col], errors="coerce")
         parsed = parsed.dropna(subset=[date_col])
         grouped = parsed.groupby(date_col, dropna=False)[cash_col].last()
-        cash_by_date = {
-            str(idx): float(val) for idx, val in grouped.items() if pd.notna(val)
-        }
+        cash_by_date = {str(idx): float(val) for idx, val in grouped.items() if pd.notna(val)}
         if cash_by_date:
-            self._log_event(
-                "looker_financials", "loaded", file=str(path), dates=len(cash_by_date)
-            )
+            self._log_event("looker_financials", "loaded", file=str(path), dates=len(cash_by_date))
         return cash_by_date
 
     def _looker_par_balances_to_loan_tape(
@@ -297,15 +295,11 @@ class UnifiedIngestion:
         ).dropna(subset=["measurement_date"])
 
         grouped = (
-            frame.groupby("measurement_date", dropna=False)
-            .sum(numeric_only=True)
-            .reset_index()
+            frame.groupby("measurement_date", dropna=False).sum(numeric_only=True).reset_index()
         )
         grouped["total_eligible_usd"] = grouped["total_receivable_usd"]
         grouped["discounted_balance_usd"] = grouped["total_receivable_usd"]
-        grouped["cash_available_usd"] = (
-            grouped["measurement_date"].map(cash_by_date).fillna(0.0)
-        )
+        grouped["cash_available_usd"] = grouped["measurement_date"].map(cash_by_date).fillna(0.0)
         grouped["loan_id"] = grouped["measurement_date"].apply(
             lambda date: f"looker_snapshot_{str(date).replace('-', '')}"
         )
@@ -335,7 +329,9 @@ class UnifiedIngestion:
                 )
         if measurement_date is None:
             if strategy == "max_disburse_date":
-                resolved = self._select_column(list(df.columns), ["disburse_date", "disbursement_date"])
+                resolved = self._select_column(
+                    list(df.columns), ["disburse_date", "disbursement_date"]
+                )
             elif strategy == "max_maturity_date":
                 resolved = self._select_column(list(df.columns), ["maturity_date", "loan_end_date"])
             else:
@@ -357,23 +353,25 @@ class UnifiedIngestion:
                 "measurement_date": measurement_date,
                 "total_receivable_usd": balance,
                 "dpd_90_plus_usd": balance.where(dpd >= DPD_THRESHOLD_90, 0.0),
-                "dpd_60_90_usd": balance.where((dpd >= DPD_THRESHOLD_60) & (dpd < DPD_THRESHOLD_90), 0.0),
-                "dpd_30_60_usd": balance.where((dpd >= DPD_THRESHOLD_30) & (dpd < DPD_THRESHOLD_60), 0.0),
-                "dpd_7_30_usd": balance.where((dpd >= DPD_THRESHOLD_7) & (dpd < DPD_THRESHOLD_30), 0.0),
+                "dpd_60_90_usd": balance.where(
+                    (dpd >= DPD_THRESHOLD_60) & (dpd < DPD_THRESHOLD_90), 0.0
+                ),
+                "dpd_30_60_usd": balance.where(
+                    (dpd >= DPD_THRESHOLD_30) & (dpd < DPD_THRESHOLD_60), 0.0
+                ),
+                "dpd_7_30_usd": balance.where(
+                    (dpd >= DPD_THRESHOLD_7) & (dpd < DPD_THRESHOLD_30), 0.0
+                ),
                 "dpd_0_7_usd": balance.where(dpd < DPD_THRESHOLD_7, 0.0),
             }
         ).dropna(subset=["measurement_date"])
 
         grouped = (
-            frame.groupby("measurement_date", dropna=False)
-            .sum(numeric_only=True)
-            .reset_index()
+            frame.groupby("measurement_date", dropna=False).sum(numeric_only=True).reset_index()
         )
         grouped["total_eligible_usd"] = grouped["total_receivable_usd"]
         grouped["discounted_balance_usd"] = grouped["total_receivable_usd"]
-        grouped["cash_available_usd"] = (
-            grouped["measurement_date"].map(cash_by_date).fillna(0.0)
-        )
+        grouped["cash_available_usd"] = grouped["measurement_date"].map(cash_by_date).fillna(0.0)
         grouped["loan_id"] = grouped["measurement_date"].apply(
             lambda date: f"looker_snapshot_{str(date).replace('-', '')}"
         )

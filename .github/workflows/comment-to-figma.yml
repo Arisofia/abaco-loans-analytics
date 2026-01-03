@@ -39,7 +39,7 @@ jobs:
             echo "::warning::Missing Figma secrets - skipping comment"
           fi
       - name: Post comment to Figma
-        if: steps.figma_secrets.outputs.available == 'true'
+        if: ${{ steps.figma_secrets.outputs.available == 'true' }}
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
           FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}

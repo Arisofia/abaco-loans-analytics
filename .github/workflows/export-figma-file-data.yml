@@ -44,26 +44,26 @@ jobs:
           fi
 
       - name: Set up Python
-        if: steps.figma_secrets.outputs.available == 'true'
+        if: ${{ steps.figma_secrets.outputs.available == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install dependencies
-        if: steps.figma_secrets.outputs.available == 'true'
+        if: ${{ steps.figma_secrets.outputs.available == 'true' }}
         run: |
           python -m pip install --upgrade pip
           pip install requests
 
       - name: Export Figma file data
-        if: steps.figma_secrets.outputs.available == 'true' && hashFiles('scripts/export_figma_file_data.py') != ''
+        if: ${{ steps.figma_secrets.outputs.available == 'true' && hashFiles('scripts/export_figma_file_data.py') != '' }}
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
         run: |
           python scripts/export_figma_file_data.py
 
       - name: Commit and push updated Figma data
-        if: steps.figma_secrets.outputs.available == 'true'
+        if: ${{ steps.figma_secrets.outputs.available == 'true' }}
         run: |
           if [ ! -f exports/presentation/figma_file_data.json ]; then
             echo "No figma file data export to commit."

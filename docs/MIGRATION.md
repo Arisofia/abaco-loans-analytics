@@ -23,7 +23,7 @@ python scripts/ingest_cascade.py --file input.csv
 **New**
 
 ```bash
-python scripts/run_data_pipeline.py --input data/raw/cascade/loan_tape.csv
+python scripts/run_data_pipeline.py --input data/archives/cascade/loan_tape.csv
 ```
 
 ### 2. Validate Schemas

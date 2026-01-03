@@ -46,22 +46,22 @@ jobs:
             echo "::warning::Missing required secrets:$missing - skipping operations dashboard"
           fi
       - name: Checkout Repository
-        if: steps.check-secrets.outputs.secrets_available == 'true'
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         uses: actions/checkout@v4
       - name: Setup Python Environment
-        if: steps.check-secrets.outputs.secrets_available == 'true'
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install Dependencies
-        if: steps.check-secrets.outputs.secrets_available == 'true'
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         run: |
           pip install -r requirements.txt
       - name: Run Operations Analysis
-        if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/operations_dashboard.py') != ''
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/operations_dashboard.py') != '' }}
         run: |
           python scripts/operations_dashboard.py
       - name: Post to Slack
-        if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_slack.py') != '' && env.SLACK_BOT_TOKEN != ''
+        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_slack.py') != '' && env.SLACK_BOT_TOKEN != '' }}
         run: |
           python scripts/post_to_slack.py --channel "#ops-dashboard"

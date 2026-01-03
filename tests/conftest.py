@@ -11,6 +11,7 @@ import pytest
 try:
     import _pytest
     import _pytest.python as _pytest_src
+
     if not hasattr(_pytest, "src"):
         _pytest.src = _pytest_src
 except Exception:
@@ -20,7 +21,7 @@ except Exception:
     pass
 
 # Ensure repository modules can be imported when tests run from the repo root.
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = tuple(Path(__file__).resolve().parents)[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 

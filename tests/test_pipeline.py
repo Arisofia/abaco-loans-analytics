@@ -43,11 +43,11 @@ def test_pipeline_ingestion_and_transformation(tmp_path, minimal_config):
     df = sample_df()
     csv_file = tmp_path / "sample.csv"
     df.to_csv(csv_file, index=False)
-    
+
     ingestion = UnifiedIngestion(minimal_config)
     ingest_result = ingestion.ingest_file(csv_file)
     assert not ingest_result.df.empty
-    
+
     transformer = UnifiedTransformation(minimal_config)
     transform_result = transformer.transform(ingest_result.df)
     assert isinstance(transform_result.df, pd.DataFrame)
@@ -57,7 +57,7 @@ def test_ingest_with_custom_run_id(tmp_path, minimal_config):
     df = sample_df()
     csv_file = tmp_path / "sample.csv"
     df.to_csv(csv_file, index=False)
-    
+
     custom_run_id = "custom_ingest_123"
     ingestion = UnifiedIngestion(minimal_config, run_id=custom_run_id)
     result = ingestion.ingest_file(csv_file)
