@@ -50,17 +50,58 @@ def get_latest_kpis():
 
 @app.post("/api/pipeline/trigger")
 async def trigger_pipeline(background_tasks: BackgroundTasks, input_file: str = "data/abaco_portfolio_calculations.csv"):
-    """Trigger the Prefect pipeline flow as a background task."""
-    # The pipeline implementation lives under `src.pipeline`. Import from there so
-    # the module path matches the repository layout (avoids "could not resolve"
-    # import errors when running the FastAPI app).
-    from src.pipeline.prefect_orchestrator import abaco_pipeline_flow
+    """Trigger the Prefect pipeline flow as a background task.
 
-    # In a production env, we'd use prefect's deployment API
-    # For this implementation, we run the flow function directly in background
-    background_tasks.add_task(abaco_pipeline_flow, input_file=input_file)
+    Execution strategy is configurable via `PIPELINE_EXECUTION_MODE` env var:
+      - "inline": import and run the flow object in the web process (not
+        recommended for production; useful for local debugging).
+      - "subprocess": spawn a separate Python process that runs the flow as a
+        detached child (recommended; avoids initializing Prefect in the web
+        server process).
 
-    return {"message": "Pipeline triggered successfully", "input_file": input_file}
+    The subprocess approach avoids heavy Prefect/server initialization in the
+    API process which can cause runtime import/init issues and block request
+    handling.
+    """
+    import logging
+    import os
+    import subprocess
+    import shlex
+    import sys
+
+    logger = logging.getLogger(__name__)
+
+    mode = os.getenv("PIPELINE_EXECUTION_MODE", "subprocess")
+
+    if mode == "inline":
+        # Local/debug mode: run the flow object directly (keeps previous behavior)
+        from src.pipeline.prefect_orchestrator import abaco_pipeline_flow
+
+        # Run in background via FastAPI BackgroundTasks; exceptions will propagate
+        # to the background runner but won't block request handling.
+        background_tasks.add_task(abaco_pipeline_flow, input_file=input_file)
+        logger.info("Triggered pipeline inline for input: %s", input_file)
+        return {"message": "Pipeline triggered (inline)", "input_file": input_file}
+
+    # Default: spawn a detached subprocess to run the flow so the web process is
+    # not affected by Prefect initialization, long-running tasks, or heavy deps.
+    try:
+        python = sys.executable or "python"
+        # We use a small -c one-liner so the subprocess imports the pipeline and
+        # runs it in isolation. This avoids shipping a new CLI or adding extra
+        # dependencies for the API service.
+        safe_input = shlex.quote(input_file)
+        cmd = (
+            f"{shlex.quote(python)} -c \"from src.pipeline.prefect_orchestrator "
+            f"import abaco_pipeline_flow; abaco_pipeline_flow(input_file={safe_input})\""
+        )
+        # Start a detached process.
+        subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        logger.info("Spawned pipeline subprocess for input: %s", input_file)
+        return {"message": "Pipeline triggered (subprocess)", "input_file": input_file}
+    except Exception as e:
+        logger.exception("Failed to trigger pipeline: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to start pipeline") from e
 
 if __name__ == "__main__":
     import os
