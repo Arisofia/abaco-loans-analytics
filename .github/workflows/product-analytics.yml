@@ -14,23 +14,6 @@ jobs:
                 OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                 AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
               run: |
-                sanitize_secret() {
-                  local var_name="$1"
-                  local raw="$2"
-                  local norm
-                  norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-                  case "$norm" in
-                    ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                      printf -v "$var_name" '%s' ""
-                      ;;
-                    *)
-                      printf -v "$var_name" '%s' "$raw"
-                      ;;
-                  esac
-                }
-                sanitize_secret OPENAI_API_KEY "$OPENAI_API_KEY"
-                sanitize_secret AMPLITUDE_API_KEY "$AMPLITUDE_API_KEY"
-
                   if [ -n "$OPENAI_API_KEY" ] && [ -n "$AMPLITUDE_API_KEY" ]; then
                     echo "secrets_available=true" >> $GITHUB_OUTPUT
                   else
@@ -39,26 +22,26 @@ jobs:
                   fi
 
             - name: Checkout Repository
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
+              if: steps.check-secrets.outputs.secrets_available == 'true'
               uses: actions/checkout@v4
             - name: Setup Python Environment
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
+              if: steps.check-secrets.outputs.secrets_available == 'true'
               uses: actions/setup-python@v5
               with:
                   python-version: "3.11"
             - name: Install Dependencies
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
+              if: steps.check-secrets.outputs.secrets_available == 'true'
               run: |
                   pip install -r requirements.txt
             - name: Run Product Analytics
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/product_analytics.py') != '' }}
+              if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/product_analytics.py') != ''
               env:
                 OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                 AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
               run: |
                   python scripts/product_analytics.py
             - name: Post to Figma
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_figma.py') != '' }}
+              if: steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_figma.py') != ''
               env:
                   FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
               run: |

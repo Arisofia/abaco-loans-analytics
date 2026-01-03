@@ -1,5 +1,4 @@
 import pytest
-
 from src.analytics.business_rules import (ApprovalDecision, IndustryType,
                                           MYPEBusinessRules, RiskLevel)
 

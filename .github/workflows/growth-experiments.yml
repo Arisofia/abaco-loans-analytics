@@ -15,28 +15,9 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || secrets.NOTION_INTEGRATION_TOKEN }}
+          NOTION_API_KEY: ${{ secrets.NOTION_INTEGRATION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret OPENAI_API_KEY "$OPENAI_API_KEY"
-          sanitize_secret SUPABASE_SERVICE_ROLE "$SUPABASE_SERVICE_ROLE"
-          sanitize_secret NOTION_API_KEY "$NOTION_API_KEY"
-          sanitize_secret NOTION_DATABASE_ID "$NOTION_DATABASE_ID"
-
           missing=""
           if [ -z "$OPENAI_API_KEY" ]; then
             missing="$missing OPENAI_API_KEY"
@@ -58,16 +39,16 @@ jobs:
             echo "notion_available=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Setup Python Environment
-        if: ${{ steps.check-secrets.outputs.run == 'true' }}
+        if: steps.check-secrets.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install Dependencies
-        if: ${{ steps.check-secrets.outputs.run == 'true' }}
+        if: steps.check-secrets.outputs.run == 'true'
         run: |
           pip install -r requirements.txt
       - name: Run Growth Experiment Analysis
-        if: ${{ steps.check-secrets.outputs.run == 'true' && hashFiles('scripts/growth_experiments.py') != '' }}
+        if: steps.check-secrets.outputs.run == 'true' && hashFiles('scripts/growth_experiments.py') != ''
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
@@ -75,9 +56,9 @@ jobs:
           python scripts/growth_experiments.py
       - name: Post to Notion
         env:
-          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || secrets.NOTION_INTEGRATION_TOKEN }}
+          NOTION_API_KEY: ${{ secrets.NOTION_INTEGRATION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-        if: ${{ steps.check-secrets.outputs.run == 'true' && steps.check-secrets.outputs.notion_available == 'true' }}
+        if: steps.check-secrets.outputs.run == 'true' && steps.check-secrets.outputs.notion_available == 'true'
         run: |
           python scripts/post_to_notion.py

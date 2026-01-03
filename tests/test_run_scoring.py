@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
-
 from src.analytics.run_scoring import (load_portfolio, main, parse_args,
                                        summarize_results)
 

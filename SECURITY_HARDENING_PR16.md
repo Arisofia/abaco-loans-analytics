@@ -33,10 +33,7 @@ brew install bfg
 
 # Create file with patterns to remove
 cat > /tmp/secrets.txt <<'SECRETS'
-AZURE_CLIENT_SECRET=*
-OPENAI_API_KEY=*
-ANTHROPIC_API_KEY=*
-HUBSPOT_API_KEY=*
+# Secrets must be set via environment variables or GitHub Secrets. See documentation for details.
 HUBSPOT_TOKEN=*
 SECRETS
 
@@ -181,10 +178,6 @@ All secrets via **environment variables** (from GitHub Secrets → workflow → 
 
 ```bash
 # .env.example (for documentation only)
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY
-ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY
-AZURE_CLIENT_SECRET=YOUR_AZURE_CLIENT_SECRET
-HUBSPOT_API_KEY=YOUR_HUBSPOT_API_KEY_HERE
 
 # Actual deployment: GitHub Secrets or K8s/container secrets
 ```

@@ -72,23 +72,6 @@ jobs:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret AZURE_CREDENTIALS "$AZURE_CREDENTIALS"
-          sanitize_secret AZURE_WEBAPP_PUBLISH_PROFILE "$AZURE_WEBAPP_PUBLISH_PROFILE"
-
           if [ -n "$AZURE_CREDENTIALS" ]; then
             echo "has_creds=true" >> "$GITHUB_OUTPUT"
           else
@@ -101,20 +84,20 @@ jobs:
           fi
 
       - name: Login to Azure
-        if: ${{ steps.check_secrets.outputs.has_creds == 'true' }}
+        if: steps.check_secrets.outputs.has_creds == 'true'
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App (Azure login)
-        if: ${{ steps.check_secrets.outputs.has_creds == 'true' }}
+        if: steps.check_secrets.outputs.has_creds == 'true'
         uses: azure/webapps-deploy@v3
         with:
           app-name: abaco-analytics-dashboard
           package: ./python-app
 
       - name: Deploy to Azure Web App (publish profile)
-        if: ${{ steps.check_secrets.outputs.has_creds != 'true' && steps.check_secrets.outputs.has_publish_profile == 'true' }}
+        if: steps.check_secrets.outputs.has_creds != 'true' && steps.check_secrets.outputs.has_publish_profile == 'true'
         uses: azure/webapps-deploy@v3
         with:
           app-name: abaco-analytics-dashboard
@@ -122,7 +105,7 @@ jobs:
           package: ./python-app
 
       - name: Skip deploy (missing secrets)
-        if: ${{ steps.check_secrets.outputs.has_creds != 'true' && steps.check_secrets.outputs.has_publish_profile != 'true' }}
+        if: steps.check_secrets.outputs.has_creds != 'true' && steps.check_secrets.outputs.has_publish_profile != 'true'
         run: |
           echo "Skipping deployment: AZURE_CREDENTIALS or AZURE_WEBAPP_PUBLISH_PROFILE is required."
 

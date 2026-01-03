@@ -44,22 +44,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret DATABASE_URL "$DATABASE_URL"
-
           if [ -n "$DATABASE_URL" ]; then
             echo "db_available=true" >> "$GITHUB_OUTPUT"
           else
@@ -74,7 +58,7 @@ jobs:
       - name: Apply SQL migrations (analytics views)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        if: ${{ steps.db_check.outputs.db_available == 'true' }}
+        if: steps.db_check.outputs.db_available == 'true'
         run: |
           echo "Applying analytics views migration to $DATABASE_URL"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20260101_analytics_kpi_views.sql
@@ -83,12 +67,12 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           RUN_KPI_PARITY_TESTS: "1"
-        if: ${{ steps.db_check.outputs.db_available == 'true' }}
+        if: steps.db_check.outputs.db_available == 'true'
         run: |
           pytest -q tests/test_kpi_parity.py
 
       - name: Skip KPI parity tests (no database configured)
-        if: ${{ steps.db_check.outputs.db_available != 'true' }}
+        if: steps.db_check.outputs.db_available != 'true'
         run: |
           echo "::warning::DATABASE_URL secret not configured - skipping KPI parity tests"
           echo "To enable these tests, add DATABASE_URL to repository secrets"

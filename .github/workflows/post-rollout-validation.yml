@@ -15,27 +15,6 @@ jobs:
           FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
           FIGMA_NODE_ID: ${{ secrets.FIGMA_NODE_ID }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret AWS_S3_BUCKET "$AWS_S3_BUCKET"
-          sanitize_secret AWS_ACCESS_KEY_ID "$AWS_ACCESS_KEY_ID"
-          sanitize_secret AWS_SECRET_ACCESS_KEY "$AWS_SECRET_ACCESS_KEY"
-          sanitize_secret FIGMA_TOKEN "$FIGMA_TOKEN"
-          sanitize_secret FIGMA_FILE_KEY "$FIGMA_FILE_KEY"
-          sanitize_secret FIGMA_NODE_ID "$FIGMA_NODE_ID"
-
           if [ -n "$AWS_S3_BUCKET" ]; then
             echo "aws_available=true" >> $GITHUB_OUTPUT
           else
@@ -58,11 +37,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas numpy matplotlib pyarrow requests
       - name: Validate Meta Insights Data
-        if: ${{ hashFiles('data/warehouse/meta_insights.parquet') != '' }}
+        if: hashFiles('data/warehouse/meta_insights.parquet') != ''
         run: |
           python -c "import pandas as pd; df = pd.read_parquet('data/warehouse/meta_insights.parquet'); assert not df.empty, 'Meta insights data is empty!'; print('Meta insights records:', len(df))"
       - name: Validate Cascade Data
-        if: ${{ hashFiles('data/metrics/*.csv') != '' }}
+        if: hashFiles('data/metrics/*.csv') != ''
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -79,7 +58,7 @@ jobs:
           print("Cascade records:", len(df), "file:", latest)
           PY
       - name: Validate Figma Dashboard Images
-        if: ${{ steps.check-secrets.outputs.aws_available == 'true' }}
+        if: steps.check-secrets.outputs.aws_available == 'true'
         env:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         run: |
@@ -100,7 +79,7 @@ jobs:
               print(f"Image OK: {url}")
           PY
       - name: Validate Figma API Node Update
-        if: ${{ steps.check-secrets.outputs.figma_available == 'true' }}
+        if: steps.check-secrets.outputs.figma_available == 'true'
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
           FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}

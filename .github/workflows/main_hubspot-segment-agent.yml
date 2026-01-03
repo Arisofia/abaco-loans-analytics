@@ -98,24 +98,6 @@ jobs:
           TENANT_ID: ${{ secrets.AZUREAPPSERVICE_TENANTID_F145EFCA8AD64ED686BE309DA9DFE502 }}
           SUBSCRIPTION_ID: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_09482FCEC83B4AD880614EFC42AD11AD }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret CLIENT_ID "$CLIENT_ID"
-          sanitize_secret TENANT_ID "$TENANT_ID"
-          sanitize_secret SUBSCRIPTION_ID "$SUBSCRIPTION_ID"
-
           missing=""
           [ -z "$CLIENT_ID" ] && missing="$missing AZUREAPPSERVICE_CLIENTID_F6607BB65D034140A480784B481B338B"
           [ -z "$TENANT_ID" ] && missing="$missing AZUREAPPSERVICE_TENANTID_F145EFCA8AD64ED686BE309DA9DFE502"
@@ -128,7 +110,7 @@ jobs:
           fi
 
       - name: Login to Azure
-        if: ${{ steps.check_oidc.outputs.present == 'true' }}
+        if: steps.check_oidc.outputs.present == 'true'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F6607BB65D034140A480784B481B338B }}
@@ -136,7 +118,7 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_09482FCEC83B4AD880614EFC42AD11AD }}
 
       - name: 'Deploy to Azure Functions'
-        if: ${{ steps.check_oidc.outputs.present == 'true' }}
+        if: steps.check_oidc.outputs.present == 'true'
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:
@@ -145,6 +127,6 @@ jobs:
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
       - name: Skip deploy (missing Azure OIDC secrets)
-        if: ${{ steps.check_oidc.outputs.present != 'true' }}
+        if: steps.check_oidc.outputs.present != 'true'
         run: |
           echo "Skipping deployment: Azure OIDC secrets are not configured."

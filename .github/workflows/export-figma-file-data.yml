@@ -15,55 +15,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check Figma token
-        id: figma_secrets
-        env:
-          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-        run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret FIGMA_TOKEN "$FIGMA_TOKEN"
-
-          if [ -n "$FIGMA_TOKEN" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::FIGMA_TOKEN not configured - skipping export"
-          fi
-
       - name: Set up Python
-        if: ${{ steps.figma_secrets.outputs.available == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install dependencies
-        if: ${{ steps.figma_secrets.outputs.available == 'true' }}
         run: |
           python -m pip install --upgrade pip
           pip install requests
 
       - name: Export Figma file data
-        if: ${{ steps.figma_secrets.outputs.available == 'true' && hashFiles('scripts/export_figma_file_data.py') != '' }}
+        if: hashFiles('scripts/export_figma_file_data.py') != ''
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
         run: |
           python scripts/export_figma_file_data.py
 
       - name: Commit and push updated Figma data
-        if: ${{ steps.figma_secrets.outputs.available == 'true' }}
         run: |
           if [ ! -f exports/presentation/figma_file_data.json ]; then
             echo "No figma file data export to commit."

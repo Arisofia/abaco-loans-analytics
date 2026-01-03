@@ -13,55 +13,20 @@ jobs:
   operations-dashboard:
     runs-on: ubuntu-latest
     steps:
-      - name: Check secrets availability
-        id: check-secrets
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-        run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret OPENAI_API_KEY "$OPENAI_API_KEY"
-          sanitize_secret SUPABASE_SERVICE_ROLE "$SUPABASE_SERVICE_ROLE"
-
-          missing=""
-          [ -z "$OPENAI_API_KEY" ] && missing="$missing OPENAI_API_KEY"
-          [ -z "$SUPABASE_SERVICE_ROLE" ] && missing="$missing SUPABASE_SERVICE_ROLE"
-          if [ -z "$missing" ]; then
-            echo "secrets_available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "secrets_available=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Missing required secrets:$missing - skipping operations dashboard"
-          fi
       - name: Checkout Repository
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         uses: actions/checkout@v4
       - name: Setup Python Environment
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install Dependencies
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
         run: |
           pip install -r requirements.txt
       - name: Run Operations Analysis
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/operations_dashboard.py') != '' }}
+        if: hashFiles('scripts/operations_dashboard.py') != ''
         run: |
           python scripts/operations_dashboard.py
       - name: Post to Slack
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_slack.py') != '' && env.SLACK_BOT_TOKEN != '' }}
+        if: hashFiles('scripts/post_to_slack.py') != '' && env.SLACK_BOT_TOKEN != ''
         run: |
           python scripts/post_to_slack.py --channel "#ops-dashboard"

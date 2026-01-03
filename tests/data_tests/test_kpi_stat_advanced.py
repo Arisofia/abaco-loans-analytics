@@ -1,5 +1,4 @@
 import pandas as pd
-
 from src.kpis.collection_rate import calculate_collection_rate
 from src.kpis.par_90 import calculate_par_90
 

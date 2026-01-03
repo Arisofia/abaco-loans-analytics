@@ -54,7 +54,7 @@ jobs:
 
   monitor:
     needs: check-dependencies
-    if: ${{ needs.check-dependencies.outputs.has_scripts == 'true' }}
+    if: needs.check-dependencies.outputs.has_scripts == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,39 +67,39 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Query Opik for Agent Metrics
-        if: ${{ hashFiles('scripts/query_opik_metrics.py') != '' }}
+        if: hashFiles('scripts/query_opik_metrics.py') != ''
         env:
           OPIK_TOKEN: ${{ secrets.OPIK_TOKEN }}
         run: |
           python scripts/query_opik_metrics.py
       - name: Query Phoenix for Model Performance
-        if: ${{ hashFiles('scripts/query_phoenix_performance.py') != '' }}
+        if: hashFiles('scripts/query_phoenix_performance.py') != ''
         env:
           PHOENIX_TOKEN: ${{ secrets.PHOENIX_TOKEN }}
         run: |
           python scripts/query_phoenix_performance.py
       - name: Calculate Agent Health Scores
-        if: ${{ hashFiles('scripts/calculate_agent_health.py') != '' }}
+        if: hashFiles('scripts/calculate_agent_health.py') != ''
         run: |
           python scripts/calculate_agent_health.py
       - name: Detect Degradation
-        if: ${{ hashFiles('scripts/detect_degradation.py') != '' }}
+        if: hashFiles('scripts/detect_degradation.py') != ''
         run: |
           python scripts/detect_degradation.py
       - name: Update Figma Agent Health Dashboard
-        if: ${{ hashFiles('scripts/update_figma_agent_dashboard.py') != '' }}
+        if: hashFiles('scripts/update_figma_agent_dashboard.py') != ''
         env:
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
         run: |
           python scripts/update_figma_agent_dashboard.py
       - name: Post Summary to Slack (bot) #ops-alerts
-        if: ${{ always() && needs.check-dependencies.outputs.slack_bot_available == 'true' && hashFiles('scripts/post_to_slack.py') != '' }}
+        if: always() && needs.check-dependencies.outputs.slack_bot_available == 'true' && hashFiles('scripts/post_to_slack.py') != ''
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: |
           python scripts/post_to_slack.py --channel "#ops-alerts"
       - name: Post Summary to Slack (webhook) #ops-alerts
-        if: ${{ always() && needs.check-dependencies.outputs.slack_webhook_available == 'true' }}
+        if: always() && needs.check-dependencies.outputs.slack_webhook_available == 'true'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

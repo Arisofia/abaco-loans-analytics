@@ -17,22 +17,6 @@ jobs:
         env:
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret PERPLEXITY_API_KEY "$PERPLEXITY_API_KEY"
-
           if [ -n "$PERPLEXITY_API_KEY" ]; then
             echo "secrets_available=true" >> $GITHUB_OUTPUT
           else
@@ -41,20 +25,20 @@ jobs:
           fi
 
       - name: Checkout code
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Get PR diff
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
+        if: steps.check-secrets.outputs.secrets_available == 'true'
         id: diff
         run: |
           git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
           echo "diff_size=$(wc -c < pr_diff.txt)" >> $GITHUB_OUTPUT
 
       - name: Review with Perplexity
-        if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && fromJSON(steps.diff.outputs.diff_size || '0') < 50000 }}
+        if: steps.check-secrets.outputs.secrets_available == 'true' && fromJSON(steps.diff.outputs.diff_size || '0') < 50000
         env:
           PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

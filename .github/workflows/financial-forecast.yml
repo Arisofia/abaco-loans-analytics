@@ -8,42 +8,24 @@ jobs:
     financial-forecast:
         runs-on: ubuntu-latest
         steps:
-            - name: Check secrets availability
-              id: check-secrets
-              env:
-                OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-                SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-              run: |
-                  missing=""
-                  [ -z "$OPENAI_API_KEY" ] && missing="$missing OPENAI_API_KEY"
-                  [ -z "$SUPABASE_SERVICE_ROLE" ] && missing="$missing SUPABASE_SERVICE_ROLE"
-                  if [ -z "$missing" ]; then
-                    echo "secrets_available=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "secrets_available=false" >> $GITHUB_OUTPUT
-                    echo "::warning::Missing required secrets:$missing - skipping financial forecast"
-                  fi
             - name: Checkout Repository
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
               uses: actions/checkout@v4
             - name: Setup Python Environment
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
               uses: actions/setup-python@v5
               with:
                   python-version: "3.11"
             - name: Install Dependencies
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' }}
               run: |
                   pip install -r requirements.txt
             - name: Run Financial Forecast
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/financial_forecast.py') != '' }}
+              if: hashFiles('scripts/financial_forecast.py') != ''
               env:
                 OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
               run: |
                   python scripts/financial_forecast.py
             - name: Post to Power BI
-              if: ${{ steps.check-secrets.outputs.secrets_available == 'true' && hashFiles('scripts/post_to_powerbi.py') != '' }}
+              if: hashFiles('scripts/post_to_powerbi.py') != ''
               env:
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
               run: |

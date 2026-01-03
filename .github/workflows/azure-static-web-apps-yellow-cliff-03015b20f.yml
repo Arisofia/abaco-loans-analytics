@@ -13,28 +13,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate_secrets:
-    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-latest
-    name: Validate required secrets
-    steps:
-      - name: Check required secrets
-        env:
-          AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F }}
-        run: |
-          missing=0
-          if [ -z "$AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F" ]; then
-            echo "Missing: AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F" >&2
-            missing=1
-          fi
-          if [ $missing -eq 1 ]; then
-            echo "Required secrets missing. Please add them in repo settings." >&2
-            exit 1
-          fi
-
   build_and_deploy_job:
-    needs: validate_secrets
-    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
@@ -65,22 +45,6 @@ jobs:
         env:
           SWA_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret SWA_TOKEN "$SWA_TOKEN"
-
           if [ -z "$SWA_TOKEN" ]; then
             echo "present=false" >> "$GITHUB_OUTPUT"
             echo "Missing AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F"
@@ -90,7 +54,7 @@ jobs:
 
       - name: Deploy
         id: swa-deploy
-        if: ${{ steps.swa_token.outputs.present == 'true' }}
+        if: steps.swa_token.outputs.present == 'true'
         uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F }}
@@ -102,6 +66,6 @@ jobs:
           app_build_command: "pnpm -C apps/web build"
 
       - name: Skip deploy (missing token)
-        if: ${{ steps.swa_token.outputs.present != 'true' }}
+        if: steps.swa_token.outputs.present != 'true'
         run: |
           echo "Skipping SWA deploy: token missing."

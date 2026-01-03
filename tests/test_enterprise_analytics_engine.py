@@ -7,7 +7,6 @@ import logging
 import numpy as np
 import pandas as pd
 import pytest
-
 from src.analytics.enterprise_analytics_engine import LoanAnalyticsEngine
 
 

@@ -22,62 +22,20 @@ jobs:
 
     investor-report:
         needs: validate
-        if: ${{ needs.validate.outputs.run == 'true' }}
+        if: needs.validate.outputs.run == 'true'
         runs-on: ubuntu-latest
         steps:
-            - name: Check secrets availability
-              id: check-secrets
-              env:
-                OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-                SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-                FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
-              run: |
-                sanitize_secret() {
-                  local var_name="$1"
-                  local raw="$2"
-                  local norm
-                  norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-                  case "$norm" in
-                    ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                      printf -v "$var_name" '%s' ""
-                      ;;
-                    *)
-                      printf -v "$var_name" '%s' "$raw"
-                      ;;
-                  esac
-                }
-                sanitize_secret OPENAI_API_KEY "$OPENAI_API_KEY"
-                sanitize_secret SUPABASE_SERVICE_ROLE "$SUPABASE_SERVICE_ROLE"
-                sanitize_secret FIGMA_TOKEN "$FIGMA_TOKEN"
-
-                  missing=""
-                  [ -z "$OPENAI_API_KEY" ] && missing="$missing OPENAI_API_KEY"
-                  [ -z "$SUPABASE_SERVICE_ROLE" ] && missing="$missing SUPABASE_SERVICE_ROLE"
-                  if [ -z "$missing" ]; then
-                    echo "can_run=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "can_run=false" >> $GITHUB_OUTPUT
-                    echo "::warning::Missing required secrets:$missing - skipping investor report"
-                  fi
-                  if [ -n "$FIGMA_TOKEN" ]; then
-                    echo "figma_available=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "figma_available=false" >> $GITHUB_OUTPUT
-                  fi
             - name: Checkout Repository
-              if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
               uses: actions/checkout@v4
             - name: Setup Python Environment
-              if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
               uses: actions/setup-python@v5
               with:
                   python-version: "3.11"
             - name: Install Dependencies
-              if: ${{ steps.check-secrets.outputs.can_run == 'true' }}
               run: |
                   pip install -r requirements.txt
             - name: Generate Investor Dashboards
-              if: ${{ steps.check-secrets.outputs.can_run == 'true' && hashFiles('scripts/investor_reporting.py') != '' }}
+              if: hashFiles('scripts/investor_reporting.py') != ''
               env:
                 OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
@@ -86,7 +44,7 @@ jobs:
               run: |
                   python scripts/investor_reporting.py
             - name: Post to Figma
-              if: ${{ steps.check-secrets.outputs.can_run == 'true' && steps.check-secrets.outputs.figma_available == 'true' && hashFiles('scripts/post_to_figma.py') != '' }}
+              if: always() && hashFiles('scripts/post_to_figma.py') != ''
               env:
                 FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
                 SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}

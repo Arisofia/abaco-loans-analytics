@@ -30,25 +30,6 @@ jobs:
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
           SLACK_WEBHOOK_OPS: ${{ secrets.SLACK_WEBHOOK_OPS }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret DATABASE_URL "$DATABASE_URL"
-          sanitize_secret SUPABASE_URL "$SUPABASE_URL"
-          sanitize_secret SUPABASE_SERVICE_ROLE "$SUPABASE_SERVICE_ROLE"
-          sanitize_secret SLACK_WEBHOOK_OPS "$SLACK_WEBHOOK_OPS"
-
           missing=""
           [ -z "$DATABASE_URL" ] && missing="$missing DATABASE_URL"
           [ -z "$SUPABASE_URL" ] && missing="$missing SUPABASE_URL"
@@ -70,7 +51,7 @@ jobs:
 
   batch-export:
     needs: check-secrets
-    if: ${{ needs.check-secrets.outputs.can_run == 'true' }}
+    if: needs.check-secrets.outputs.can_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -94,17 +75,17 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_ANON_PUBLIC_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          HUBSPOT_API_KEY: ${{ secrets.HUBSPOT_API_KEY || secrets.HUBSPOT_API_TOKEN || secrets.HUBSPOTTOKEN }}
-          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN || secrets.FACEBOOK_ACCESS_TOKEN }}
+          HUBSPOT_API_KEY: ${{ secrets.HUBSPOT_API_TOKEN }}
+          META_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN }}
           META_PIXEL_ID: ${{ secrets.META_PIXEL_ID }}
-          META_AD_ACCOUNT_ID: ${{ secrets.META_AD_ACCOUNT_ID || secrets.FACEBOOK_AD_ACCOUNT_ID }}
+          META_AD_ACCOUNT_ID: ${{ secrets.FACEBOOK_AD_ACCOUNT_ID }}
           FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
           FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY || secrets.NOTION_INTEGRATION_TOKEN }}
+          NOTION_API_KEY: ${{ secrets.NOTION_INTEGRATION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           NOTION_REPORTS_PAGE_ID: ${{ secrets.NOTION_REPORTS_PAGE_ID }}
           EXPORT_TYPE: ${{ github.event.inputs.export_type || 'full' }}
@@ -124,7 +105,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Notify on success
-        if: ${{ success() && needs.check-secrets.outputs.slack_ops_available == 'true' }}
+        if: success() && needs.check-secrets.outputs.slack_ops_available == 'true'
         uses: 8398a7/action-slack@v3
         with:
           status: success
@@ -134,7 +115,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_OPS }}
 
       - name: Notify on failure
-        if: ${{ failure() && needs.check-secrets.outputs.slack_ops_available == 'true' }}
+        if: failure() && needs.check-secrets.outputs.slack_ops_available == 'true'
         uses: 8398a7/action-slack@v3
         with:
           status: failure

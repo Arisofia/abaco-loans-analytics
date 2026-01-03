@@ -38,24 +38,6 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret VERCEL_TOKEN "$VERCEL_TOKEN"
-          sanitize_secret VERCEL_ORG_ID "$VERCEL_ORG_ID"
-          sanitize_secret VERCEL_PROJECT_ID "$VERCEL_PROJECT_ID"
-
           missing=""
           [ -z "$VERCEL_TOKEN" ] && missing="$missing VERCEL_TOKEN"
           [ -z "$VERCEL_ORG_ID" ] && missing="$missing VERCEL_ORG_ID"
@@ -74,24 +56,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          sanitize_secret() {
-            local var_name="$1"
-            local raw="$2"
-            local norm
-            norm="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | xargs)"
-            case "$norm" in
-              ""|"token"|"tokens"|"secret"|"secrets"|"changeme"|"change-me"|"change_me"|"replace-me"|"replace_me"|"placeholder"|"example"|"redacted")
-                printf -v "$var_name" '%s' ""
-                ;;
-              *)
-                printf -v "$var_name" '%s' "$raw"
-                ;;
-            esac
-          }
-          sanitize_secret AWS_S3_BUCKET "$AWS_S3_BUCKET"
-          sanitize_secret AWS_ACCESS_KEY_ID "$AWS_ACCESS_KEY_ID"
-          sanitize_secret AWS_SECRET_ACCESS_KEY "$AWS_SECRET_ACCESS_KEY"
-
           if [ -n "$AWS_S3_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
@@ -104,7 +68,7 @@ jobs:
           pnpm -C apps/web install --frozen-lockfile
 
       - name: Pull Vercel project settings
-        if: ${{ steps.vercel_secrets.outputs.present == 'true' }}
+        if: steps.vercel_secrets.outputs.present == 'true'
         working-directory: apps/web
         run: npx vercel pull --yes --environment=production --token "${{ secrets.VERCEL_TOKEN }}"
 
@@ -122,7 +86,7 @@ jobs:
           path: apps/web/.next
 
       - name: Upload build to S3 (cloud)
-        if: ${{ steps.aws_secrets.outputs.present == 'true' }}
+        if: steps.aws_secrets.outputs.present == 'true'
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl private --follow-symlinks
@@ -134,7 +98,7 @@ jobs:
           SOURCE_DIR: "apps/web/.next"
 
       - name: Deploy to Vercel
-        if: ${{ steps.vercel_secrets.outputs.present == 'true' }}
+        if: steps.vercel_secrets.outputs.present == 'true'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -144,6 +108,6 @@ jobs:
           working-directory: apps/web
 
       - name: Skip deploy (missing Vercel secrets)
-        if: ${{ steps.vercel_secrets.outputs.present != 'true' }}
+        if: steps.vercel_secrets.outputs.present != 'true'
         run: |
           echo "Skipping Vercel deploy: VERCEL_TOKEN/ORG_ID/PROJECT_ID not configured."

@@ -1,5 +1,4 @@
 import pandas as pd
-
 from python.pipeline.ingestion import UnifiedIngestion
 from python.pipeline.transformation import UnifiedTransformation
 

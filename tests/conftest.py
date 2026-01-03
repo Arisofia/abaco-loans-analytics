@@ -5,23 +5,8 @@ from typing import Any, Dict
 
 import pytest
 
-# Pytest compatibility shim: some pytest builds may not expose `_pytest.src`.
-# Ensure `_pytest.src` points to the `python` submodule which defines
-# `Class`, `Module`, and `Package` used by fixture scope resolution.
-try:
-    import _pytest
-    import _pytest.python as _pytest_src
-
-    if not hasattr(_pytest, "src"):
-        _pytest.src = _pytest_src
-except Exception:
-    # If anything goes wrong here, let pytest run normally and fail in tests
-    # so we can surface the underlying issue. This shim only improves
-    # compatibility in environments where `_pytest.src` is missing.
-    pass
-
 # Ensure repository modules can be imported when tests run from the repo root.
-ROOT = tuple(Path(__file__).resolve().parents)[1]
+ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 

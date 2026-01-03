@@ -97,13 +97,9 @@ SUPABASE_ANON_KEY=your-anon-key-here
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Optional: LLM keys (for AI features)
-ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+# Set ANTHROPIC_API_KEY and OPENAI_API_KEY in your environment or GitHub Secrets. Do not commit them to source control.
 
 # Optional: Azure (for cloud tracing)
-AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;...
-APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=...
-OTEL_EXPORTER_OTLP_ENDPOINT=https://eastus.in.applicationinsights.azure.com/opentelemetry/v1/traces
 ```
 
 **Getting Supabase credentials**:

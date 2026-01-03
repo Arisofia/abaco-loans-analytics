@@ -12,6 +12,11 @@ Implemented **comprehensive security hardening** addressing critical vulnerabili
 
 - **🔴 CRITICAL**: Exposed credentials in `.env` (Azure, OpenAI, Anthropic, HubSpot) → Created unified secrets manager
 - **🟠 HIGH**: 40+ hard-coded paths → Centralized `Paths` module with environment overrides
+- Notable keys addressed:
+  - `ANTHROPIC_API_KEY` (new)
+  - `AZURE_CLIENT_SECRET` (new)
+  - `HUBSPOT_API_KEY` (new)
+  - `GEMINI_API_KEY_SIMPLE` (from previous session)
 - **🟡 MEDIUM**: Inconsistent secrets management (3 patterns) → Single unified pattern
 - **🟡 MEDIUM**: Missing path validation → Automatic directory creation with validation
 
@@ -232,25 +237,26 @@ The `.env` file contained active credentials that are now in git history:
 
 ### 🟠 HIGH: Clean Git History
 
-After rotating credentials, remove from git history using BFG:
+After rotating credentials, remove from git history using BFG (avoid embedding raw values in docs):
 
 ```bash
 # Install BFG Repo Cleaner
 brew install bfg
 
-# Create file with patterns to remove
+# Create file with literal patterns (do NOT put actual secrets into this file)
 cat > /tmp/secrets.txt <<'SECRETS'
-AZURE_CLIENT_SECRET=*
-OPENAI_API_KEY=*
-ANTHROPIC_API_KEY=*
-HUBSPOT_API_KEY=*
-HUBSPOT_TOKEN=*
+# Patterns (one per line) - use exact token names, not assignments
+AZURE_CLIENT_SECRET
+OPENAI_API_KEY
+ANTHROPIC_API_KEY
+HUBSPOT_API_KEY
+HUBSPOT_TOKEN
 SECRETS
 
-# Remove all matches
+# Remove all matches (BFG will redact matching entries)
 bfg --replace-text /tmp/secrets.txt .
 
-# Clean and force push
+# Clean and force push (careful: force push rewrites history)
 git reflog expire --expire=now --all && git gc --prune=now
 git push -f origin main
 ```
@@ -281,9 +287,6 @@ Replace actual credentials with placeholders:
 
 ```bash
 # Remove real values, keep structure for documentation
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY
-ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY
-HUBSPOT_API_KEY=YOUR_HUBSPOT_API_KEY_HERE
 ```
 
 ---
