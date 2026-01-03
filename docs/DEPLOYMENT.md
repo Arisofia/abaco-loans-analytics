@@ -207,6 +207,30 @@ echo '{
 # Copy base64 output → GitHub Secret: AZURE_CREDENTIALS
 ```
 
+### 3.3 Azure Static Web Apps token (SWA deploy)
+
+If you deploy the `apps/web` site to **Azure Static Web Apps**, the workflow expects a repository secret named `AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F`. You can set it using the GitHub CLI or the UI.
+
+- Create/update interactively (prompts for input):
+
+```bash
+gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F --repo Abaco-Technol/abaco-loans-analytics
+```
+
+- Non-interactive (from an environment variable `SWA_TOKEN`):
+
+```bash
+echo "$SWA_TOKEN" | gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_CLIFF_03015B20F --repo Abaco-Technol/abaco-loans-analytics
+```
+
+- Verify the secret exists:
+
+```bash
+gh secret list --repo Abaco-Technol/abaco-loans-analytics
+```
+
+Note: Secrets are not available to workflows triggered by forked pull requests. Use a branch on the main repository or a manual workflow dispatch to run deploy steps that require the secret.
+
 ## 4. GitHub Actions Deployment
 
 ### 4.1 Trigger Deployment
