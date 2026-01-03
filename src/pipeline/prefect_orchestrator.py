@@ -11,7 +11,7 @@ from python.agents.tools import send_slack_notification
 
 
 @task(retries=3, retry_delay_seconds=60)
-def ingestion_task(config: Dict[str, Any], input_file: Path):
+def ingestion_task(config: Dict[str, Any], input_file: Path) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting ingestion for {input_file}")
     ingestion = UnifiedIngestion(config)
@@ -32,7 +32,7 @@ def ingestion_task(config: Dict[str, Any], input_file: Path):
 
 
 @task
-def transformation_task(config: Dict[str, Any], ingestion_result: Any, run_id: str):
+def transformation_task(config: Dict[str, Any], ingestion_result: Any, run_id: str) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting transformation for run {run_id}")
     # ingestion_result may be a resolved object or a Prefect future; access .df when available
@@ -42,7 +42,7 @@ def transformation_task(config: Dict[str, Any], ingestion_result: Any, run_id: s
 
 
 @task
-def calculation_task(config: Dict[str, Any], transformation_result: Any, run_id: str):
+def calculation_task(config: Dict[str, Any], transformation_result: Any, run_id: str) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting KPI calculation for run {run_id}")
     df = getattr(transformation_result, "df", transformation_result)
@@ -54,7 +54,7 @@ def calculation_task(config: Dict[str, Any], transformation_result: Any, run_id:
 @task
 def output_task(
     config: Dict[str, Any], transformation_result: Any, calculation_result: Any, run_id: str
-):
+) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting output persistence for run {run_id}")
     output = UnifiedOutput(config, run_id=run_id)
@@ -73,7 +73,7 @@ def output_task(
 
 
 @flow(name="Abaco Data Pipeline")
-def abaco_pipeline_flow(input_file: str = "data/abaco_portfolio_calculations.csv"):
+def abaco_pipeline_flow(input_file: str = "data/abaco_portfolio_calculations.csv") -> Any:
     config_mgr = PipelineConfig()
     config = config_mgr.config
     input_path = Path(input_file)

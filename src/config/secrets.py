@@ -58,7 +58,7 @@ class SecretsManager:
         if use_vault_fallback:
             self._init_vault_client()
 
-    def _init_vault_client(self):
+    def _init_vault_client(self) -> None:
         """Initialize Azure Key Vault client (lazy load)."""
         try:
             from azure.identity import ClientSecretCredential
