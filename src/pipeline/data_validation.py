@@ -46,7 +46,8 @@ class ColumnValidator:
     @staticmethod
     def is_numeric(df: pd.DataFrame, col: str) -> bool:
         """Check if column is numeric."""
-        return pd.api.types.is_numeric_dtype(df[col])
+        # Coerce to bool to avoid mypy typing issues with pandas type checks
+        return bool(pd.api.types.is_numeric_dtype(df[col]))
 
     @staticmethod
     def is_iso8601(val: Any) -> bool:
