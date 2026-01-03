@@ -17,10 +17,16 @@ How to apply:
   git push -u origin <branch>
   gh pr create --title "chore: loosen langchain pins" --body-file patches/pr_loosen_langchain.md --base main --head <branch>
 
+Optional: apply our OpenTelemetry constraints if you want to prevent similar dev-time conflicts:
+- git apply /path/to/patches/constraints-opentelemetry.patch
+- git add constraints/opentelemetry-constraints.txt
+- git commit -m "chore: add OpenTelemetry constraints file"
+- git push
+
 Validation steps (after applying the patch):
 1. Create a Python 3.11 venv and activate it:
    python3.11 -m venv .venv311 && source .venv311/bin/activate
-2. Install and check:
+2. Install and check (if you applied the constraints file, include it via -c or the requirements file may reference it):
    python -m pip install -r requirements.txt
    python -m pip check
 3. Run tests:
