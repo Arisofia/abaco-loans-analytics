@@ -15,7 +15,7 @@ from src.config.paths import Paths  # noqa: E402
 from src.kpi_engine_v2 import KPIEngineV2 as KPIEngine  # noqa: E402
 from src.pipeline.data_ingestion import UnifiedIngestion  # noqa: E402
 from src.pipeline.data_transformation import UnifiedTransformation  # noqa: E402
-from src.pipeline.orchestrator import UnifiedPipeline
+from src.pipeline.orchestrator import UnifiedPipeline  # noqa: E402
 
 # Legacy aliases for backward compatibility with tests/patching
 CascadeIngestion = UnifiedIngestion

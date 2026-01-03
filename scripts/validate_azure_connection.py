@@ -9,8 +9,8 @@ import logging
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from src.config.secrets import get_secrets_manager
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
+from src.config.secrets import get_secrets_manager  # noqa: E402
 
 try:
     from src.azure_tracing import setup_azure_tracing
