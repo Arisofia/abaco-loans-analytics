@@ -345,7 +345,13 @@ jobs:
             {
               "text": "🚨 CI Workflow Failed",
               "blocks": [
-                { "type": "section", "text": { "type": "mrkdwn", "text": "*CI Workflow Failed*\\nRepository: ${{ github.repository }}\\nBranch: ${{ github.ref_name }}\\nCommit: ${{ github.sha }}\\n<${{ github.event.head_commit.url }}|View Commit>" } }
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*CI Workflow Failed*\\nRepository: ${{ github.repository }}\\nBranch: ${{ github.ref_name }}\\nCommit: ${{ github.sha }}\\n<${{ github.event.head_commit && github.event.head_commit.url || github.event.pull_request && github.event.pull_request.html_url || format('{0}/commit/{1}', github.server_url, github.sha) }}|View Commit>"
+                  }
+                }
               ]
             }
         env:
