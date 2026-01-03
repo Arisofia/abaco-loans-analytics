@@ -34,4 +34,5 @@ Validation steps (after applying the patch):
 
 Notes:
 - If the target repo regularly requires fully pinned dependencies for reproducibility, consider using a constraints file or a lock file instead of hard pins in `requirements.txt`.
-- If you'd like, I can prepare a follow-up patch to also pin a consistent OpenTelemetry set if that repo uses OpenTelemetry and exhibits similar dependency conflicts.
+- I included a constraints patch (`patches/constraints-opentelemetry.patch`) and a dependency-validate workflow to help prevent dev-time conflicts.
+- I also included a patch (`patches/add-fail-on-missing-to-reusable-secret-check.patch`) that adds a `fail_on_missing` boolean `workflow_call` input to the reusable secret-check workflow so downstream repos can opt-in to permissive mode (default: strict/fail).
