@@ -15,6 +15,8 @@ jobs:
         id: check-secrets
         env:
           SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_DB_URI_MONITORING: ${{ secrets.SUPABASE_DB_URI_MONITORING }}
           CASCADE_USERNAME: ${{ secrets.CASCADE_USERNAME }}
           CASCADE_PASSWORD: ${{ secrets.CASCADE_PASSWORD }}
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_API_KEY || secrets.HUBSPOT_API_TOKEN || secrets.HUBSPOTTOKEN }}
@@ -33,7 +35,7 @@ jobs:
           else
             echo "hubspot_available=false" >> $GITHUB_OUTPUT
           fi
-          if [ -n "$SUPABASE_SERVICE_ROLE" ]; then
+          if [ -n "$SUPABASE_SERVICE_ROLE" ] || [ -n "$DATABASE_URL" ] || [ -n "$SUPABASE_DB_URI_MONITORING" ]; then
             echo "supabase_available=true" >> $GITHUB_OUTPUT
           else
             echo "supabase_available=false" >> $GITHUB_OUTPUT
@@ -117,11 +119,17 @@ jobs:
             -d "{\"text\":\"✅ Data pipeline completed at $(date). All agents can now run.\"}"
 
       - name: Log Pipeline Metrics
-        if: ${{ always() && steps.check-secrets.outputs.opik_available == 'true' && hashFiles('scripts/analyze_pipeline_health.py') != '' }}
+        if: ${{ always() && hashFiles('scripts/analyze_pipeline_health.py') != '' }}
         env:
           OPIK_TOKEN: ${{ secrets.OPIK_TOKEN }}
+          OPIKTOKEN: ${{ secrets.OPIK_TOKEN }}
         run: |
-          python scripts/analyze_pipeline_health.py
+          if [ -f scripts/fetch_opik_metrics.py ]; then
+            python scripts/fetch_opik_metrics.py
+          fi
+          if [ -f scripts/analyze_pipeline_health.py ]; then
+            python scripts/analyze_pipeline_health.py
+          fi
 
       - name: Alert on Critical Failure
         if: ${{ failure() && steps.check-secrets.outputs.slack_available == 'true' }}
