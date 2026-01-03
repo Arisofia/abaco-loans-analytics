@@ -97,6 +97,7 @@ jobs:
         if: ${{ success() && steps.slack_secret.outputs.available == 'true' }}
         continue-on-error: true
         with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
               "text": ":tada: Daily data ingestion completed successfully!",

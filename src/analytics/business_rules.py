@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 
 class RiskLevel(Enum):
@@ -61,7 +61,7 @@ class MYPEBusinessRules:
         return IndustryType.default()
 
     @classmethod
-    def classify_high_risk(cls, customer_metrics: Dict) -> Tuple[bool, List[str]]:
+    def classify_high_risk(cls, customer_metrics: Dict[str, Any]) -> Tuple[bool, List[str]]:
         reasons: List[str] = []
         dpd = customer_metrics.get("dpd", 0)
         utilization = customer_metrics.get("utilization", 0)
@@ -100,7 +100,7 @@ class MYPEBusinessRules:
 
     @classmethod
     def evaluate_facility_approval(
-        cls, facility_amount: float, customer_metrics: Dict, collateral_value: float = 0.0
+        cls, facility_amount: float, customer_metrics: Dict[str, Any], collateral_value: float = 0.0
     ) -> ApprovalDecision:
         is_high_risk, reasons = cls.classify_high_risk(customer_metrics)
         dpd = customer_metrics.get("dpd", 0)
@@ -177,7 +177,7 @@ class MYPEBusinessRules:
         return is_npl, message
 
     @classmethod
-    def get_industry_benchmarks(cls, industry: IndustryType) -> Dict:
+    def get_industry_benchmarks(cls, industry: IndustryType) -> Dict[str, Any]:
         return {
             "gdp_contribution": cls.INDUSTRY_GDP_CONTRIBUTION.get(
                 industry, IndustryType.OTHER.value

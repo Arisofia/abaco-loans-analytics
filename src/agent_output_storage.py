@@ -28,5 +28,6 @@ def list_agent_outputs(agent_name: str, storage_dir: str = "data/agent_outputs")
     # creates the directory when saving.
     if not os.path.exists(storage_dir):
         return []
+
     files = [f for f in os.listdir(storage_dir) if f.startswith(agent_name)]
     return files

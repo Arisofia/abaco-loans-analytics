@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -12,7 +13,7 @@ class QualityResult:
     freshness_hours: float
 
 
-def compute_completeness(df, required_columns: list[str] | None = None) -> float:
+def compute_completeness(df: Any, required_columns: list[str] | None = None) -> float:
     required = required_columns or []
     if not required:
         return 1.0
@@ -46,7 +47,7 @@ def compute_completeness(df, required_columns: list[str] | None = None) -> float
     return max(0.0, min(1.0, 1.0 - (missing / total)))
 
 
-def check_referential_integrity(df, key_columns: list[str] | None = None) -> bool:
+def check_referential_integrity(df: Any, key_columns: list[str] | None = None) -> bool:
     cols = key_columns or []
     if not cols:
         return True

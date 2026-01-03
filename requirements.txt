@@ -7,7 +7,7 @@ langchain==0.3.13
 langchain-openai==0.2.14
 langchain-anthropic==0.3.7
 langchain-community==0.3.13
-langchain-core==0.3.28
+langchain-core>=0.3.34
 # Unified Abaco Loans Analytics Requirements
 # Dashboard & Core
 streamlit>=1.33.0

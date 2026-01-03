@@ -90,7 +90,7 @@ class BatchExportRunner:
             },
         }
 
-    def generate_findings(self, metrics: Dict[str, Any]) -> list:
+    def generate_findings(self, metrics: Dict[str, Any]) -> list[str]:
         """Generate key findings from metrics."""
         findings = []
 
@@ -194,7 +194,7 @@ class BatchExportRunner:
             }
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(description="Run batch exports to all platforms")
     parser.add_argument(
         "--type",

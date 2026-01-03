@@ -1,10 +1,11 @@
 """Complete KPI Calculator for ABACO Loans - All Financial Metrics."""
 
 import logging
+
 # Built-ins para Pylance/Flake8
 from builtins import Exception, all, any, len, list, max
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 import numpy as np
 import pandas as pd
@@ -310,7 +311,7 @@ class ABACOKPICalculator:
 
     # === COMPREHENSIVE DASHBOARD ===
 
-    def get_complete_kpi_dashboard(self, cac_usd: float = 350.0) -> Dict:
+    def get_complete_kpi_dashboard(self, cac_usd: float = 350.0) -> Dict[str, Any]:
         """Generate complete KPI dashboard."""
         dashboard = {
             "timestamp": datetime.now().isoformat(),
@@ -355,7 +356,7 @@ class ABACOKPICalculator:
 
     # === HELPER METHODS ===
 
-    def _find_column(self, aliases: list, dataframe=None) -> Optional[str]:
+    def _find_column(self, aliases: list[str], dataframe=None) -> Optional[str]:
         """Find actual column name from list of aliases.
 
         Args:

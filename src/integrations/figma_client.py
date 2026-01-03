@@ -47,6 +47,7 @@ class FigmaClient:
                 logger.error("Figma API returned unexpected type: %s for %s", type(data), url)
                 return {}
             return data
+
         except requests.RequestException as e:
             logger.error("Figma API error: %s", e)
             return {}

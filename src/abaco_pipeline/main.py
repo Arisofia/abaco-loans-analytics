@@ -8,19 +8,27 @@ import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Dict, cast
 
-from src.compliance import (build_compliance_report, create_access_log_entry,
-                            mask_pii_in_dataframe, write_compliance_report)
+from src.compliance import (
+    build_compliance_report,
+    create_access_log_entry,
+    mask_pii_in_dataframe,
+    write_compliance_report,
+)
 
 from .ingestion.archive import archive_file
 from .logging import configure_logging
 from .output.manifests import RunManifest, write_manifest
 from .output.supabase_writer import SupabaseAuth, SupabaseWriter
-from .quality.gates import (check_referential_integrity, compute_completeness,
-                            compute_freshness_hours)
+from .quality.gates import (
+    check_referential_integrity,
+    compute_completeness,
+    compute_freshness_hours,
+)
 
 
-def _load_yaml_config(path: Path) -> dict:
+def _load_yaml_config(path: Path) -> Dict[str, Any]:
     try:
         import yaml
     except Exception as exc:  # pragma: no cover
@@ -33,10 +41,10 @@ def _load_yaml_config(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
-def _load_json(path: Path) -> dict:
+def _load_json(path: Path) -> Dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Payload file not found: {path}")
-    return json.loads(path.read_text(encoding="utf-8"))
+    return cast(Dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
 def _git_sha() -> str:
@@ -58,12 +66,12 @@ def _kpi_def_version(kpis_path: Path) -> str:
 
 
 def _enrich_audit_payload(
-    payload: dict,
+    payload: Dict[str, Any],
     *,
     config_version: str,
     git_sha: str,
     kpi_def_version: str,
-) -> dict:
+) -> Dict[str, Any]:
     run_payload = payload.get("run") or {}
     run_payload["config_version"] = config_version
     run_payload["git_sha"] = git_sha
@@ -122,18 +130,18 @@ def cmd_write_audit(args: argparse.Namespace) -> int:
     return 0
 
 
-def _load_state(path: Path) -> dict:
+def _load_state(path: Path) -> Dict[str, Any]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    return cast(Dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
-def _write_state(path: Path, payload: dict) -> None:
+def _write_state(path: Path, payload: Dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def _select_looker_source(looker_cfg: dict, endpoints: list[str] | None) -> Path:
+def _select_looker_source(looker_cfg: Dict[str, Any], endpoints: list[str] | None) -> Path:
     loans_par = (
         Path(looker_cfg.get("loans_par_path", "")) if looker_cfg.get("loans_par_path") else None
     )
