@@ -70,13 +70,10 @@ class SecretsManager:
             vault_name = os.getenv("AZURE_KEY_VAULT_NAME")
 
             if tenant_id and client_id and client_secret and vault_name:
-                from typing import cast
-
                 vault_url = f"https://{vault_name}.vault.azure.net"
+                # After the truthiness check above, these are str
                 credential = ClientSecretCredential(
-                    tenant_id=cast(str, tenant_id),
-                    client_id=cast(str, client_id),
-                    client_secret=cast(str, client_secret),
+                    tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
                 )
                 self._vault_client = SecretClient(vault_url=vault_url, credential=credential)
         except Exception as e:

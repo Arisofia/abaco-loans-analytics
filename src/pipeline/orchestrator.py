@@ -355,13 +355,13 @@ class UnifiedPipeline:
 
 # Prefect Tasks for Engineering Excellence and Lineage
 @task(name="Ingest Loan Tape", retries=3, retry_delay_seconds=60)
-def ingest_task(pipeline: UnifiedPipeline, input_file: Path):
+def ingest_task(pipeline: UnifiedPipeline, input_file: Path) -> Any:
     logger.info("Task: Ingesting %s", input_file)
     return pipeline.ingestor.ingest_file(input_file)
 
 
 @task(name="Transform Data")
-def transform_task(pipeline: UnifiedPipeline, ingestion_result):
+def transform_task(pipeline: UnifiedPipeline, ingestion_result) -> Any:
     if ingestion_result.df.empty:
         return ingestion_result
     logger.info("Task: Transforming data")
@@ -369,7 +369,7 @@ def transform_task(pipeline: UnifiedPipeline, ingestion_result):
 
 
 @task(name="Calculate KPIs")
-def calculate_task(pipeline: UnifiedPipeline, transformation_result):
+def calculate_task(pipeline: UnifiedPipeline, transformation_result) -> Any:
     if transformation_result.df.empty:
         return transformation_result
     logger.info("Task: Calculating KPIs")
