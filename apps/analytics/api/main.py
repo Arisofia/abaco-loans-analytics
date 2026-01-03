@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
 import json
 from pathlib import Path
 from datetime import datetime
+
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 
 app = FastAPI(title="ABACO Analytics API")
 
@@ -38,7 +39,8 @@ def get_latest_kpis():
             "quality_checks": manifest.get("quality_checks")
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading manifest: {str(e)}")
+        # Re-raise with chaining so the original exception is preserved
+        raise HTTPException(status_code=500, detail=f"Error reading manifest: {str(e)}") from e
 
 @app.post("/api/pipeline/trigger")
 async def trigger_pipeline(background_tasks: BackgroundTasks, input_file: str = "data/abaco_portfolio_calculations.csv"):
