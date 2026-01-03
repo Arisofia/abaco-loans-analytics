@@ -17,7 +17,7 @@ Testing
 
 Rollback
 ------
-Revert the change, or adjust the constraint to widen/narrow range based on tested compatibility.
+Revert the change, or adjust the constraint to widen/narrow the range based on tested compatibility.
 
 Notes
 -----
