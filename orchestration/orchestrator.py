@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 sys.path.append("../agents")
-from base_agent import BaseAgent
+from base_agent import BaseAgent  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

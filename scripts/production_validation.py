@@ -7,7 +7,7 @@ Monitors V2 pipeline in production and validates output integrity
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
 import json
 import logging
