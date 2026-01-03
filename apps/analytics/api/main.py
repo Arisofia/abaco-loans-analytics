@@ -1,6 +1,12 @@
 import json
 from pathlib import Path
 from datetime import datetime
+import sys
+
+# Ensure the repository root is on sys.path when the app is started as a script
+# (when running `python apps/analytics/api/main.py`, sys.path[0] is the script dir).
+# This allows imports like `src.pipeline.*` to resolve correctly.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 
