@@ -51,7 +51,7 @@ class SecretsManager:
             use_vault_fallback: If True, attempt Azure Key Vault fallback for missing secrets
         """
         self.use_vault_fallback = use_vault_fallback
-        self._vault_client = None
+        self._vault_client: Any = None
         self._cache: Dict[str, str] = {}
         self._status: Dict[str, str] = {}
 
@@ -69,10 +69,14 @@ class SecretsManager:
             client_secret = os.getenv("AZURE_CLIENT_SECRET")
             vault_name = os.getenv("AZURE_KEY_VAULT_NAME")
 
-            if all([tenant_id, client_id, client_secret, vault_name]):
+            if tenant_id and client_id and client_secret and vault_name:
+                from typing import cast
+
                 vault_url = f"https://{vault_name}.vault.azure.net"
                 credential = ClientSecretCredential(
-                    tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
+                    tenant_id=cast(str, tenant_id),
+                    client_id=cast(str, client_id),
+                    client_secret=cast(str, client_secret),
                 )
                 self._vault_client = SecretClient(vault_url=vault_url, credential=credential)
         except Exception as e:
