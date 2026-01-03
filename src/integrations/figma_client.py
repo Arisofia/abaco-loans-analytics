@@ -42,15 +42,12 @@ class FigmaClient:
         try:
             response = requests.request(method, url, timeout=30, **kwargs)
             response.raise_for_status()
-<<<<<<< HEAD
-            return cast(Dict[str, Any], response.json())
-=======
             data = response.json()
             if not isinstance(data, dict):
                 logger.error("Figma API returned unexpected type: %s for %s", type(data), url)
                 return {}
             return data
->>>>>>> origin/main
+
         except requests.RequestException as e:
             logger.error("Figma API error: %s", e)
             return {}

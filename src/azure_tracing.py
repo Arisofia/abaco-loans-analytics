@@ -5,11 +5,7 @@ Enables distributed tracing, logging, and metrics collection for the analytics d
 
 import logging
 import os
-<<<<<<< HEAD
-from typing import Callable, Any, Tuple
-=======
 from typing import Any, Callable, Tuple
->>>>>>> origin/main
 
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 from opencensus.ext.azure.trace_exporter import AzureExporter
@@ -18,9 +14,6 @@ from opencensus.trace.tracer import Tracer
 
 
 def setup_azure_tracing() -> Tuple[logging.Logger, Tracer]:
-<<<<<<< HEAD
-    """Initialize Azure Application Insights tracing."""
-=======
     """Initialize Azure Application Insights tracing.
 
     This function is idempotent: it will not add duplicate AzureLogHandler
@@ -28,7 +21,6 @@ def setup_azure_tracing() -> Tuple[logging.Logger, Tracer]:
     to initialize tracing once at module import time and reuse the returned
     `(logger, tracer)` pair rather than invoking this repeatedly.
     """
->>>>>>> origin/main
 
     connection_string = os.getenv(
         "APPLICATIONINSIGHTS_CONNECTION_STRING",
