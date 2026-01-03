@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, cast
 from prefect import flow, task, get_run_logger
 from python.pipeline.data_ingestion import UnifiedIngestion
 from python.pipeline.data_transformation import UnifiedTransformation
@@ -11,7 +11,7 @@ from python.agents.tools import send_slack_notification
 
 
 @task(retries=3, retry_delay_seconds=60)
-def ingestion_task(config: Dict[str, Any], input_file: Path):
+def ingestion_task(config: Dict[str, Any], input_file: Path) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting ingestion for {input_file}")
     ingestion = UnifiedIngestion(config)
@@ -32,7 +32,7 @@ def ingestion_task(config: Dict[str, Any], input_file: Path):
 
 
 @task
-def transformation_task(config: Dict[str, Any], df: Any, run_id: str):
+def transformation_task(config: Dict[str, Any], df: Any, run_id: str) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting transformation for run {run_id}")
     transformation = UnifiedTransformation(config, run_id=run_id)
@@ -40,7 +40,7 @@ def transformation_task(config: Dict[str, Any], df: Any, run_id: str):
 
 
 @task
-def calculation_task(config: Dict[str, Any], df: Any, run_id: str):
+def calculation_task(config: Dict[str, Any], df: Any, run_id: str) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting KPI calculation for run {run_id}")
     calculation = UnifiedCalculationV2(config, run_id=run_id)
@@ -51,7 +51,7 @@ def calculation_task(config: Dict[str, Any], df: Any, run_id: str):
 @task
 def output_task(
     config: Dict[str, Any], transformation_result: Any, calculation_result: Any, run_id: str
-):
+) -> Any:
     logger = get_run_logger()
     logger.info(f"Starting output persistence for run {run_id}")
     output = UnifiedOutput(config, run_id=run_id)
@@ -76,11 +76,11 @@ def abaco_pipeline_flow(input_file: str = "data/abaco_portfolio_calculations.csv
     input_path = Path(input_file)
 
     ingest_res = ingestion_task(config, input_path)
-    run_id = f"prefect_{ingest_res.run_id}"
+    run_id = f"prefect_{cast(Any, ingest_res).run_id}"
 
-    trans_res = transformation_task(config, ingest_res.df, run_id)
-    calc_res = calculation_task(config, trans_res.df, run_id)
-    out_res = output_task(config, trans_res, calc_res, run_id)
+    trans_res = transformation_task(config, cast(Any, ingest_res).df, run_id)
+    calc_res = calculation_task(config, cast(Any, trans_res).df, run_id)
+    out_res = output_task(config, cast(Any, trans_res), cast(Any, calc_res), run_id)
 
     return out_res
 
