@@ -30,8 +30,9 @@ See docs/TRACING.md for observability and tracing setup.
 
 ### Running with Tracing
 
-Tracing is automatically enabled when the `APPLICATIONINSIGHTS_CONNECTION_STRING` environment variable is set. See [docs/TRACING.md](docs/TRACING.md) for detailed setup instructions.
+Tracing is automatically enabled when the `APPLICATIONINSIGHTS_CONNECTION_STRING` environment variable is set.
 
+See <https://github.com/Abaco-Technol/abaco-loans-analytics/blob/main/docs/TRACING.md> for detailed setup instructions.
 ## Observability
 
 The workspace includes daily observability workflows that monitor:

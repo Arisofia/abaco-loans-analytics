@@ -24,31 +24,33 @@ make install-dev
 
 ### Code Quality Checks
 
-**Quick lint (non-blocking)**
+#### Quick lint (non-blocking)
+
+Run this command to lint the code.
 
 ```bash
 make lint
 ```
 
-**Auto-format code**
+#### Auto-format code
 
 ```bash
 make format
 ```
 
-**Type checking with mypy**
+#### Type checking with mypy
 
 ```bash
 make type-check
 ```
 
-**Full quality audit** (runs lint, type-check, and coverage)
+#### Full quality audit (runs lint, type-check, and coverage)
 
 ```bash
 make audit-code
 ```
 
-**Complete quality check** (format, lint, type-check, test)
+#### Complete quality check (format, lint, type-check, test)
 
 ```bash
 make quality
@@ -56,7 +58,7 @@ make quality
 
 ### Testing
 
-**Run all tests**
+#### Run all tests
 
 ```bash
 make test
@@ -96,12 +98,12 @@ make test-cov
 
 ## Phase 5: Operational Deliverables
 
-**Pending deliverables**:
+### Pending deliverables
 
-1. OPERATIONS.md - Operational Runbook
-2. MIGRATION.md - Migration Guide
-3. Data Quality Report
-4. Ready-to-Execute Commands document
+- OPERATIONS.md - Operational Runbook
+- MIGRATION.md - Migration Guide
+- Data Quality Report
+- Ready-to-Execute Commands document
 
 ---
 
