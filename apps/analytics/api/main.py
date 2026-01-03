@@ -43,12 +43,15 @@ def get_latest_kpis():
 @app.post("/api/pipeline/trigger")
 async def trigger_pipeline(background_tasks: BackgroundTasks, input_file: str = "data/abaco_portfolio_calculations.csv"):
     """Trigger the Prefect pipeline flow as a background task."""
-    from python.pipeline.prefect_orchestrator import abaco_pipeline_flow
-    
+    # The pipeline implementation lives under `src.pipeline`. Import from there so
+    # the module path matches the repository layout (avoids "could not resolve"
+    # import errors when running the FastAPI app).
+    from src.pipeline.prefect_orchestrator import abaco_pipeline_flow
+
     # In a production env, we'd use prefect's deployment API
     # For this implementation, we run the flow function directly in background
     background_tasks.add_task(abaco_pipeline_flow, input_file=input_file)
-    
+
     return {"message": "Pipeline triggered successfully", "input_file": input_file}
 
 if __name__ == "__main__":
