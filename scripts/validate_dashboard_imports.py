@@ -12,17 +12,9 @@ try:
     from pathlib import Path
 
     print("✓ pathlib imported successfully")
-
-
     print("✓ pandas imported successfully")
-
-
     print("✓ numpy imported successfully")
-
-
     print("✓ plotly.express imported successfully")
-
-
     print("✓ tracing_setup imported successfully")
 
     print("\n✅ All core imports successful")
