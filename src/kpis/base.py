@@ -31,7 +31,7 @@ class KPIMetadata:
         description: str,
         formula: str,
         unit: str,
-        data_sources: list,
+        data_sources: list[str],
         threshold_warning: Optional[float] = None,
         threshold_critical: Optional[float] = None,
         owner: Optional[str] = None,

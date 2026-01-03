@@ -11,7 +11,7 @@ class FeedbackStore:
 
     def collect_feedback(
         self, agent_name: str, run_id: str, feedback_score: float, comments: Optional[str] = None
-    ):
+    ) -> str:
         """Collect and store feedback for a specific agent run."""
         timestamp = datetime.now(timezone.utc).isoformat()
         feedback_data = {
@@ -47,7 +47,7 @@ class LearningEngine:
     def __init__(self, feedback_store: FeedbackStore):
         self.feedback_store = feedback_store
 
-    def optimize_agent_prompts(self, agent_name: str):
+    def optimize_agent_prompts(self, agent_name: str) -> bool:
         """Placeholder for prompt optimization based on feedback."""
         performance = self.feedback_store.get_agent_performance(agent_name)
         if performance["average_score"] < 0.7 and performance["total_feedbacks"] > 5:

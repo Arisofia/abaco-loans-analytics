@@ -25,31 +25,31 @@ def load_dashboard_metrics() -> Dict[str, Any]:
 def get_portfolio_fundamentals() -> Dict[str, Any]:
     """Get portfolio fundamentals from dashboard."""
     data = load_dashboard_metrics()
-    return data.get("portfolio_fundamentals", {})
+    return cast(Dict[str, Any], data.get("portfolio_fundamentals", {}))
 
 
 def get_growth_metrics() -> Dict[str, Any]:
     """Get growth metrics from dashboard."""
     data = load_dashboard_metrics()
-    return data.get("growth_metrics", {})
+    return cast(Dict[str, Any], data.get("growth_metrics", {}))
 
 
 def get_monthly_pricing() -> List[Dict[str, Any]]:
     """Get monthly pricing from dashboard."""
     data = load_dashboard_metrics()
-    return data.get("extended_kpis", {}).get("monthly_pricing", [])
+    return cast(List[Dict[str, Any]], data.get("extended_kpis", {}).get("monthly_pricing", []))
 
 
 def get_monthly_risk() -> List[Dict[str, Any]]:
     """Get monthly risk from dashboard."""
     data = load_dashboard_metrics()
-    return data.get("extended_kpis", {}).get("monthly_risk", [])
+    return cast(List[Dict[str, Any]], data.get("extended_kpis", {}).get("monthly_risk", []))
 
 
 def get_customer_types() -> List[Dict[str, Any]]:
     """Get customer types from dashboard."""
     data = load_dashboard_metrics()
-    return data.get("extended_kpis", {}).get("customer_types", [])
+    return cast(List[Dict[str, Any]], data.get("extended_kpis", {}).get("customer_types", []))
 
 
 __all__ = [

@@ -5,6 +5,7 @@ Enables distributed tracing, logging, and metrics collection for the analytics d
 
 import logging
 import os
+from typing import Callable, Any, Tuple
 
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 from opencensus.ext.azure.trace_exporter import AzureExporter
@@ -12,7 +13,7 @@ from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.trace.tracer import Tracer
 
 
-def setup_azure_tracing():
+def setup_azure_tracing() -> Tuple[logging.Logger, Tracer]:
     """Initialize Azure Application Insights tracing."""
 
     connection_string = os.getenv(
@@ -43,11 +44,11 @@ def setup_azure_tracing():
     return logger, tracer
 
 
-def trace_analytics_job(job_name: str, client_id: str, run_id: str):
+def trace_analytics_job(job_name: str, client_id: str, run_id: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator for tracing analytics batch jobs."""
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             _, tracer = setup_azure_tracing()
             logger = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@ import great_expectations as gx
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 
 
-def init_gx_project():
+def init_gx_project() -> None:
     """Initialize GX file-based context and create the initial suite."""
     context = gx.get_context()
 

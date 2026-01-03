@@ -1,7 +1,7 @@
 """Unified secrets management with validation and optional Azure Key Vault fallback."""
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 
 class SecretsManager:
@@ -44,21 +44,21 @@ class SecretsManager:
         "AZURE_KEY_VAULT_NAME",
     ]
 
-    def __init__(self, use_vault_fallback: bool = False):
+    def __init__(self, use_vault_fallback: bool = False) -> None:
         """Initialize secrets manager.
 
         Args:
             use_vault_fallback: If True, attempt Azure Key Vault fallback for missing secrets
         """
         self.use_vault_fallback = use_vault_fallback
-        self._vault_client = None
+        self._vault_client: Optional[Any] = None
         self._cache: Dict[str, str] = {}
         self._status: Dict[str, str] = {}
 
         if use_vault_fallback:
             self._init_vault_client()
 
-    def _init_vault_client(self):
+    def _init_vault_client(self) -> None:
         """Initialize Azure Key Vault client (lazy load)."""
         try:
             from azure.identity import ClientSecretCredential
@@ -72,7 +72,9 @@ class SecretsManager:
             if all([tenant_id, client_id, client_secret, vault_name]):
                 vault_url = f"https://{vault_name}.vault.azure.net"
                 credential = ClientSecretCredential(
-                    tenant_id=tenant_id, client_id=client_id, client_secret=client_secret
+                    tenant_id=cast(str, tenant_id),
+                    client_id=cast(str, client_id),
+                    client_secret=cast(str, client_secret),
                 )
                 self._vault_client = SecretClient(vault_url=vault_url, credential=credential)
         except Exception as e:
@@ -107,9 +109,10 @@ class SecretsManager:
             try:
                 secret = self._vault_client.get_secret(key)
                 if secret and secret.value:
-                    self._cache[key] = secret.value
+                    value = cast(str, secret.value)
+                    self._cache[key] = value
                     self._status[key] = "✅ (vault)"
-                    return secret.value
+                    return value
             except Exception:
                 pass
 
@@ -173,7 +176,7 @@ class SecretsManager:
             "optional_found": len(self.OPTIONAL_KEYS) - len(missing_optional),
         }
 
-    def log_status(self, include_optional: bool = False):
+    def log_status(self, include_optional: bool = False) -> None:
         """Log secrets validation status (values masked).
 
         Args:

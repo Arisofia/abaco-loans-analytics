@@ -732,7 +732,7 @@ class KPICatalogProcessor:
         )
         return summary
 
-    def _find_column(self, aliases: list, df: pd.DataFrame) -> Optional[str]:
+    def _find_column(self, aliases: list[str], df: pd.DataFrame) -> Optional[str]:
         """Helper to find column by aliases."""
         for a in aliases:
             if a in df.columns:
@@ -1200,7 +1200,7 @@ class KPICatalogProcessor:
         ).fillna(0)
         return df[["year_month", "total_scheduled", "total_received", "collection_rate"]]
 
-    def get_executive_strip(self) -> Dict:
+    def get_executive_strip(self) -> Dict[str, Any]:
         """Consolidate the key 8 KPIs for the executive strip."""
         if self.loan_month.empty:
             self.build_loan_month()
@@ -1263,7 +1263,7 @@ class KPICatalogProcessor:
         }
         return strip
 
-    def get_all_kpis(self) -> Dict:
+    def get_all_kpis(self) -> Dict[str, Any]:
         """Run all calculations and return a consolidated dictionary."""
         kpis: Dict[str, Any] = {}
         # Executive Strip

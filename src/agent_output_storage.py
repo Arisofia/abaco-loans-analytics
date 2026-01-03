@@ -1,9 +1,10 @@
 import json
 import os
 from datetime import datetime, timezone
+from typing import Any, Optional, List
 
 
-def save_agent_output(agent_name, output, version=None, storage_dir="data/agent_outputs"):
+def save_agent_output(agent_name: str, output: Any, version: Optional[str] = None, storage_dir: str = "data/agent_outputs") -> str:
     os.makedirs(storage_dir, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     version = version or timestamp
@@ -16,6 +17,6 @@ def save_agent_output(agent_name, output, version=None, storage_dir="data/agent_
     return path
 
 
-def list_agent_outputs(agent_name, storage_dir="data/agent_outputs"):
+def list_agent_outputs(agent_name: str, storage_dir: str = "data/agent_outputs") -> List[str]:
     files = [f for f in os.listdir(storage_dir) if f.startswith(agent_name)]
     return files
