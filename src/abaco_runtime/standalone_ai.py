@@ -3,6 +3,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any, cast
+from itertools import islice
 
 from requests.exceptions import RequestException
 
@@ -90,7 +91,7 @@ class StandaloneAIEngine:
             return self._offline_response(personality, context, data)
 
     def _offline_response(self, personality: Dict[str, str], context: Dict[str, Any], data: Dict[str, Any]) -> str:
-        preview = json.dumps({k: data[k] for k in list(data)[:3]}, ensure_ascii=False)
+        preview = json.dumps({k: data[k] for k in islice(data, 3)}, ensure_ascii=False)
         return (
             f"[{personality['tone']}] {context.get('summary', 'No summary provided')} | "
             f"Insights based on: {preview}"
