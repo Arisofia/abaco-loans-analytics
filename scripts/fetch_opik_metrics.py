@@ -21,9 +21,9 @@ def fetch_opik_metrics():
     # Ensure output directory exists
     output_dir = Path("outputs")
     output_dir.mkdir(exist_ok=True)
-    
+
     opik_token = os.getenv("OPIKTOKEN")
-    
+
     if not opik_token:
         logger.warning("OPIKTOKEN not configured, generating placeholder metrics")
         metrics = generate_placeholder_metrics()
@@ -31,12 +31,12 @@ def fetch_opik_metrics():
         # TODO: Implement actual Opik API integration when credentials are available
         logger.info("Fetching metrics from Opik (placeholder implementation)")
         metrics = generate_placeholder_metrics()
-    
+
     # Write metrics to output file
     output_file = output_dir / "opik_metrics.json"
     with open(output_file, "w") as f:
         json.dump(metrics, f, indent=2)
-    
+
     logger.info(f"Metrics written to {output_file}")
     return metrics
 

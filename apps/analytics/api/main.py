@@ -28,7 +28,7 @@ def get_latest_kpis():
 
     if not manifests:
         raise HTTPException(status_code=404, detail="No manifests found")
-        
+
     latest_manifest_path = manifests[0]
     try:
         with open(latest_manifest_path, "r") as f:
@@ -47,11 +47,11 @@ def get_latest_kpis():
 async def trigger_pipeline(background_tasks: BackgroundTasks, input_file: str = "data/abaco_portfolio_calculations.csv"):
     """Trigger the Prefect pipeline flow as a background task."""
     from python.pipeline.prefect_orchestrator import abaco_pipeline_flow
-    
+
     # In a production env, we'd use prefect's deployment API
     # For this implementation, we run the flow function directly in background
     background_tasks.add_task(abaco_pipeline_flow, input_file=input_file)
-    
+
     return {"message": "Pipeline triggered successfully", "input_file": input_file}
 
 if __name__ == "__main__":
