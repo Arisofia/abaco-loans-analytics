@@ -1,6 +1,6 @@
 """Data contracts and schemas using Pandera for Abaco Loans Analytics - Engineering Excellence Edition."""
 
-from typing import Optional
+from typing import Optional, Any, cast
 
 import pandas as pd
 import pandera as pa
@@ -23,9 +23,9 @@ class LoanTapeSchema(pa.DataFrameModel):
 
     @pa.check("disbursement_date")
     @staticmethod
-    def date_not_in_future(series: Series) -> Series:
+    def date_not_in_future(series: Series[Any]) -> Series[bool]:
         """Ensure disbursement dates are not in the future."""
-        return series <= pd.Timestamp.now()
+        return cast(Series[bool], series <= pd.Timestamp.now())
 
     class Config:
         strict = False  # Allow extra columns for now, but validate defined ones
