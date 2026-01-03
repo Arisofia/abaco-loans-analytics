@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 
 class FeedbackStore:
@@ -34,7 +34,7 @@ class FeedbackStore:
         scores = []
         for file in files:
             with open(os.path.join(self.storage_dir, file), "r") as f:
-                data = json.load(f)
+                data = cast(Dict[str, Any], json.load(f))
                 scores.append(data["score"])
 
         if not scores:

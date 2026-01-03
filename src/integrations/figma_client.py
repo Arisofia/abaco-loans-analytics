@@ -12,7 +12,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import requests
 
@@ -42,7 +42,7 @@ class FigmaClient:
         try:
             response = requests.request(method, url, timeout=30, **kwargs)
             response.raise_for_status()
-            return response.json()
+            return cast(Dict[str, Any], response.json())
         except requests.RequestException as e:
             logger.error(f"Figma API error: {e}")
             return {}

@@ -13,7 +13,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import pandas as pd
 
@@ -42,7 +42,7 @@ class BatchExportRunner:
 
         if metrics_file.exists():
             with metrics_file.open() as f:
-                return json.load(f)
+                return cast(Dict[str, Any], json.load(f))
 
         logger.warning("No metrics file found. Using empty metrics.")
         return {}
